@@ -1,0 +1,36 @@
+# Binaire compilé
+/backend-api-skillforge
+/cmd/server/backend-api-skillforge
+
+# Dépendances
+/vendor/
+
+# Fichiers de configuration d’éditeur
+.vscode/
+.idea/
+*.swp
+
+# Fichiers système
+.DS_Store
+Thumbs.db
+
+# Variables d’environnement
+.env
+.env.*
+
+# Logs
+*.log
+
+# Docker
+*.pid
+
+# Cache Go
+*.out
+
+# Test coverage
+coverage.*
+*.coverprofile
+
+# Autres fichiers temporaires
+*.tmp
+*.bak
