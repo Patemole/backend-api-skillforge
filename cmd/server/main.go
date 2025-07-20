@@ -21,6 +21,7 @@ func main() {
 	r.Use(middleware.Logger())
 
 	r.GET("/health", handlers.Health)
+	r.POST("/extract", handlers.ExtractCV)
 
 	port := os.Getenv("PORT")
 	if port == "" {
