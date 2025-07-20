@@ -3,7 +3,9 @@ package main
 import (
 	"log"
 	"os"
+	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 
@@ -19,6 +21,21 @@ func main() {
 	r := gin.New()
 	r.Use(gin.Recovery())
 	r.Use(middleware.Logger())
+
+	// ✅ Middleware CORS avancé
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"}, // En prod, remplace par ton domaine front
+		AllowMethods:     []string{"GET", "POST", "OPTIONS"},
+		AllowHeaders:     []string{"Authorization", "Content-Type", "apikey", "x-client-info"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
+
+	// ✅ Gère les requêtes OPTIONS (nécessaire pour le preflight)
+	r.OPTIONS("/extract", func(c *gin.Context) {
+		c.Status(200)
+	})
 
 	r.GET("/health", handlers.Health)
 	r.POST("/extract", handlers.ExtractCV)
