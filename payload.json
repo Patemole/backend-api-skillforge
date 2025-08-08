@@ -1,0 +1,81 @@
+{
+    "type": "generate_word_doc_complex",
+    "user_id": "123e4567-e89b-12d3-a456-426614174000",
+    "payload": {
+      "competence_dossier": {
+        "prenom": "Juliette",
+        "age": "35",
+        "poste": "Chef de Projet Technique & Architecte Cloud",
+        "diplome": "Doctorat en Informatique",
+        "expérience": "12 ans",
+        "mobilité": "Internationale",
+        "disponibilité": "Sous 1 mois",
+        "permis_B": "Oui",
+        "hobbies": [
+          "Escalade",
+          "Musique (piano)",
+          "Contributions Open Source"
+        ],
+        "formations": [
+          {
+            "date_debut": "2012-09-01",
+            "date_fin": "2015-07-15",
+            "diplome": "Doctorat en Informatique - Spécialité Cloud Computing",
+            "ecole_cursus": "École Polytechnique Fédérale de Lausanne (EPFL)"
+          },
+          {
+            "date_debut": "2009-09-01",
+            "date_fin": "2012-07-15",
+            "diplome": "Master en Systèmes d'Information",
+            "ecole_cursus": "Université de Technologie de Compiègne (UTC)"
+          }
+        ],
+        "expériences": [
+          {
+            "entreprise": "CloudNet Corp",
+            "durée": "2020 - Présent",
+            "poste": "Architecte Cloud Senior",
+            "contexte": "Conception et supervision des infrastructures cloud pour des clients grands comptes.",
+            "projet": "Migration d'un monolithe on-premise vers une architecture 100% serverless sur AWS.",
+            "logiciels": ["AWS (Lambda, S3, DynamoDB)", "Terraform", "Kubernetes", "Python"],
+            "réalisations": [
+              "Automatisation complète du déploiement, réduisant les erreurs de 95%.",
+              "Optimisation des coûts d'infrastructure de 30%."
+            ],
+            "AI_suggest": ["Mise en place d'une stratégie de FinOps"]
+          },
+          {
+            "entreprise": "DataWiz",
+            "durée": "2016 - 2020",
+            "poste": "Lead Developer Big Data",
+            "contexte": "Construction d'un data lake pour une startup dans le secteur de la publicité.",
+            "projet": "Développement du pipeline d'ingestion et de traitement de données en temps réel.",
+            "logiciels": ["Apache Spark", "Kafka", "Hadoop (HDFS)", "Scala", "Java"],
+            "réalisations": [
+              "Traitement de plus d'un milliard d'événements par jour.",
+              "Création d'un framework interne pour accélérer le développement de nouveaux connecteurs."
+            ],
+            "AI_suggest": ["Exploration de solutions de Machine Learning pour la prédiction de clics"]
+          }
+        ],
+        "logiciels": [
+          {
+            "logiciel": "AWS",
+            "level": "Expert",
+            "temps_utilisation": "6 ans"
+          },
+          {
+            "logiciel": "Python",
+            "level": "Expert",
+            "temps_utilisation": "10 ans"
+          },
+          {
+            "logiciel": "Terraform",
+            "level": "Avancé",
+            "temps_utilisation": "4 ans"
+          }
+        ]
+      },
+      "template_url": "https://gksurcxmvvdvjcrssair.supabase.co/storage/v1/object/public/org-assets/leaf_template.docx"
+    }
+  }
