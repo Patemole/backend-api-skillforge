@@ -1,0 +1,183 @@
+{
+    "result": {
+        "prenom": "Abdelkader",
+        "age": null,
+        "poste": "Ingénieur génie civil - management de projet",
+        "diplome": "Diplôme d’Ingénieur Génie Civil - Label EUR-ACE",
+        "expérience": null,
+        "mobilité": null,
+        "disponibilité": null,
+        "permis_B": true,
+        "hobbies": [],
+        "formations": [
+            {
+                "date_debut": "2023-01",
+                "date_fin": "2024-04",
+                "diplome": "Master Innovation, Entreprise et Société, parcours Management de projets Eco-responsables",
+                "ecole_cursus": "Université de Haute-Alsace Mulhouse"
+            },
+            {
+                "date_debut": "2023-01",
+                "date_fin": "2024-04",
+                "diplome": "MBA Management de l’Ecoconstruction et de l’Aménagement Durable",
+                "ecole_cursus": "International Terra Institute Paris"
+            },
+            {
+                "date_debut": "2016-09",
+                "date_fin": "2019-07",
+                "diplome": "Diplôme d’Ingénieur Génie Civil - Label EUR-ACE",
+                "ecole_cursus": "Ecole supérieure d’ingénieurs et des études technologiques Tunisie"
+            },
+            {
+                "date_debut": "2012-09",
+                "date_fin": "2015-07",
+                "diplome": "Licence appliquée en Génie Civil",
+                "ecole_cursus": "Institut supérieur des études technologiques de Radès Tunisie"
+            }
+        ],
+        "expériences": [
+            {
+                "entreprise": "BEXCONSULT",
+                "durée": null,
+                "poste": "Responsable d’opération MOEX/OPC",
+                "contexte": "Projet de reconversion du site de l’hôpital à Saint-Germain-en-Laye",
+                "projet": null,
+                "logiciels": [],
+                "réalisations": [
+                    "Pilotage opérationnel du chantier de la phase EXE à la réception.",
+                    "Ordonnancement, pilotage et coordination des différents corps d’état.",
+                    "Suivi de l’avancement des travaux, gestion des points bloquants et relances des entreprises.",
+                    "Animation des réunions de chantier et rédaction des comptes rendus.",
+                    "Contrôle de la qualité d’exécution, du respect des délais et du budget.",
+                    "Interface entre la maîtrise d’ouvrage, les entreprises et les autres intervenants (BET, CSPS...).",
+                    "Suivi des situations de travaux et participation à la gestion financière du projet."
+                ],
+                "AI_suggest": []
+            },
+            {
+                "entreprise": "Egis groupement Keiros Paris",
+                "durée": null,
+                "poste": "Stage Ingénieur OPC-G",
+                "contexte": "Projet : Grand Paris Express -Gare de Villejuif Institut Gustave Roussy, Ligne 15 SUD",
+                "projet": null,
+                "logiciels": [],
+                "réalisations": [
+                    "Surveillance de la progression des travaux",
+                    "Mise à jour du planning et élaboration du planning sur 3 semaines",
+                    "Participation à la coordination entre les différents acteurs du chantier",
+                    "Suivi des rendus",
+                    "Rédaction du rapport de visite hebdomadaire"
+                ],
+                "AI_suggest": []
+            },
+            {
+                "entreprise": "France Bâtiment Peinture Paris",
+                "durée": null,
+                "poste": "Chargé d’affaire Réhabilitation",
+                "contexte": "Principaux clients : Conseils départementaux du Val d’Oise et de Seine Saint Denis",
+                "projet": null,
+                "logiciels": [],
+                "réalisations": [
+                    "Elaboration des procédures d’exécution",
+                    "Etablissement des devis et suivi financier des chantiers",
+                    "Approvisionnement des matériaux",
+                    "Analyse des documents marchés (CCTP, CCAP, acte d’engagement) et préparation des documents PPSPS"
+                ],
+                "AI_suggest": []
+            },
+            {
+                "entreprise": "ARCHISUD",
+                "durée": null,
+                "poste": "Ingénieur Travaux",
+                "contexte": "Construction d’immeubles neufs d’habitation",
+                "projet": null,
+                "logiciels": [],
+                "réalisations": [
+                    "Élaborer les procédures d’exécution et préparer les documents nécessaires.",
+                    "Planification des travaux sur Ms project",
+                    "Établir les devis et assurer le suivi financier des chantiers, y compris l’approvisionnement des matériaux.",
+                    "Coordonner les travaux entre les corps d’état techniques et architecturaux pour garantir leur bonne intégration.",
+                    "Suivre l’avancement des sous-traitants, vérifier l’exécution des tâches",
+                    "Réaliser les OPR, gérer les réserves et contrôler la qualité et la conformité des travaux.",
+                    "Assurer le suivi budgétaire pour respecter les coûts prévus."
+                ],
+                "AI_suggest": []
+            },
+            {
+                "entreprise": "L’Etoile Immobilière Tunisie",
+                "durée": null,
+                "poste": "Conducteur travaux",
+                "contexte": "Construction d’un bâtiment à usage mixte (SS + R+4) à EZZAHRA",
+                "projet": null,
+                "logiciels": [],
+                "réalisations": [
+                    "Suivi des travaux et contrôle de la qualité des ouvrages exécutés",
+                    "Coordination opérationnelle de l’activité des sous-traitants",
+                    "Gestion du planning avec ajustements en fonction de l’activité"
+                ],
+                "AI_suggest": []
+            }
+        ],
+        "logiciels": [
+            {
+                "logiciel": "Revit Structure",
+                "level": null,
+                "temps_utilisation": null
+            },
+            {
+                "logiciel": "Arcgis",
+                "level": null,
+                "temps_utilisation": null
+            },
+            {
+                "logiciel": "Primavera P6",
+                "level": null,
+                "temps_utilisation": null
+            },
+            {
+                "logiciel": "Project wise",
+                "level": null,
+                "temps_utilisation": null
+            },
+            {
+                "logiciel": "Revit structure",
+                "level": null,
+                "temps_utilisation": null
+            },
+            {
+                "logiciel": "Ms project",
+                "level": null,
+                "temps_utilisation": null
+            },
+            {
+                "logiciel": "Arche GRAITEC",
+                "level": null,
+                "temps_utilisation": null
+            },
+            {
+                "logiciel": "AutoCad",
+                "level": null,
+                "temps_utilisation": null
+            },
+            {
+                "logiciel": "Autodesk Robot Structural",
+                "level": null,
+                "temps_utilisation": null
+            },
+            {
+                "logiciel": "Analysis",
+                "level": null,
+                "temps_utilisation": null
+            },
+            {
+                "logiciel": "Microsoft Office",
+                "level": null,
+                "temps_utilisation": null
+            }
+        ]
+    },
+    "completionTokens": 1511,
+    "promptTokens": 1891,
+    "totalTokens": 3402,
+    "logprobs": -19.82713736672374
+}

@@ -1,0 +1,199 @@
+{
+    "prenom": "Abdelkader",
+    "age": "Non précisé(e)",
+    "poste": "Ingénieur génie civil - management de projet",
+    "diplome": "Ecole supérieure d’ingénieurs et des études technologiques Tunisie - Diplôme d’Ingénieur Génie Civil - Label EUR-ACE",
+    "expérience": "Non précisé(e)",
+    "mobilité": "Non précisé(e)",
+    "disponibilité": "Non précisé(e)",
+    "permis_B": true,
+    "hobbies": [],
+    "formations": [
+      {
+        "date_debut": "2023-01",
+        "date_fin": "2024-04",
+        "diplome": "Master Innovation, Entreprise et Société, parcours Management de projets Eco-responsables",
+        "ecole_cursus": "Université de Haute-Alsace Mulhouse"
+      },
+      {
+        "date_debut": "2023-01",
+        "date_fin": "2024-04",
+        "diplome": "MBA Management de l’Ecoconstruction et de l’Aménagement Durable",
+        "ecole_cursus": "International Terra Institute Paris"
+      },
+      {
+        "date_debut": "2016-09",
+        "date_fin": "2019-07",
+        "diplome": "Diplôme d’Ingénieur Génie Civil - Label EUR-ACE",
+        "ecole_cursus": "Ecole supérieure d’ingénieurs et des études technologiques Tunisie"
+      },
+      {
+        "date_debut": "2012-09",
+        "date_fin": "2015-07",
+        "diplome": "Licence appliquée en Génie Civil",
+        "ecole_cursus": "Institut supérieur des études technologiques de Radès Tunisie"
+      }
+    ],
+    "expériences": [
+      {
+        "entreprise": "BEXCONSULT",
+        "durée": "Non précisé(e)",
+        "poste": "Responsable d’opération MOEX/OPC",
+        "contexte": "Projet de reconversion du site de l’hôpital à Saint-Germain-en-Laye",
+        "projet": "Pilotage et coordination intégrale d’un chantier de reconversion hospitalière à Saint-Germain-en-Laye avec maîtrise opérationnelle du suivi d’exécution, ordonnancement et contrôle qualité.",
+        "logiciels": [],
+        "réalisations": [
+          "Pilotage opérationnel du chantier de la phase EXE à la réception, garantissant le respect des délais et de la qualité.",
+          "Organisation et ordonnancement précis ainsi que coordination des différents corps d’état intervenant sur le chantier.",
+          "Suivi rigoureux de l’avancement des travaux, gestion efficace des points bloquants et relance proactive des entreprises concernées.",
+          "Animation régulière des réunions de chantier et rédaction détaillée des comptes rendus pour assurer une communication fluide entre les parties.",
+          "Contrôle strict de la qualité d’exécution des travaux, veillant au respect des délais impartis et du budget alloué.",
+          "Interface opérationnelle entre la maîtrise d’ouvrage, les entreprises et les autres intervenants techniques comme les BET et CSPS.",
+          "Suivi précis des situations de travaux et participation active à la gestion financière globale du projet."
+        ],
+        "AI_suggest": [
+          "Estimer une expérience significative en gestion de projets complexes de grande envergure et coordination multi-acteurs.",
+          "Valoriser des compétences en gestion financière et optimisation budgétaire des projets de construction.",
+          "Mettre en avant des capacités d’animation de réunions techniques et de communication interdisciplinaire."
+        ]
+      },
+      {
+        "entreprise": "Egis groupement Keiros Paris",
+        "durée": "Non précisé(e)",
+        "poste": "Stage Ingénieur OPC-G",
+        "contexte": "Projet : Grand Paris Express - Gare de Villejuif Institut Gustave Roussy, Ligne 15 SUD",
+        "projet": "Suivi et coordination pluridisciplinaire des travaux du projet Grand Paris Express, assurant la mise à jour proactive des plannings et la gestion opérationnelle du chantier ferroviaire majeur.",
+        "logiciels": [],
+        "réalisations": [
+          "Surveillance continue de la progression des travaux afin de respecter les échéances du projet.",
+          "Mise à jour régulière du planning et élaboration de plannings détaillés sur trois semaines pour anticiper les phases critiques.",
+          "Participation active à la coordination entre les différents intervenants du chantier pour optimiser les flux et réduire les retards.",
+          "Suivi méticuleux des rendus et livrables techniques associés au projet.",
+          "Rédaction hebdomadaire de rapports de visites pour documenter l’avancement et les points nécessitant des actions."
+        ],
+        "AI_suggest": [
+          "Développer des compétences spécifiques en gestion de chantiers infrastructurels et ferroviaires de grande envergure.",
+          "Suggérer la maîtrise des outils de planification avancée pour optimiser la gestion temporelle des travaux.",
+          "Illustrer une expérience de travail dans des environnements projets complexes intégrant multiples parties prenantes."
+        ]
+      },
+      {
+        "entreprise": "France Bâtiment Peinture Paris",
+        "durée": "Non précisé(e)",
+        "poste": "Chargé d’affaire Réhabilitation",
+        "contexte": "Principaux clients : Conseils départementaux du Val d’Oise et de Seine Saint Denis",
+        "projet": "Gestion complète des affaires de réhabilitation auprès d’acteurs institutionnels, incluant préparation réglementaire, suivi financier et approvisionnement pour garantir la conformité et le succès des chantiers.",
+        "logiciels": [],
+        "réalisations": [
+          "Élaboration des procédures d’exécution adaptées aux spécificités des chantiers de réhabilitation.",
+          "Établissement précis des devis et suivi financier rigoureux des chantiers pour assurer la rentabilité.",
+          "Gestion efficace de l’approvisionnement en matériaux nécessaires aux travaux, optimisant les coûts et les délais.",
+          "Analyse détaillée des documents marchés (CCTP, CCAP, acte d’engagement) et préparation des documents de sécurité (PPSPS)."
+        ],
+        "AI_suggest": [
+          "Renforcer l’expertise en gestion administrative et contractuelle des projets publics.",
+          "Mettre en avant une aptitude à la négociation et au suivi financier sur des marchés institutionnels.",
+          "Souligner la connaissance des normes et réglementations propres aux travaux de réhabilitation."
+        ]
+      },
+      {
+        "entreprise": "ARCHISUD",
+        "durée": "Non précisé(e)",
+        "poste": "Ingénieur Travaux",
+        "contexte": "Construction d’immeubles neufs d’habitation",
+        "projet": "Pilotage technique et financier de projets de construction d’immeubles résidentiels, assurant la coordination entre techniques et architectes pour livrer des ouvrages conformes et de qualité.",
+        "logiciels": [
+          "Ms project"
+        ],
+        "réalisations": [
+          "Élaboration des procédures d’exécution et préparation des documents nécessaires pour le bon déroulement des travaux.",
+          "Planification détaillée des travaux avec Ms Project afin de respecter les échéances et coordonner les ressources.",
+          "Établissement des devis et suivi financier rigoureux des chantiers, incluant la gestion de l’approvisionnement en matériaux.",
+          "Coordination efficace des travaux entre les corps d’état techniques et architecturaux pour garantir leur bonne intégration.",
+          "Suivi précis de l’avancement des sous-traitants, vérification et validation de l’exécution des tâches confiées.",
+          "Réalisation des opérations de réception (OPR), gestion des réserves et contrôle strict de la qualité et conformité des travaux.",
+          "Suivi budgétaire constant pour veiller au respect des coûts prévus."
+        ],
+        "AI_suggest": [
+          "Présenter la maîtrise de la planification de projets complexes via Ms Project.",
+          "Mettre en avant une aptitude forte à la coordination interdisciplinaire entre corps de métiers variés.",
+          "Valoriser une expérience consolidée dans le contrôle qualité et la gestion des non-conformités sur chantier."
+        ]
+      },
+      {
+        "entreprise": "L’Etoile Immobilière Tunisie",
+        "durée": "Non précisé(e)",
+        "poste": "Conducteur travaux",
+        "contexte": "Construction d’un bâtiment à usage mixte (SS + R+4) à EZZAHRA",
+        "projet": "Supervision opérationnelle des travaux pour la construction d’un bâtiment mixte, assurant qualité, respect des plannings et coordination des sous-traitants.",
+        "logiciels": [],
+        "réalisations": [
+          "Suivi rigoureux des travaux et contrôle qualité des ouvrages réalisés conformément aux normes en vigueur.",
+          "Coordination opérationnelle efficace des activités des sous-traitants intervenant sur le chantier.",
+          "Gestion dynamique du planning de chantier avec ajustements adaptés en fonction de l’avancement et des aléas."
+        ],
+        "AI_suggest": [
+          "Mettre en avant des compétences en gestion opérationnelle et pilotage d’équipes sur chantier.",
+          "Souligner une capacité d’adaptation aux contraintes terrain et gestion proactive des imprévus.",
+          "Valoriser la maîtrise des méthodes de contrôle qualité et conformité dans la construction."
+        ]
+      }
+    ],
+    "logiciels": [
+      {
+        "logiciel": "Revit Structure",
+        "level": "Non précisé(e)",
+        "temps_utilisation": "Non précisé(e)"
+      },
+      {
+        "logiciel": "Arcgis",
+        "level": "Non précisé(e)",
+        "temps_utilisation": "Non précisé(e)"
+      },
+      {
+        "logiciel": "Primavera P6",
+        "level": "Non précisé(e)",
+        "temps_utilisation": "Non précisé(e)"
+      },
+      {
+        "logiciel": "Project wise",
+        "level": "Non précisé(e)",
+        "temps_utilisation": "Non précisé(e)"
+      },
+      {
+        "logiciel": "Revit structure",
+        "level": "Non précisé(e)",
+        "temps_utilisation": "Non précisé(e)"
+      },
+      {
+        "logiciel": "Ms project",
+        "level": "Intermédiaire",
+        "temps_utilisation": "24"
+      },
+      {
+        "logiciel": "Arche GRAITEC",
+        "level": "Non précisé(e)",
+        "temps_utilisation": "Non précisé(e)"
+      },
+      {
+        "logiciel": "AutoCad",
+        "level": "Non précisé(e)",
+        "temps_utilisation": "Non précisé(e)"
+      },
+      {
+        "logiciel": "Autodesk Robot Structural",
+        "level": "Non précisé(e)",
+        "temps_utilisation": "Non précisé(e)"
+      },
+      {
+        "logiciel": "Analysis",
+        "level": "Non précisé(e)",
+        "temps_utilisation": "Non précisé(e)"
+      },
+      {
+        "logiciel": "Microsoft Office",
+        "level": "Avancé",
+        "temps_utilisation": "60"
+      }
+    ]
+}
