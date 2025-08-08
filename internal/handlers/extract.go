@@ -25,7 +25,7 @@ func ExtractCV(c *gin.Context) {
 	}
 
 	client := nuextract.New()
-	result, err := client.Extract(data)
+	result, err := client.ExtractAndEnrich(data)
 	if err != nil {
 		c.JSON(http.StatusBadGateway, gin.H{"error": err.Error()})
 		return
