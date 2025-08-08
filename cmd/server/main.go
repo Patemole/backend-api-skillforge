@@ -36,13 +36,18 @@ func main() {
 	r.OPTIONS("/extract", func(c *gin.Context) {
 		c.Status(200)
 	})
+	r.OPTIONS("/jobs", func(c *gin.Context) {
+		c.Status(200)
+	})
 
 	r.GET("/health", handlers.Health)
 	r.POST("/extract", handlers.ExtractCV)
+	r.POST("/jobs", handlers.CreateJob)
+	r.GET("/jobs/:id/status", handlers.GetJobStatus)
 
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "8080"
+		port = "8081"
 	}
 	log.Printf("⇨ listening on :%s", port)
 	if err := r.Run(":" + port); err != nil {
