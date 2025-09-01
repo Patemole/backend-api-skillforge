@@ -2,7 +2,7 @@
 
 ## Lancer en local
 ```bash
-cp .env.example .env
+cp .env.example .env -pas besoin si deja le fichier .env existe en local. 
 go run ./cmd/server
 
 
