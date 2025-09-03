@@ -39,11 +39,15 @@ func main() {
 	r.OPTIONS("/jobs", func(c *gin.Context) {
 		c.Status(200)
 	})
+	r.OPTIONS("/api/email/generate-presentation", func(c *gin.Context) {
+		c.Status(200)
+	})
 
 	r.GET("/health", handlers.Health)
 	r.POST("/extract", handlers.ExtractCV)
 	r.POST("/jobs", handlers.CreateJob)
 	r.GET("/jobs/:id/status", handlers.GetJobStatus)
+	r.POST("/api/email/generate-presentation", handlers.GeneratePresentationEmail)
 
 	port := os.Getenv("PORT")
 	if port == "" {

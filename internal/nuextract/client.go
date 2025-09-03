@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 )
 
 // Client wraps both NuExtract and OpenAI credentials.
@@ -27,10 +28,14 @@ func New() *Client {
 	}
 }
 
-// ExtractAndEnrich sends a PDF to NuExtract, then feeds its JSON into your OpenAI Agent
-// via the Responses API, returning the enriched CV JSON.
+// ExtractAndEnrich sends a PDF to NuExtract, then feeds its JSON into OpenAI
+// via the Chat Completions API, returning the enriched CV JSON.
 func (c *Client) ExtractAndEnrich(file []byte) ([]byte, error) {
+	startTime := time.Now()
+	log.Printf("DEBUG: Début de l'extraction et enrichissement")
+
 	// 1) Call NuExtract
+	nuexStart := time.Now()
 	nuexURL := fmt.Sprintf("https://nuextract.ai/api/projects/%s/extract", c.projectID)
 	req, err := http.NewRequest(http.MethodPost, nuexURL, bytes.NewReader(file))
 	if err != nil {
@@ -55,27 +60,41 @@ func (c *Client) ExtractAndEnrich(file []byte) ([]byte, error) {
 		return nil, err
 	}
 
+	nuexDuration := time.Since(nuexStart)
+	log.Printf("DEBUG: NuExtract terminé en %v", nuexDuration)
 	log.Printf("DEBUG: Réponse brute de NuExtract:\n%s\n", string(raw))
 
-	// 2) Call OpenAI Responses API
+	// 2) Call OpenAI Chat Completions API (plus rapide que Responses API)
+	openAIStart := time.Now()
 	if c.openAIAPIKey == "" {
 		return nil, fmt.Errorf("OPENAI_API_KEY not set")
 	}
 
-	promptObj := map[string]string{
-		"id": "pmpt_68950bb21ce0819798500b6ca248ac020b48eb001db501d2",
-	}
+	// Récupérer le prompt et la configuration
+	prompt := GetExtractionPrompt(string(raw))
+	config := GetOpenAIConfig()
+
 	payload := map[string]interface{}{
-		"prompt":            promptObj,
-		"input":             string(raw),
-		"max_output_tokens": 50000,
+		"model": config.Model,
+		"messages": []map[string]string{
+			{
+				"role":    "user",
+				"content": prompt,
+			},
+		},
+		"max_tokens":        config.MaxTokens,
+		"temperature":       config.Temperature,
+		"top_p":             config.TopP,
+		"frequency_penalty": config.FrequencyPenalty,
+		"presence_penalty":  config.PresencePenalty,
 	}
+
 	bodyBytes, err := json.Marshal(payload)
 	if err != nil {
 		return nil, err
 	}
 
-	oaReq, err := http.NewRequest(http.MethodPost, "https://api.openai.com/v1/responses", bytes.NewReader(bodyBytes))
+	oaReq, err := http.NewRequest(http.MethodPost, "https://api.openai.com/v1/chat/completions", bytes.NewReader(bodyBytes))
 	if err != nil {
 		return nil, err
 	}
@@ -93,23 +112,39 @@ func (c *Client) ExtractAndEnrich(file []byte) ([]byte, error) {
 		return nil, fmt.Errorf("openai error %d: %s", oaResp.StatusCode, respBytes)
 	}
 
-	// 3) Unwrap the assistant's JSON from the response envelope
-	var wrap struct {
-		Output []struct {
-			Content []struct {
-				Text string `json:"text"`
-			} `json:"content"`
-		} `json:"output"`
+	// 3) Parse OpenAI response
+	var openAIResp struct {
+		Choices []struct {
+			Message struct {
+				Content string `json:"content"`
+			} `json:"message"`
+		} `json:"choices"`
+		Usage struct {
+			PromptTokens     int `json:"prompt_tokens"`
+			CompletionTokens int `json:"completion_tokens"`
+			TotalTokens      int `json:"total_tokens"`
+		} `json:"usage"`
 	}
-	if err := json.Unmarshal(respBytes, &wrap); err != nil {
+
+	if err := json.Unmarshal(respBytes, &openAIResp); err != nil {
 		return nil, err
 	}
-	if len(wrap.Output) == 0 || len(wrap.Output[0].Content) == 0 {
+
+	if len(openAIResp.Choices) == 0 {
 		return nil, fmt.Errorf("no content in OpenAI response")
 	}
 
-	finalJSON := []byte(wrap.Output[0].Content[0].Text)
+	openAIDuration := time.Since(openAIStart)
+	totalDuration := time.Since(startTime)
+
+	finalJSON := []byte(openAIResp.Choices[0].Message.Content)
+	log.Printf("DEBUG: OpenAI terminé en %v", openAIDuration)
 	log.Printf("DEBUG: JSON final après traitement OpenAI:\n%s\n", string(finalJSON))
+	log.Printf("DEBUG: Usage tokens - Prompt: %d, Completion: %d, Total: %d",
+		openAIResp.Usage.PromptTokens,
+		openAIResp.Usage.CompletionTokens,
+		openAIResp.Usage.TotalTokens)
+	log.Printf("DEBUG: Temps total d'extraction et enrichissement: %v", totalDuration)
 
 	return finalJSON, nil
 }
