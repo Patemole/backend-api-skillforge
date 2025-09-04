@@ -4,15 +4,15 @@ import "fmt"
 
 // GetExtractionPrompt retourne le prompt pour l'extraction et la structuration des données CV
 func GetExtractionPrompt(nuextractJSON string) string {
-	return `Je souhaite que tu analyses le dictionnaire JSON de l'extraction de CV que je te fournis en input et que tu extraies toutes les informations pertinentes sous la forme d'un dictionnaire structuré, pouvant être enregistré en JSON, selon le modèle suivant :
+	return `Tu es un expert RH spécialisé dans l'analyse de CV. Je souhaite que tu analyses le dictionnaire JSON de l'extraction de CV que je te fournis en input et que tu extraies TOUTES les informations pertinentes sous la forme d'un dictionnaire structuré, pouvant être enregistré en JSON, selon le modèle suivant :
 
 NE CHANGE SURTOUT PAS LES CLÉS DE CE DICTIONNAIRE, CAR IL DOIT ÊTRE UTILISÉ AUTREMENT PAR LA SUITE.
 
 {
   "prenom": "",
   "age": "Si ce n'est pas explicite, estimer à partir de la date de naissance si disponible.",
-  "poste": "",
-  "diplome": "Formation (nom de l'école d'ingénieur, de commerce ou du M2)",
+  "poste": "TITRE DU POSTE RECHERCHÉ - PAS le poste actuel mais le titre du poste visé",
+  "diplome": "Formation principale (nom de l'école d'ingénieur, de commerce ou du M2)",
   "expérience": "Ne prends en compte que les expériences pertinentes en cumulant leur durée respective.",
   "mobilité": "Position géographique recherchée si précisée.",
   "disponibilité": "",
@@ -20,23 +20,24 @@ NE CHANGE SURTOUT PAS LES CLÉS DE CE DICTIONNAIRE, CAR IL DOIT ÊTRE UTILISÉ A
   "hobbies": ["Liste des centres d'intérêts"],
   "formations": [
     {
-      "date_debut": "",
-      "date_fin": "",
-      "diplome": "",
-      "ecole_cursus": ""
+      "date_debut": "OBLIGATOIRE - Année de début (ex: 2020, 2018-2019)",
+      "date_fin": "OBLIGATOIRE - Année de fin (ex: 2022, 2020-2021)",
+      "diplome": "OBLIGATOIRE - Type de diplôme précis (ex: Master Ingénierie Mécanique, Diplôme d'Ingénieur, Bachelor Informatique, BTS Commerce, Diplôme de Médecine, MBA, etc.)",
+      "ecole_cursus": "OBLIGATOIRE - Nom complet de l'école/université (ex: École Centrale Paris, Université Pierre et Marie Curie, HEC Paris, etc.)"
     }
   ],
   "expériences": [
     {
-      "entreprise": "",
-      "durée": "",
-      "poste": "",
+      "entreprise": "OBLIGATOIRE - Nom de l'entreprise",
+      "durée": "OBLIGATOIRE - Durée précise (ex: 2 ans, 6 mois, 2020-2022)",
+      "poste": "OBLIGATOIRE - Titre du poste occupé (ex: Ingénieur Conception, Développeur Senior, Chef de Projet, etc.)",
       "contexte": "Résume l'expérience succinctement pour présenter le projet réalisé en une phrase.",
       "projet": "Ici, étoffe autant que possible les objectifs / projets de cette expérience et reformule pour rendre cela le plus long possible, sous forme de titre, sans faire apparaître le nom du candidat.",
-      "logiciels": [""],
+      "logiciels": ["OBLIGATOIRE - Extrais TOUS les logiciels/outils mentionnés dans cette expérience (ex: SolidWorks, Python, React, AWS, Docker, etc.) - même s'ils ne sont pas explicitement listés, déduis-les du contexte"],
       "réalisations": [
-        "Liste les missions réalisées, reformulées pour apporter un maximum de détails. Ajoute autant d'éléments que possible en les reformulant pour qu'ils soient le plus long possible. ],
-       "AI_suggest": [Si tu peux déduire des éléments pertinents non présents dans le CV. Les suggestions doivent être spécifiques et adaptées à chaque expérience, pertinentes pour les recruteurs, leur nombre doit varier selon les expériences, sans redondance entre elles. N'en mets pas systématiquement : cela doit paraître naturel."]
+        "Liste les missions réalisées, reformulées pour apporter un maximum de détails. Ajoute autant d'éléments que possible en les reformulant pour qu'ils soient le plus long possible."
+      ],
+      "AI_suggest": ["Si tu peux déduire des éléments pertinents non présents dans le CV. Les suggestions doivent être spécifiques et adaptées à chaque expérience, pertinentes pour les recruteurs, leur nombre doit varier selon les expériences, sans redondance entre elles. N'en mets pas systématiquement : cela doit paraître naturel."]
     }
   ],
   "logiciels": [
@@ -47,6 +48,34 @@ NE CHANGE SURTOUT PAS LES CLÉS DE CE DICTIONNAIRE, CAR IL DOIT ÊTRE UTILISÉ A
     }
   ]
 }
+
+INSTRUCTIONS CRITIQUES :
+
+1. **EXTRACTIONS OBLIGATOIRES** :
+   - Extrais TOUTES les expériences professionnelles (stages, CDI, CDD, alternances, etc.)
+   - Pour chaque formation : date_debut, date_fin, diplome ET ecole_cursus sont OBLIGATOIRES
+   - Pour chaque expérience : entreprise, durée, poste ET logiciels sont OBLIGATOIRES
+
+2. **CHAMP "poste"** :
+   - C'est le TITRE DU POSTE RECHERCHÉ, pas le poste actuel
+   - Exemples : "Ingénieur Conception Mécanique", "Solution Architecte", "Data Engineer", "Développeur Full Stack", "Chef de Projet", "Consultant"
+
+3. **DATES** :
+   - Extrais TOUJOURS les dates de début et fin des expériences
+   - Format : "2020-2022", "6 mois", "2 ans", etc.
+
+4. **FORMATIONS** :
+   - Remplis TOUS les champs : date_debut, date_fin, diplome, ecole_cursus
+   - Sois précis sur le type de diplôme : Master, Bachelor, BTS, Diplôme d'Ingénieur, MBA, etc.
+
+5. **LOGICIELS DANS LES EXPÉRIENCES** :
+   - Extrais TOUS les logiciels/outils mentionnés dans chaque expérience
+   - Déduis-les du contexte si nécessaire (ex: si "développement web" → ajoute HTML, CSS, JavaScript)
+
+6. **COMPLETUDE** :
+   - Ne laisse AUCUNE expérience de côté
+   - Ne laisse AUCUNE formation de côté
+   - Analyse TOUT le contenu du CV
 
 NB : Ne fais pas apparaître le type de contrat (exemple : Stage, Alternance, CDI, CDD...) dans les expériences.
 
