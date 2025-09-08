@@ -13,8 +13,8 @@ type OpenAIConfig struct {
 // GetOpenAIConfig retourne la configuration optimisée pour la vitesse
 func GetOpenAIConfig() OpenAIConfig {
 	return OpenAIConfig{
-		Model:            "gpt-4o-mini", // Plus rapide que gpt-4
-		MaxTokens:        8000,          // On analysera l'usage et on ajustera si besoin
+		Model:            "gpt-4o",       // Plus flexible que gpt-4-turbo
+		MaxTokens:        8000,           // Limite GPT-4o: plus élevée
 		Temperature:      0.1,           // Faible pour plus de cohérence et de vitesse
 		TopP:             0.9,
 		FrequencyPenalty: 0,

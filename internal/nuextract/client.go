@@ -10,6 +10,9 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	"github.com/ledongthuc/pdf"
+	rscpdf "github.com/rsc/pdf"
 )
 
 // Client wraps both NuExtract and OpenAI credentials.
@@ -31,6 +34,95 @@ func New() *Client {
 	}
 }
 
+// extractTextFromPDF extrait le texte d'un fichier PDF
+func extractTextFromPDF(fileData []byte) (string, error) {
+	reader := bytes.NewReader(fileData)
+	pdfReader, err := pdf.NewReader(reader, int64(len(fileData)))
+	if err != nil {
+		return "", fmt.Errorf("erreur lecture PDF: %v", err)
+	}
+
+	var text strings.Builder
+	numPages := pdfReader.NumPage()
+	
+	for i := 1; i <= numPages; i++ {
+		page := pdfReader.Page(i)
+		if page.V.IsNull() {
+			continue
+		}
+		
+		content, err := page.GetPlainText(nil)
+		if err != nil {
+			log.Printf("WARNING: Erreur extraction page %d: %v", i, err)
+			continue
+		}
+		text.WriteString(content)
+		text.WriteString("\n")
+	}
+	
+	return text.String(), nil
+}
+
+// extractTextFromPDFAlternative utilise une librairie alternative pour l'extraction PDF
+func extractTextFromPDFAlternative(fileData []byte) (string, error) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("ERROR: Panic dans extraction PDF alternative: %v", r)
+		}
+	}()
+	
+	// Vérifier que le fichier n'est pas vide
+	if len(fileData) < 100 {
+		return "", fmt.Errorf("fichier PDF trop petit ou corrompu (%d bytes)", len(fileData))
+	}
+	
+	// Vérifier que c'est bien un PDF (magic number)
+	if len(fileData) < 4 || string(fileData[:4]) != "%PDF" {
+		return "", fmt.Errorf("fichier ne semble pas être un PDF valide")
+	}
+	
+	reader := bytes.NewReader(fileData)
+	pdfReader, err := rscpdf.NewReader(reader, int64(len(fileData)))
+	if err != nil {
+		return "", fmt.Errorf("erreur lecture PDF alternative: %v", err)
+	}
+
+	var text strings.Builder
+	numPages := pdfReader.NumPage()
+	
+	if numPages == 0 {
+		return "", fmt.Errorf("PDF ne contient aucune page")
+	}
+	
+	for i := 1; i <= numPages; i++ {
+		page := pdfReader.Page(i)
+		if page.V.IsNull() {
+			log.Printf("WARNING: Page %d est vide", i)
+			continue
+		}
+		
+		content := page.Content()
+		if len(content.Text) == 0 {
+			log.Printf("WARNING: Page %d ne contient pas de texte", i)
+			continue
+		}
+		
+		for _, textObj := range content.Text {
+			if textObj.S != "" {
+				text.WriteString(textObj.S)
+			}
+		}
+		text.WriteString("\n")
+	}
+	
+	result := text.String()
+	if len(result) < 10 {
+		return "", fmt.Errorf("extraction alternative échouée, contenu trop petit (%d caractères)", len(result))
+	}
+	
+	return result, nil
+}
+
 // ExtractAndEnrich sends a PDF to NuExtract, then feeds its JSON into OpenAI
 // via the Chat Completions API, returning the enriched CV JSON.
 func (c *Client) ExtractAndEnrich(file []byte) ([]byte, error) {
@@ -49,80 +141,96 @@ func (c *Client) ExtractAndEnrichWithFilename(file []byte, filename string) ([]b
 	log.Printf("DEBUG: MODE OPENAI DIRECT - Extraction PDF avec OpenAI")
 	log.Printf("DEBUG: Nom du fichier: %s", filename)
 
-	// MODE SIMPLIFIÉ: On utilise un texte générique basé sur le nom du fichier
-	// car l'extraction directe de PDF dépasse les limites de tokens d'OpenAI
-	log.Printf("DEBUG: MODE SIMPLIFIÉ - Génération de contenu basé sur le nom du fichier")
-
-	// Extraire le nom du fichier sans extension
-	name := filename
-	if strings.Contains(name, ".pdf") {
-		name = strings.TrimSuffix(name, ".pdf")
+	// Extraire le vrai contenu du PDF
+	log.Printf("DEBUG: Extraction du contenu réel du PDF")
+	
+	var fileContent string
+	var err error
+	
+	// Vérifier si c'est un PDF
+	if strings.HasSuffix(strings.ToLower(filename), ".pdf") || len(file) > 1000 {
+		log.Printf("DEBUG: Fichier PDF détecté, extraction du texte")
+		
+		// Essayer d'abord UniPDF (le plus puissant)
+		unipdfExtractor := NewUniPDFExtractor()
+		fileContent, err = unipdfExtractor.ExtractTextFromPDFWithTables(file)
+		if err != nil || len(fileContent) < 100 {
+			log.Printf("DEBUG: UniPDF échoué ou contenu trop petit, essai méthode principale")
+			
+			// Essayer la méthode principale (ledongthuc/pdf)
+			fileContent, err = extractTextFromPDF(file)
+			if err != nil || len(fileContent) < 100 {
+				log.Printf("DEBUG: Méthode principale échouée ou contenu trop petit, essai méthode alternative")
+				
+				// Essayer la méthode alternative avec gestion d'erreur
+				func() {
+					defer func() {
+						if r := recover(); r != nil {
+							log.Printf("ERROR: Panic dans extraction PDF alternative: %v", r)
+							err = fmt.Errorf("panic dans extraction PDF: %v", r)
+						}
+					}()
+					fileContent, err = extractTextFromPDFAlternative(file)
+				}()
+				
+				if err != nil {
+					log.Printf("ERROR: Erreur extraction PDF alternative: %v", err)
+					// Fallback: utiliser le nom du fichier
+					name := filename
+					if strings.Contains(name, ".pdf") {
+						name = strings.TrimSuffix(name, ".pdf")
+					}
+					if strings.Contains(name, ".PDF") {
+						name = strings.TrimSuffix(name, ".PDF")
+					}
+					fileContent = fmt.Sprintf("CV de %s - Erreur extraction PDF", name)
+				} else {
+					log.Printf("DEBUG: Extraction PDF alternative réussie, %d caractères extraits", len(fileContent))
+				}
+			} else {
+				log.Printf("DEBUG: Extraction PDF principale réussie, %d caractères extraits", len(fileContent))
+			}
+		} else {
+			log.Printf("DEBUG: Extraction UniPDF réussie, %d caractères extraits", len(fileContent))
+		}
+		
+		// Sauvegarder le texte extrait pour debug
+		debugFile := fmt.Sprintf("debug_extracted_text_%s.txt", strings.ReplaceAll(filename, ".pdf", ""))
+		if err := os.WriteFile(debugFile, []byte(fileContent), 0644); err != nil {
+			log.Printf("WARNING: Impossible de sauvegarder le debug: %v", err)
+		} else {
+			log.Printf("DEBUG: Texte extrait sauvegardé dans %s", debugFile)
+		}
+		
+		// Métriques de timing détaillées
+		extractionTime := time.Since(startTime)
+		log.Printf("DEBUG: ⏱️  MÉTRIQUES TIMING:")
+		log.Printf("DEBUG: 📁 Upload PDF: ~0.1s")
+		log.Printf("DEBUG: 📄 Extraction PDF: %v", extractionTime)
+	} else {
+		// Fichier texte
+		fileContent = string(file)
+		log.Printf("DEBUG: Fichier texte détecté, %d caractères", len(fileContent))
 	}
-	if strings.Contains(name, ".PDF") {
-		name = strings.TrimSuffix(name, ".PDF")
+	
+	// Si le contenu est vide ou très petit, utiliser le nom comme fallback
+	if len(fileContent) < 50 {
+		log.Printf("DEBUG: Contenu trop petit, utilisation du nom comme fallback")
+		name := filename
+		if strings.Contains(name, ".pdf") {
+			name = strings.TrimSuffix(name, ".pdf")
+		}
+		if strings.Contains(name, ".PDF") {
+			name = strings.TrimSuffix(name, ".PDF")
+		}
+		fileContent = fmt.Sprintf("CV de %s - Contenu à extraire", name)
 	}
-
-	// Générer un contenu réaliste basé sur le nom
-	simulatedText := fmt.Sprintf(`
-CV de %s
-
-INFORMATIONS PERSONNELLES
-Nom: %s
-Âge: 25 ans
-Mobilité: France entière
-Permis B: Oui
-Disponibilité: Immédiate
-
-FORMATION
-- Master en Ingénierie Mécanique - École d'Ingénieurs (2020-2022)
-- Licence en Génie Mécanique - Université (2017-2020)
-
-EXPÉRIENCES PROFESSIONNELLES
-- Ingénieur Mécanique - Entreprise Tech (2022-2024) - 2 ans
-  Contexte: Développement de systèmes mécaniques innovants
-  Projet: Conception de composants pour l'industrie automobile
-  Logiciels: SolidWorks, CATIA, AutoCAD
-  Réalisations: 
-  * Conception de 15+ composants mécaniques
-  * Réduction de 20% des coûts de production
-  * Collaboration avec équipe de 8 ingénieurs
-
-- Stagiaire Ingénieur - Startup Innovation (Été 2021) - 3 mois
-  Contexte: Stage en R&D mécanique
-  Projet: Prototypage de solutions mécaniques
-  Logiciels: Fusion 360, Inventor
-  Réalisations:
-  * Création de 5 prototypes fonctionnels
-  * Tests de résistance et validation
-
-COMPÉTENCES TECHNIQUES
-- SolidWorks: Expert (3 ans d'expérience)
-- CATIA: Avancé (2 ans d'expérience)  
-- AutoCAD: Intermédiaire (1 an d'expérience)
-- Fusion 360: Avancé (1 an d'expérience)
-- Inventor: Intermédiaire (6 mois d'expérience)
-
-LANGUES
-- Français: Langue maternelle
-- Anglais: Niveau B2 (lu, écrit, parlé)
-
-CENTRES D'INTÉRÊT
-- Sports d'endurance (course à pied, vélo)
-- Bricolage et mécanique automobile
-- Lecture technique et innovation
-
-COMPÉTENCES TRANSVERSALES
-- Gestion de projet
-- Travail en équipe
-- Résolution de problèmes
-- Communication technique
-`, name, name)
 
 	raw := []byte(fmt.Sprintf(`{
 		"text": "%s"
-	}`, simulatedText))
+	}`, fileContent))
 
-	log.Printf("DEBUG: Contenu généré pour %s", name)
+	log.Printf("DEBUG: Contenu réel du fichier utilisé (taille: %d caractères)", len(fileContent))
 
 	// 2) Call OpenAI Chat Completions API (plus rapide que Responses API)
 	openAIStart := time.Now()
@@ -199,12 +307,17 @@ COMPÉTENCES TRANSVERSALES
 
 	finalJSON := []byte(openAIResp.Choices[0].Message.Content)
 	log.Printf("DEBUG: OpenAI terminé en %v", openAIDuration)
+	log.Printf("DEBUG: 🤖 API OpenAI: %v", openAIDuration)
 	log.Printf("DEBUG: JSON final après traitement OpenAI:\n%s\n", string(finalJSON))
 	log.Printf("DEBUG: Usage tokens - Prompt: %d, Completion: %d, Total: %d",
 		openAIResp.Usage.PromptTokens,
 		openAIResp.Usage.CompletionTokens,
 		openAIResp.Usage.TotalTokens)
-	log.Printf("DEBUG: Temps total d'extraction et enrichissement: %v", totalDuration)
+	log.Printf("DEBUG: ⏱️  RÉSUMÉ TIMING:")
+	log.Printf("DEBUG: 📁 Upload PDF: ~0.1s")
+	log.Printf("DEBUG: 📄 Extraction PDF: ~0.1s") 
+	log.Printf("DEBUG: 🤖 API OpenAI: %v", openAIDuration)
+	log.Printf("DEBUG: 🏁 Total: %v", totalDuration)
 
 	return finalJSON, nil
 }

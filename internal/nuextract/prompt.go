@@ -10,10 +10,10 @@ NE CHANGE SURTOUT PAS LES CLÉS DE CE DICTIONNAIRE, CAR IL DOIT ÊTRE UTILISÉ A
 
 {
   "prenom": "",
-  "age": "Si ce n'est pas explicite, estimer à partir de la date de naissance si disponible.",
+  "age": "Si l'âge n'est pas explicitement mentionné dans le CV, laisse ce champ vide (\"\"). Ne l'estime pas.",
   "poste": "TITRE DU POSTE RECHERCHÉ - PAS le poste actuel mais le titre du poste visé",
   "diplome": "Formation principale (nom de l'école d'ingénieur, de commerce ou du M2)",
-  "expérience": "Ne prends en compte que les expériences pertinentes en cumulant leur durée respective.",
+  "expérience": "Calcule l'expérience totale en années : trouve la date de début de l'expérience la plus ancienne et soustrais de l'année actuelle (2024). Si aucune date n'est disponible, laisse vide.",
   "mobilité": "Position géographique recherchée si précisée.",
   "disponibilité": "",
   "permis_B": "",
@@ -52,17 +52,20 @@ NE CHANGE SURTOUT PAS LES CLÉS DE CE DICTIONNAIRE, CAR IL DOIT ÊTRE UTILISÉ A
 INSTRUCTIONS CRITIQUES :
 
 1. **EXTRACTIONS OBLIGATOIRES** :
-   - Extrais TOUTES les expériences professionnelles (stages, CDI, CDD, alternances, etc.)
+   - Extrais TOUTES les expériences professionnelles (stages, CDI, CDD, alternances, etc.) - NE PAS EN OUBLIER UNE SEULE
    - Pour chaque formation : date_debut, date_fin, diplome ET ecole_cursus sont OBLIGATOIRES
    - Pour chaque expérience : entreprise, durée, poste ET logiciels sont OBLIGATOIRES
+   - **CRITIQUE** : Relis le CV plusieurs fois pour être sûr d'avoir extrait TOUTES les expériences mentionnées
 
 2. **CHAMP "poste"** :
    - C'est le TITRE DU POSTE RECHERCHÉ, pas le poste actuel
    - Exemples : "Ingénieur Conception Mécanique", "Solution Architecte", "Data Engineer", "Développeur Full Stack", "Chef de Projet", "Consultant"
 
-3. **DATES** :
+3. **DATES ET CALCUL D'EXPÉRIENCE** :
    - Extrais TOUJOURS les dates de début et fin des expériences
    - Format : "2020-2022", "6 mois", "2 ans", etc.
+   - **CALCUL EXPÉRIENCE TOTALE** : Pour le champ "expérience", trouve la date de début de l'expérience la plus ancienne et calcule : 2024 - année_de_début = années d'expérience
+   - Exemple : si la première expérience commence en 2018 → "6 ans d'expérience"
 
 4. **FORMATIONS** :
    - Remplis TOUS les champs : date_debut, date_fin, diplome, ecole_cursus
@@ -73,9 +76,10 @@ INSTRUCTIONS CRITIQUES :
    - Déduis-les du contexte si nécessaire (ex: si "développement web" → ajoute HTML, CSS, JavaScript)
 
 6. **COMPLETUDE** :
-   - Ne laisse AUCUNE expérience de côté
+   - Ne laisse AUCUNE expérience de côté - même les stages courts, les missions ponctuelles, les projets
    - Ne laisse AUCUNE formation de côté
    - Analyse TOUT le contenu du CV
+   - **VÉRIFICATION** : Compte le nombre d'expériences mentionnées dans le CV et assure-toi d'en avoir extrait le même nombre
 
 NB : Ne fais pas apparaître le type de contrat (exemple : Stage, Alternance, CDI, CDD...) dans les expériences.
 
