@@ -42,12 +42,19 @@ func main() {
 	r.OPTIONS("/api/email/generate-presentation", func(c *gin.Context) {
 		c.Status(200)
 	})
+	r.OPTIONS("/candidate-validation", func(c *gin.Context) {
+		c.Status(200)
+	})
+
+	// ✅ Initialiser le handler de validation candidat
+	candidateValidationHandler := handlers.NewCandidateValidationHandler()
 
 	r.GET("/health", handlers.Health)
 	r.POST("/extract", handlers.ExtractCV)
 	r.POST("/jobs", handlers.CreateJob)
 	r.GET("/jobs/:id/status", handlers.GetJobStatus)
 	r.POST("/api/email/generate-presentation", handlers.GeneratePresentationEmail)
+	r.POST("/candidate-validation", candidateValidationHandler.HandleCandidateValidation)
 
 	port := os.Getenv("PORT")
 	if port == "" {
