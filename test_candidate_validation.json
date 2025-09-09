@@ -1,0 +1,14 @@
+{
+  "candidate_id": "550e8400-e29b-41d4-a716-446655440000",
+  "candidate_name": "Jean Dupont",
+  "candidate_email": "jean.dupont@example.com",
+  "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+  "organization_name": "Acme Corporation",
+  "inviter_id": "550e8400-e29b-41d4-a716-446655440002",
+  "inviter_email": "gregory.hissiger@viteunprof.com",
+  "inviter_name": "Marie Martin",
+  "dossier_id": "550e8400-e29b-41d4-a716-446655440003",
+  "completion_percentage": 100,
+  "validation_date": "2024-01-05T10:30:00.000Z",
+  "dossier_url": "https://getskillforge.app/candidat/550e8400-e29b-41d4-a716-446655440003"
+}
