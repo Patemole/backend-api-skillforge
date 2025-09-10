@@ -3,6 +3,7 @@ package nuextract
 // CVExtractionSchema définit la structure JSON envoyée au front-end après extraction et enrichissement
 type CVExtractionSchema struct {
 	Prenom        string       `json:"prenom"`        // string
+	Email         string       `json:"email"`         // string (laisser vide si non présent)
 	Age           string       `json:"age"`           // string (peut être "Non précisé(e)")
 	Poste         string       `json:"poste"`         // string
 	Diplome       string       `json:"diplome"`       // string

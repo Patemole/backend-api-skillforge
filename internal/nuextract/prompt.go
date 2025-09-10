@@ -10,6 +10,7 @@ NE CHANGE SURTOUT PAS LES CLÉS DE CE DICTIONNAIRE, CAR IL DOIT ÊTRE UTILISÉ A
 
 {
   "prenom": "",
+  "email": "Adresse email du candidat. Si elle n'est pas explicitement présente dans le CV, laisse ce champ vide (\"\"). Ne l'invente pas.",
   "age": "Si l'âge n'est pas explicitement mentionné dans le CV, laisse ce champ vide (\"\"). Ne l'estime pas.",
   "poste": "TITRE DU POSTE RECHERCHÉ - PAS le poste actuel mais le titre du poste visé",
   "diplome": "Formation principale (nom de l'école d'ingénieur, de commerce ou du M2)",
