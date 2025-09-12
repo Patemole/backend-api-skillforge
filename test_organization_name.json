@@ -1,0 +1,22 @@
+{
+  "type": "generate_word_doc",
+  "user_id": "88c16475-ac49-48a3-8f87-5782a0b63146",
+  "organization_name": "Leaf",
+  "payload": {
+    "competence_dossier": {
+      "prenom": "Test",
+      "age": "30",
+      "poste": "Développeur Full Stack",
+      "diplome": "Master Informatique",
+      "expérience": "5 ans",
+      "mobilité": "Paris",
+      "disponibilité": "Immédiate",
+      "permis_B": "Oui",
+      "hobbies": ["Sport", "Musique"],
+      "formations": [],
+      "expériences": [],
+      "logiciels": []
+    },
+    "template_url": "https://example.com/template.docx"
+  }
+}

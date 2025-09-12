@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 	"time"
 
@@ -40,6 +41,14 @@ func CreateJob(c *gin.Context) {
 	rawPayload := req.Payload
 	rawDossier, dossierExists := rawPayload["competence_dossier"]
 	templateURL, _ := rawPayload["template_url"]
+	organizationName, _ := rawPayload["organization_name"]
+	
+	// Log pour debug
+	if organizationName != nil && organizationName != "" {
+		log.Printf("✅ Organization name found in payload: %v", organizationName)
+	} else {
+		log.Printf("⚠️ No organization_name found in payload, will use default")
+	}
 
 	// 2. Préparer le dossier de compétences structuré.
 	dossier := models.CompetenceDossier{}
@@ -66,6 +75,7 @@ func CreateJob(c *gin.Context) {
 	finalPayload := map[string]any{
 		"competence_dossier": dossier,
 		"template_url":       templateURL,
+		"organization_name":  organizationName,
 	}
 
 	// --- Fin de la Transformation ---

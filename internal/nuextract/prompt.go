@@ -11,14 +11,17 @@ NE CHANGE SURTOUT PAS LES CLÉS DE CE DICTIONNAIRE, CAR IL DOIT ÊTRE UTILISÉ A
 {
   "prenom": "",
   "email": "Adresse email du candidat. Si elle n'est pas explicitement présente dans le CV, laisse ce champ vide (\"\"). Ne l'invente pas.",
+  "phone": "Numéro de téléphone du candidat. Si il n'est pas explicitement présent dans le CV, laisse ce champ vide (\"\"). Ne l'invente pas.",
+  "summary": "Résumé professionnel en 2-3 lignes maximum présentant le candidat, ses compétences clés et son expérience principale. Sois concis mais impactant pour donner une vision d'ensemble du profil.",
   "age": "Si l'âge n'est pas explicitement mentionné dans le CV, laisse ce champ vide (\"\"). Ne l'estime pas.",
-  "poste": "TITRE DU POSTE RECHERCHÉ - PAS le poste actuel mais le titre du poste visé",
+  "poste": "TITRE DU POSTE RECHERCHÉ - Analyse les expériences passées et déduis le titre de poste le plus approprié en etant precis si il a un domaine d'activite precis. Si le candidat cherche un poste spécifique, utilise-le. Sinon, déduis du poste le plus récent ou le plus représentatif de son profil. Exemples : 'Ingénieur Conception Mécanique', 'Solution Architecte', 'Data Engineer', 'Chef de Projet', 'Développeur Full Stack'",
   "diplome": "Formation principale (nom de l'école d'ingénieur, de commerce ou du M2)",
-  "expérience": "Calcule l'expérience totale en années : trouve la date de début de l'expérience la plus ancienne et soustrais de l'année actuelle (2024). Si aucune date n'est disponible, laisse vide.",
+  "expérience": "Calcule l'expérience totale en années : trouve la date de début de l'expérience la plus ancienne et soustrais de l'année actuelle (2025). Si aucune date n'est disponible, laisse vide.",
   "mobilité": "Position géographique recherchée si précisée.",
   "disponibilité": "",
   "permis_B": "",
   "hobbies": ["Liste des centres d'intérêts"],
+  "languages": ["Liste des langues parlées (ex: Français, Anglais, Allemand, Espagnol, etc.)"],
   "formations": [
     {
       "date_debut": "OBLIGATOIRE - Année de début (ex: 2020, 2018-2019)",
@@ -29,8 +32,10 @@ NE CHANGE SURTOUT PAS LES CLÉS DE CE DICTIONNAIRE, CAR IL DOIT ÊTRE UTILISÉ A
   ],
   "expériences": [
     {
+      "date_debut": "OBLIGATOIRE - Date de début au format mois et année (ex: Février 2020, Janvier 2018, Septembre 2019)",
+      "date_fin": "OBLIGATOIRE - Date de fin au format mois et année (ex: Décembre 2022, Août 2020, En cours). Si l'expérience est en cours, utilise 'En cours'",
       "entreprise": "OBLIGATOIRE - Nom de l'entreprise",
-      "durée": "OBLIGATOIRE - Durée précise (ex: 2 ans, 6 mois, 2020-2022)",
+      "durée": "OBLIGATOIRE - Durée calculée automatiquement (ex: 2 ans, 6 mois, 1 an 3 mois). Si inférieur à 1 an, affiche en mois. Si supérieur ou égal à 1 an, affiche en années.",
       "poste": "OBLIGATOIRE - Titre du poste occupé (ex: Ingénieur Conception, Développeur Senior, Chef de Projet, etc.)",
       "contexte": "Résume l'expérience succinctement pour présenter le projet réalisé en une phrase.",
       "projet": "Ici, étoffe autant que possible les objectifs / projets de cette expérience et reformule pour rendre cela le plus long possible, sous forme de titre, sans faire apparaître le nom du candidat.",
@@ -55,28 +60,42 @@ INSTRUCTIONS CRITIQUES :
 1. **EXTRACTIONS OBLIGATOIRES** :
    - Extrais TOUTES les expériences professionnelles (stages, CDI, CDD, alternances, etc.) - NE PAS EN OUBLIER UNE SEULE
    - Pour chaque formation : date_debut, date_fin, diplome ET ecole_cursus sont OBLIGATOIRES
-   - Pour chaque expérience : entreprise, durée, poste ET logiciels sont OBLIGATOIRES
+   - Pour chaque expérience : date_debut, date_fin, entreprise, durée, poste ET logiciels sont OBLIGATOIRES
    - **CRITIQUE** : Relis le CV plusieurs fois pour être sûr d'avoir extrait TOUTES les expériences mentionnées
 
-2. **CHAMP "poste"** :
-   - C'est le TITRE DU POSTE RECHERCHÉ, pas le poste actuel
-   - Exemples : "Ingénieur Conception Mécanique", "Solution Architecte", "Data Engineer", "Développeur Full Stack", "Chef de Projet", "Consultant"
+2. **NOUVEAUX CHAMPS** :
+   - **"phone"** : Extrais le numéro de téléphone s'il est présent dans le CV. Format : "+33 1 23 45 67 89" ou "01.23.45.67.89" ou "0123456789". Si absent, laisse vide.
+   - **"summary"** : Crée un résumé professionnel concis (2-3 lignes max) qui présente le candidat, ses compétences principales et son expérience clé. Sois impactant et professionnel.
+   - **"languages"** : Extrais toutes les langues mentionnées dans le CV (section langues, expériences internationales, formations, etc.). Utilise les noms complets en français : "Français", "Anglais", "Allemand", "Espagnol", "Italien", etc. Si aucune langue n'est mentionnée, laisse un tableau vide [].
 
-3. **DATES ET CALCUL D'EXPÉRIENCE** :
-   - Extrais TOUJOURS les dates de début et fin des expériences
-   - Format : "2020-2022", "6 mois", "2 ans", etc.
-   - **CALCUL EXPÉRIENCE TOTALE** : Pour le champ "expérience", trouve la date de début de l'expérience la plus ancienne et calcule : 2024 - année_de_début = années d'expérience
-   - Exemple : si la première expérience commence en 2018 → "6 ans d'expérience"
+3. **CHAMP "poste"** :
+   - C'est le TITRE DU POSTE RECHERCHÉ basé sur l'analyse des expériences passées
+   - **MÉTHODE D'EXTRACTION** :
+     a) Si le candidat indique un poste recherché spécifique → utilise-le
+     b) Sinon, analyse toutes les expériences et déduis le titre le plus représentatif
+     c) Privilégie le poste le plus récent ou celui qui reflète le mieux l'évolution de carrière
+     d) Sois précis et professionnel dans le titre (évite les termes génériques)
+   - Exemples : "Ingénieur Conception Mécanique", "Solution Architecte", "Data Engineer", "Développeur Full Stack", "Chef de Projet", "Consultant", "Ingénieur Génie Civil", "Product Manager"
 
-4. **FORMATIONS** :
+4. **DATES ET CALCUL D'EXPÉRIENCE** :
+   - **DATES D'EXPÉRIENCES** : Extrais TOUJOURS les dates de début et fin de chaque expérience
+   - Format des dates : "Février 2020", "Décembre 2022", "Janvier 2018", etc.
+   - Si l'expérience est en cours, utilise "En cours" pour date_fin
+   - **CALCUL DE LA DURÉE** : Calcule automatiquement la durée entre date_debut et date_fin
+     - Si durée < 1 an : affiche en mois (ex: "6 mois", "8 mois")
+     - Si durée ≥ 1 an : affiche en années (ex: "2 ans", "1 an 3 mois", "3 ans")
+   - **CALCUL EXPÉRIENCE TOTALE** : Pour le champ "expérience", trouve la date de début de l'expérience significative la plus ancienne et calcule : 2025 - année_de_début = années d'expérience
+   - Exemple : si la première expérience commence en 2018 → "7 ans d'expérience"
+
+5. **FORMATIONS** :
    - Remplis TOUS les champs : date_debut, date_fin, diplome, ecole_cursus
    - Sois précis sur le type de diplôme : Master, Bachelor, BTS, Diplôme d'Ingénieur, MBA, etc.
 
-5. **LOGICIELS DANS LES EXPÉRIENCES** :
+6. **LOGICIELS DANS LES EXPÉRIENCES** :
    - Extrais TOUS les logiciels/outils mentionnés dans chaque expérience
    - Déduis-les du contexte si nécessaire (ex: si "développement web" → ajoute HTML, CSS, JavaScript)
 
-6. **COMPLETUDE** :
+7. **COMPLETUDE** :
    - Ne laisse AUCUNE expérience de côté - même les stages courts, les missions ponctuelles, les projets
    - Ne laisse AUCUNE formation de côté
    - Analyse TOUT le contenu du CV
@@ -95,6 +114,9 @@ Voici le JSON d'extraction à analyser :
 Réponds UNIQUEMENT avec le JSON structuré, sans texte avant ou après.
 `
 }
+
+
+
 
 // GetEmailPrompt retourne le prompt pour générer un email de présentation de candidat
 func GetEmailPrompt(candidateData, need string) string {

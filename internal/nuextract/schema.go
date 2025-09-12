@@ -4,6 +4,8 @@ package nuextract
 type CVExtractionSchema struct {
 	Prenom        string       `json:"prenom"`        // string
 	Email         string       `json:"email"`         // string (laisser vide si non présent)
+	Phone         string       `json:"phone"`         // string (numéro de téléphone)
+	Summary       string       `json:"summary"`       // string (résumé professionnel)
 	Age           string       `json:"age"`           // string (peut être "Non précisé(e)")
 	Poste         string       `json:"poste"`         // string
 	Diplome       string       `json:"diplome"`       // string
@@ -12,6 +14,7 @@ type CVExtractionSchema struct {
 	Disponibilite string       `json:"disponibilité"` // string
 	PermisB       interface{}  `json:"permis_B"`      // bool ou string
 	Hobbies       []string     `json:"hobbies"`       // []string
+	Languages     []string     `json:"languages"`     // []string (langues parlées)
 	Formations    []Formation  `json:"formations"`    // []Formation
 	Experiences   []Experience `json:"expériences"`   // []Experience
 	Logiciels     []Logiciel   `json:"logiciels"`     // []Logiciel
@@ -27,8 +30,10 @@ type Formation struct {
 
 // Experience définit la structure d'une expérience professionnelle
 type Experience struct {
+	DateDebut    string   `json:"date_debut"`   // string (format: "Février 2025")
+	DateFin      string   `json:"date_fin"`     // string (format: "Décembre 2025")
 	Entreprise   string   `json:"entreprise"`   // string
-	Duree        string   `json:"durée"`        // string
+	Duree        string   `json:"durée"`        // string (calculée automatiquement)
 	Poste        string   `json:"poste"`        // string
 	Contexte     string   `json:"contexte"`     // string
 	Projet       string   `json:"projet"`       // string
