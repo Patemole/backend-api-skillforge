@@ -48,6 +48,9 @@ func main() {
 	r.OPTIONS("/candidate-invite", func(c *gin.Context) {
 		c.Status(200)
 	})
+	r.OPTIONS("/api/templates/generate", func(c *gin.Context) {
+		c.Status(200)
+	})
 
 	// ✅ Initialiser les handlers
 	candidateValidationHandler := handlers.NewCandidateValidationHandler()
@@ -58,6 +61,7 @@ func main() {
 	r.POST("/jobs", handlers.CreateJob)
 	r.GET("/jobs/:id/status", handlers.GetJobStatus)
 	r.POST("/api/email/generate-presentation", handlers.GeneratePresentationEmail)
+	r.POST("/api/templates/generate", handlers.GenerateTemplate)
 	r.POST("/candidate-validation", candidateValidationHandler.HandleCandidateValidation)
 	r.POST("/candidate-invite", candidateInviteHandler.HandleCandidateInvite)
 

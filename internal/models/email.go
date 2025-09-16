@@ -55,3 +55,33 @@ type GenerateEmailResponse struct {
 	Success      bool   `json:"success"`
 	Error        string `json:"error,omitempty"`
 }
+
+// TemplateGenerateRequest définit la structure de la requête pour générer un template d'email
+type TemplateGenerateRequest struct {
+	OrganizationID     string           `json:"organization_id" binding:"required"`
+	TemplateName       string           `json:"template_name" binding:"required"`
+	EmailExamples      []EmailExample   `json:"email_examples" binding:"required,min=3"`
+	AvailableVariables []string         `json:"available_variables" binding:"required"`
+}
+
+// EmailExample définit la structure d'un exemple d'email
+type EmailExample struct {
+	Subject string `json:"subject" binding:"required"`
+	Content string `json:"content" binding:"required"`
+}
+
+// GeneratedTemplate définit la structure du template généré
+type GeneratedTemplate struct {
+	Subject string `json:"subject"`
+	Content string `json:"content"`
+}
+
+// TemplateGenerateResponse définit la structure de la réponse pour la génération de template
+type TemplateGenerateResponse struct {
+	Success           bool              `json:"success"`
+	TemplateID        string            `json:"template_id"`
+	GeneratedTemplate GeneratedTemplate `json:"generated_template"`
+	DetectedVariables []string          `json:"detected_variables"`
+	ConfidenceScore   float64           `json:"confidence_score"`
+	Error             string            `json:"error,omitempty"`
+}
