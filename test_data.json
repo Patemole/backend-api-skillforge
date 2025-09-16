@@ -1,0 +1,96 @@
+{
+  "candidateData": {
+    "title": "Ingénieur Conception Mécanique",
+    "experience_years": 3,
+    "prenom": "Aymeric",
+    "languages": "Anglais, Espagnol",
+    "availability": "Immediate",
+    "mobilite": "Nationale",
+    "diplome": "Master en Génie Mécanique",
+    "permis_b": "Oui",
+    "summary": "Ingénieur en conception mécanique avec une expertise solide dans le développement de solutions techniques innovantes. Forte capacité d'adaptation et de collaboration.",
+    "technical_skills": [
+      "Conception mécanique",
+      "CAO/FAO",
+      "Analyse de contraintes",
+      "Prototypage"
+    ],
+    "functional_skills": [
+      "Gestion de projet",
+      "Travail en équipe",
+      "Résolution de problèmes",
+      "Communication technique"
+    ],
+    "experiences": [
+      {
+        "id": "exp-1",
+        "title": "Ingénieur Conception",
+        "company": "TechCorp",
+        "start_date": "2021-01",
+        "end_date": "2024-01",
+        "description": "Développement de solutions mécaniques innovantes"
+      }
+    ],
+    "education": [
+      {
+        "id": "edu-1",
+        "degree": "Master",
+        "school": "École d'Ingénieurs",
+        "field": "Génie Mécanique",
+        "graduation_year": 2021
+      }
+    ],
+    "languages": ["Anglais", "Espagnol"],
+    "certifications": ["Certification SolidWorks"],
+    "projects": [
+      {
+        "id": "proj-1",
+        "name": "Système de ventilation",
+        "description": "Conception d'un système de ventilation industriel",
+        "technologies": ["SolidWorks", "ANSYS"]
+      }
+    ],
+    "logiciels": [
+      {
+        "name": "SolidWorks",
+        "niveau": "Expert",
+        "temps_utilisation": "3 ans"
+      },
+      {
+        "name": "Créo",
+        "niveau": "Avancé",
+        "temps_utilisation": "2 ans"
+      },
+      {
+        "name": "Onshape",
+        "niveau": "Intermédiaire",
+        "temps_utilisation": "1 an"
+      },
+      {
+        "name": "3DExperience",
+        "niveau": "Intermédiaire",
+        "temps_utilisation": "1 an"
+      },
+      {
+        "name": "Bubble",
+        "niveau": "Débutant",
+        "temps_utilisation": "6 mois"
+      },
+      {
+        "name": "Figma",
+        "niveau": "Intermédiaire",
+        "temps_utilisation": "8 mois"
+      }
+    ],
+    "hobbies": ["Randonnée", "Photographie"]
+  },
+  "need": "Recherche d'un ingénieur mécanique pour un projet de conception de systèmes navals avec expertise en CAO et analyse de contraintes.",
+  "templateId": "default-template",
+  "template": {
+    "id": "default-template",
+    "name": "Push Candidat",
+    "subject": "Nouveau dossier de competence",
+    "content": "Bonjour,\n\nJe me permets de vous presenter le profil d'un {{titre_poste}} disponible {{disponibilite}} et {{mobilite}} :\n\n{{prenom}}, {{titre_poste}} – {{nombre_experience}} ans d'expériences :\n\n{{experiences}}\n\nLogiciels : {{logiciel}}\n\nCe profil est-il pertinent ? Souhaitez-vous le rencontrer pour échanger plus techniquement avec lui ?\n\nPlus généralement, avez-vous des besoins sur lesquels je peux vous accompagner ?\n\nBonne journée,",
+    "isDefault": true
+  }
+}

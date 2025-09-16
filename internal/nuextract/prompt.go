@@ -148,3 +148,99 @@ Tu dois écrire un email professionnel pour présenter un candidat à des entrep
 Commence directement par "Objet: [objet de l'email]" suivi du contenu de l'email.
 `, candidateData, need)
 }
+
+// GetEmailPromptWithTemplate retourne le prompt pour générer un email en utilisant un template spécifique
+func GetEmailPromptWithTemplate(candidateData, need, templateContent, templateSubject string) string {
+	// Log pour debugging
+	fmt.Printf("[PROMPT_TEMPLATE] 🔨 Construction du prompt avec template\n")
+	fmt.Printf("[PROMPT_TEMPLATE] 📝 Template Subject: %s\n", templateSubject)
+	fmt.Printf("[PROMPT_TEMPLATE] 📄 Template Content (premiers 200 chars): %.200s...\n", templateContent)
+	fmt.Printf("[PROMPT_TEMPLATE] 👤 Candidate Data (premiers 200 chars): %.200s...\n", candidateData)
+	fmt.Printf("[PROMPT_TEMPLATE] 💼 Need: %s\n", need)
+	
+	return fmt.Sprintf(`
+Tu dois générer un email professionnel en utilisant le template fourni et en remplaçant les variables par les données du candidat.
+
+**TEMPLATE À UTILISER :**
+Contenu: %s
+Objet: %s
+
+**DONNÉES DU CANDIDAT (JSON) :**
+%s
+
+**BESOIN DE L'ENTREPRISE (si fourni) :**
+%s
+
+**IMPORTANT :** Les données du candidat sont au format JSON. Tu dois parser ce JSON et extraire les informations des tableaux "experiences" et "logiciels" pour les formater correctement.
+
+**STRUCTURE JSON ATTENDUE :**
+Le JSON contient un tableau "experiences" avec des objets ayant les champs :
+- "entreprise" : nom de l'entreprise
+- "duree" : durée (ex: 3 mois, 2 ans)  
+- "poste" : titre du poste
+- "realisations" : tableau des réalisations
+
+Et un tableau "logiciels" avec des objets ayant le champ :
+- "logiciel" : nom du logiciel
+
+**INSTRUCTIONS CRITIQUES :**
+1. **RESPECTE EXACTEMENT** la structure et le style du template fourni
+2. **REMPLACE TOUTES LES VARIABLES** du template par les données correspondantes du candidat :
+   - {{titre}} → Titre du poste recherché du candidat (champ "title")
+   - {{disponibilite}} → Disponibilité du candidat (champ "availability")
+   - {{mobilite}} → Mobilité du candidat (champ "mobility")
+   - {{prenom}} → Prénom du candidat (champ "prenom")
+   - {{titre_poste}} → Titre du poste du candidat (champ "title")
+   - {{nombre_experience}} → Nombre d'années d'expérience (champ "experience_years")
+   - {{diplome}} → Diplôme principal du candidat (premier diplôme dans "formations")
+   - {{experiences}} → Liste détaillée des expériences (formatées selon le template)
+   - {{logiciel}} → Liste des logiciels (formatée selon le template)
+
+3. **FORMATAGE DES EXPÉRIENCES** : 
+   **ÉTAPE CRITIQUE :** Dans le JSON des données du candidat, trouve le tableau "experiences" et pour chaque objet dans ce tableau :
+   
+   - Extrais "entreprise" (nom de l'entreprise)
+   - Extrais "duree" ou "durée" (durée de l'expérience)  
+   - Extrais "poste" (titre du poste)
+   - Extrais "realisations" (tableau des réalisations) et joins-les avec des points
+   
+   **FORMAT OBLIGATOIRE :** "Expérience X : [Entreprise] / [Durée] / [Poste] / [Réalisations jointes]"
+   
+   **EXEMPLE :** Si dans le JSON tu vois un objet avec :
+   - "entreprise": "Alten"
+   - "duree": "3 mois" 
+   - "poste": "Concepteur Naval"
+   - "realisations": ["Formation sur la modélisation", "Immersion dans l'environnement naval"]
+   
+   Tu dois formater : "Expérience 1 : Alten / 3 mois / Concepteur Naval / Formation sur la modélisation. Immersion dans l'environnement naval."
+   
+   **EXEMPLES CONCRETS À SUIVRE :**
+   
+   **Exemple 1 :**
+   "Expérience 1 : Clévia – Eiffage Energie Systèmes (Mission LEAF) / Ingénieur études CVC / 6 mois / Etudes d'exécutions HVAC CER Rosny-sous-Bois L15 Est Grand Paris Express + ouvrages d'entonnements. Suivi des livrables, réponses VISAs et suivi pré-synthèse."
+   
+   "Expérience 2 : Phosphoris Groupe / Ingénieure études CVC / 2 ans / Etude de conception HVAC d'un Immeuble multi service, Etude d'exécution HVAC d'une superstructure EVOS Monaco. Suivi de travaux HVAC sur école élémentaire. Audit énergétiques."
+   
+   **Exemple 2 :**
+   "Expérience 1 : COREAL (contractant général) / 4 ans / Chef de Projet puis Responsable Travaux Junior / Projet résidentiels et construction de bureau. - Responsable travaux Pilotage. Gestion administrative, DCE, suivi sous-traitants, planning, réunions chantier, suivi budgétaire, élaboration des planning, OPR, DOE et suivi des GPA."
+   
+   "Expérience 2 : CPSD Pilotage Bâtiment / 2 ans / Ingénieur MOEX-OPC / Résidences allant de 44 à 67 logements. - MOEX TCE sur les missions : Gestion administrative, Validation des documents d'exécution, suivi exécution, OPR, DOE"
+   
+   "Expérience 3 : SOGEA / 6 mois / Assistant Chef de Projet / Réhabilitation de 124 logements - Conducteur de travaux TCE. Contrôle des travaux, suivi des sous-traitants, préparation des OPR et OPL, Livraison et suivi des levées des réserves, suivi des GPA."
+
+4. **FORMATAGE DES LOGICIELS** : 
+   - Extrais le tableau "logiciels" dans les données du candidat
+   - Pour chaque objet, prends le champ "logiciel" 
+   - Joins tous les noms de logiciels avec des virgules
+   
+   **EXEMPLES :**
+   - "Revit, AutoCAD, Pléiades, Perrenoud & Climawin"
+   - "MS Project, AutoCAD, FinalCAD, et la suite office"
+
+5. **CONSERVE** exactement la structure, les sauts de ligne, et la mise en forme du template
+6. **ADAPTE** le contenu aux données réelles du candidat sans changer le style du template
+
+**FORMAT DE SORTIE :**
+Commence directement par "Objet: [objet du template]" suivi du contenu de l'email généré.
+`, templateContent, templateSubject, candidateData, need)
+}

@@ -4,6 +4,17 @@ package models
 type GenerateEmailRequest struct {
 	CandidateData CandidateData `json:"candidateData" binding:"required"`
 	Need          *string       `json:"need,omitempty"` // Optionnel
+	TemplateID    *string       `json:"templateId,omitempty"` // ID du template sélectionné
+	Template      *EmailTemplate `json:"template,omitempty"` // Template complet
+}
+
+// EmailTemplate définit la structure d'un template d'email
+type EmailTemplate struct {
+	ID        string `json:"id"`
+	Name      string `json:"name"`
+	Subject   string `json:"subject"`
+	Content   string `json:"content"`
+	IsDefault bool   `json:"isDefault"`
 }
 
 // CandidateData contient toutes les données du candidat depuis le store editorData
