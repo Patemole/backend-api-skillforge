@@ -132,9 +132,12 @@ func (s *TemplateGeneratorService) GenerateTemplate(req models.TemplateGenerateR
 func (s *TemplateGeneratorService) buildTemplatePrompt(req models.TemplateGenerateRequest) string {
 	// Convertir les exemples en JSON pour le prompt
 	examplesJSON, _ := json.MarshalIndent(req.EmailExamples, "", "  ")
-	variablesJSON, _ := json.MarshalIndent(req.AvailableVariables, "", "  ")
+	
+	// Organiser les variables par catégories pour une meilleure compréhension
+	variablesByCategory := s.organizeVariablesByCategory(req.AvailableVariables)
+	variablesJSON, _ := json.MarshalIndent(variablesByCategory, "", "  ")
 
-	return fmt.Sprintf(`Tu dois analyser les exemples d'emails suivants et générer un template réutilisable.
+	return fmt.Sprintf(`Tu es un expert en génération de templates d'emails professionnels. Tu dois analyser les exemples d'emails suivants et générer un template réutilisable en identifiant les patterns et en mappant les variables appropriées.
 
 **Contexte :**
 - Nom du template : %s
@@ -143,16 +146,32 @@ func (s *TemplateGeneratorService) buildTemplatePrompt(req models.TemplateGenera
 **Exemples d'emails à analyser :**
 %s
 
-**Variables disponibles :**
+**Variables disponibles (organisées par catégorie) :**
 %s
 
-**Instructions :**
-1. Analyse les patterns communs dans les exemples d'emails
-2. Identifie les parties variables qui correspondent aux variables disponibles
-3. Génère un template avec les variables appropriées mappées
-4. Assure-toi que le template est cohérent et professionnel
-5. Utilise uniquement les variables de la liste "available_variables"
-6. Le template doit être générique mais maintenir la structure et le ton des exemples
+**Instructions détaillées :**
+
+1. **Analyse des patterns :**
+   - Identifie les structures communes dans les exemples (salutation, présentation, détails, conclusion)
+   - Repère les informations variables qui changent entre les exemples
+   - Note le ton et le style professionnel utilisé
+
+2. **Mapping des variables :**
+   - Utilise les variables de base ({{prenom}}, {{titre_poste}}, etc.) pour les informations principales
+   - Pour les expériences, utilise les variables granulaires ({{experiences.poste}}, {{experiences.entreprise}}, etc.) pour plus de précision
+   - Mappe intelligemment selon le contexte (ex: "{{experiences.entreprise}}" pour le nom de l'entreprise, "{{experiences.poste}}" pour le poste)
+   - Utilise les variables de comptage ({{experiences_count}}, {{logiciels_count}}) pour des phrases comme "avec {{experiences_count}} expériences"
+
+3. **Génération du template :**
+   - Crée un template cohérent qui respecte la structure des exemples
+   - Utilise les variables appropriées pour chaque section
+   - Maintient le ton professionnel et la logique des exemples
+   - Assure-toi que le template est générique mais détaillé
+
+4. **Variables hiérarchiques :**
+   - Les variables comme {{experiences.poste}} font référence aux détails des expériences
+   - Les variables comme {{experiences}} peuvent être utilisées pour un résumé global
+   - Utilise les variables spécifiques pour plus de précision quand c'est pertinent
 
 **Format de réponse attendu (JSON) :**
 {
@@ -165,9 +184,17 @@ func (s *TemplateGeneratorService) buildTemplatePrompt(req models.TemplateGenera
   "confidence_score": 0.95
 }
 
+**Exemples de mapping intelligent :**
+- "Jean Dupont" → {{prenom}}
+- "Développeur Full-Stack" → {{titre_poste}}
+- "5 ans d'expérience" → {{nombre_experience}}
+- "chez Google" → {{experiences.entreprise}}
+- "en tant que Senior Developer" → {{experiences.poste}}
+- "React, Node.js" → {{logiciels}} ou {{competences_techniques}}
+
 **Important :**
-- Utilise uniquement les variables de la liste "available_variables"
-- Mappe intelligemment les variables selon le contexte
+- Utilise UNIQUEMENT les variables de la liste "available_variables"
+- Privilégie les variables granulaires pour plus de précision
 - Le confidence_score doit être entre 0.0 et 1.0
 - Assure-toi que le template est cohérent avec les exemples fournis`,
 		req.TemplateName,
@@ -175,4 +202,55 @@ func (s *TemplateGeneratorService) buildTemplatePrompt(req models.TemplateGenera
 		string(examplesJSON),
 		string(variablesJSON),
 	)
+}
+
+// organizeVariablesByCategory organise les variables par catégories pour une meilleure compréhension
+func (s *TemplateGeneratorService) organizeVariablesByCategory(variables []string) map[string][]string {
+	categories := map[string][]string{
+		"Informations de base": {},
+		"Expériences (globales)": {},
+		"Expériences (détails)": {},
+		"Logiciels & Compétences": {},
+		"Projets": {},
+		"Formations": {},
+		"Autres": {},
+	}
+
+	for _, variable := range variables {
+		switch {
+		case contains(variable, []string{"{{prenom}}", "{{titre_poste}}", "{{nombre_experience}}", "{{disponibilite}}", "{{mobilite}}", "{{diplome}}", "{{age}}", "{{permis_b}}"}):
+			categories["Informations de base"] = append(categories["Informations de base"], variable)
+		case contains(variable, []string{"{{experiences}}", "{{experiences_count}}"}):
+			categories["Expériences (globales)"] = append(categories["Expériences (globales)"], variable)
+		case contains(variable, []string{"{{experiences.poste}}", "{{experiences.entreprise}}", "{{experiences.duree}}", "{{experiences.date_debut}}", "{{experiences.date_fin}}", "{{experiences.projet}}", "{{experiences.contexte}}", "{{experiences.realisations}}", "{{experiences.logiciels}}"}):
+			categories["Expériences (détails)"] = append(categories["Expériences (détails)"], variable)
+		case contains(variable, []string{"{{logiciel}}", "{{logiciels}}", "{{logiciels_count}}", "{{competences_techniques}}", "{{competences_fonctionnelles}}"}):
+			categories["Logiciels & Compétences"] = append(categories["Logiciels & Compétences"], variable)
+		case contains(variable, []string{"{{projets}}", "{{projets_count}}"}):
+			categories["Projets"] = append(categories["Projets"], variable)
+		case contains(variable, []string{"{{formations}}", "{{formations_count}}", "{{formations.diplome}}", "{{formations.etablissement}}", "{{formations.annee}}"}):
+			categories["Formations"] = append(categories["Formations"], variable)
+		default:
+			categories["Autres"] = append(categories["Autres"], variable)
+		}
+	}
+
+	// Nettoyer les catégories vides
+	for category, vars := range categories {
+		if len(vars) == 0 {
+			delete(categories, category)
+		}
+	}
+
+	return categories
+}
+
+// contains vérifie si une variable est dans une liste
+func contains(variable string, list []string) bool {
+	for _, item := range list {
+		if variable == item {
+			return true
+		}
+	}
+	return false
 }

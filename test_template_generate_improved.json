@@ -1,0 +1,30 @@
+{
+  "organization_id": "4f3e4149-e0f1-4a7c-b2b6-e2f5e409c384",
+  "template_name": "Push Candidat Amélioré",
+  "email_examples": [
+    {
+      "subject": "Candidature pour le poste de Développeur Full-Stack - Jean Dupont",
+      "content": "Bonjour,\n\nJe vous présente Jean Dupont, Développeur Full-Stack avec 5 ans d'expérience.\n\n**Dernière expérience chez Google :**\n- Poste : Senior Developer\n- Durée : 2 ans\n- Projet : Développement d'une application web React/Node.js\n- Logiciels : React, Node.js, TypeScript, Docker\n- Réalisations : Amélioration des performances de 40%\n\n**Compétences techniques :** React, Node.js, TypeScript, Docker, AWS\n**Formation :** Master en Informatique (2020)\n\nDisponible immédiatement, mobilité nationale.\n\nCordialement,\nMarie Martin"
+    },
+    {
+      "subject": "Présentation d'un candidat - Ingénieur Mécanique", 
+      "content": "Bonjour,\n\nJe vous recommande Marie Martin pour le poste d'Ingénieur Mécanique.\n\n**Expérience chez Airbus :**\n- Poste : Ingénieur Conception\n- Durée : 3 ans\n- Projet : Conception de pièces aéronautiques\n- Logiciels : SolidWorks, AutoCAD, CATIA\n- Réalisations : Réduction des coûts de production de 25%\n\n**Compétences techniques :** SolidWorks, AutoCAD, CATIA, FEA\n**Formation :** Diplôme d'Ingénieur Mécanique (2019)\n\nDisponible dans 1 mois, mobilité régionale.\n\nBien à vous,\nPierre Durand"
+    },
+    {
+      "subject": "Candidat recommandé - Chef de Projet IT",
+      "content": "Bonjour,\n\nJe vous présente Thomas Leroy, Chef de Projet IT avec 6 ans d'expérience.\n\n**Expérience chez Microsoft :**\n- Poste : Senior Project Manager\n- Durée : 4 ans\n- Projet : Migration vers le cloud Azure\n- Logiciels : Azure DevOps, Jira, Confluence\n- Réalisations : Migration réussie de 50+ applications\n\n**Compétences techniques :** Azure, DevOps, Agile, Scrum\n**Formation :** Master en Management IT (2018)\n\nDisponible dans 2 semaines, mobilité internationale.\n\nCordialement,\nSophie Bernard"
+    }
+  ],
+  "available_variables": [
+    "{{prenom}}", "{{titre_poste}}", "{{nombre_experience}}", "{{disponibilite}}", 
+    "{{mobilite}}", "{{diplome}}", "{{age}}", "{{permis_b}}", "{{langues}}", 
+    "{{certifications}}", "{{hobbies}}", "{{experiences}}", "{{experiences_count}}", 
+    "{{experiences.poste}}", "{{experiences.entreprise}}", "{{experiences.duree}}", 
+    "{{experiences.date_debut}}", "{{experiences.date_fin}}", "{{experiences.projet}}", 
+    "{{experiences.contexte}}", "{{experiences.realisations}}", "{{experiences.logiciels}}", 
+    "{{logiciel}}", "{{logiciels}}", "{{logiciels_count}}", "{{competences_techniques}}", 
+    "{{competences_fonctionnelles}}", "{{projets}}", "{{projets_count}}", 
+    "{{formations}}", "{{formations_count}}", "{{formations.diplome}}", 
+    "{{formations.etablissement}}", "{{formations.annee}}"
+  ]
+}
