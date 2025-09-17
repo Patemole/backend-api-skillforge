@@ -85,3 +85,49 @@ type TemplateGenerateResponse struct {
 	ConfidenceScore   float64           `json:"confidence_score"`
 	Error             string            `json:"error,omitempty"`
 }
+
+// PresentationEmailRequest définit la structure de la requête pour générer un email de présentation amélioré
+type PresentationEmailRequest struct {
+	CandidateData PresentationCandidateData `json:"candidateData" binding:"required"`
+	Need          *string                   `json:"need,omitempty"`     // Optionnel - description du besoin
+	TemplateID    *string                   `json:"templateId,omitempty"` // Optionnel
+	Template      *PresentationTemplate     `json:"template,omitempty"`   // Optionnel
+}
+
+// PresentationCandidateData contient les données du candidat pour la présentation
+type PresentationCandidateData struct {
+	Prenom                string   `json:"prenom" binding:"required"`
+	TitrePoste            string   `json:"titre_poste" binding:"required"`
+	NombreExperience      int      `json:"nombre_experience" binding:"required"`
+	Disponibilite         string   `json:"disponibilite" binding:"required"`
+	Mobilite              string   `json:"mobilite" binding:"required"`
+	Diplome               string   `json:"diplome" binding:"required"`
+	Langues               []string `json:"langues"`
+	Certifications        string   `json:"certifications"`
+	Hobbies               string   `json:"hobbies"`
+	Experience            string   `json:"experience"`            // Toutes les expériences formatées
+	ExperienceCount       int      `json:"experience_count"`
+	Logiciel              string   `json:"logiciel"`              // Logiciel principal
+	Logiciels             string   `json:"logiciels"`             // Liste des logiciels
+	LogicielsCount        int      `json:"logiciels_count"`
+	CompetencesTechniques string   `json:"competences_techniques"`
+	CompetencesFonctionnelles string `json:"competences_fonctionnelles"`
+	Projets               string   `json:"projets"`
+	ProjetsCount          int      `json:"projets_count"`
+}
+
+// PresentationTemplate définit la structure du template pour la présentation
+type PresentationTemplate struct {
+	ID        string `json:"id"`
+	Name      string `json:"name"`
+	Subject   string `json:"subject"`   // Avec variables remplacées
+	Content   string `json:"content"`   // Avec variables remplacées
+	IsDefault bool   `json:"isDefault"`
+}
+
+// PresentationEmailResponse définit la structure de la réponse pour l'email de présentation
+type PresentationEmailResponse struct {
+	EmailContent string `json:"emailContent"`
+	Success      bool   `json:"success"`
+	Error        string `json:"error,omitempty"`
+}
