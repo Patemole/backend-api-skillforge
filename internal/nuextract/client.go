@@ -151,9 +151,9 @@ func (c *Client) ExtractAndEnrichWithFilename(file []byte, filename string) ([]b
 	if strings.HasSuffix(strings.ToLower(filename), ".pdf") || len(file) > 1000 {
 		log.Printf("DEBUG: Fichier PDF détecté, extraction du texte")
 		
-		// Essayer d'abord UniPDF (le plus puissant)
-		unipdfExtractor := NewUniPDFExtractor()
-		fileContent, err = unipdfExtractor.ExtractTextFromPDFWithTables(file)
+		// Essayer d'abord UniPDF (le plus puissant) - VERSION DEBUG
+		unipdfExtractor := NewUniPDFExtractorDebug()
+		fileContent, err = unipdfExtractor.ExtractTextFromPDFWithTablesDebug(file)
 		if err != nil || len(fileContent) < 100 {
 			log.Printf("DEBUG: UniPDF échoué ou contenu trop petit, essai méthode principale")
 			

@@ -124,6 +124,8 @@ func (e *UniPDFExtractor) ExtractTextFromPDF(fileData []byte) (string, error) {
 // ExtractTextFromPDFWithTables extrait le texte ET les tableaux d'un PDF
 func (e *UniPDFExtractor) ExtractTextFromPDFWithTables(fileData []byte) (string, error) {
 	log.Printf("DEBUG: Début extraction UniPDF avec tableaux")
+	log.Printf("DEBUG: Taille des données: %d bytes", len(fileData))
+	log.Printf("DEBUG: Clé API présente: %t", e.apiKey != "")
 	
 	// Créer un reader à partir des données du fichier
 	reader := bytes.NewReader(fileData)
