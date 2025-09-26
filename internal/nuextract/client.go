@@ -147,8 +147,12 @@ func (c *Client) ExtractAndEnrichWithFilename(file []byte, filename string) ([]b
 	var fileContent string
 	var err error
 	
-	// Vérifier si c'est un PDF
-	if strings.HasSuffix(strings.ToLower(filename), ".pdf") || len(file) > 1000 {
+	// Détecter le type de fichier
+	fileType := detectFileType(filename, file)
+	log.Printf("DEBUG: Type de fichier détecté: %s", fileType)
+	
+	switch fileType {
+	case "pdf":
 		log.Printf("DEBUG: Fichier PDF détecté, extraction du texte")
 		
 		// Essayer d'abord UniPDF (le plus puissant) - VERSION DEBUG
@@ -207,10 +211,138 @@ func (c *Client) ExtractAndEnrichWithFilename(file []byte, filename string) ([]b
 		log.Printf("DEBUG: ⏱️  MÉTRIQUES TIMING:")
 		log.Printf("DEBUG: 📁 Upload PDF: ~0.1s")
 		log.Printf("DEBUG: 📄 Extraction PDF: %v", extractionTime)
-	} else {
+		
+	case "docx":
+		log.Printf("DEBUG: Fichier DOCX détecté, extraction du texte")
+		fileContent, err = extractTextFromDOCX(file)
+		if err != nil {
+			log.Printf("ERROR: Erreur extraction DOCX: %v", err)
+			// Fallback: utiliser le nom du fichier
+			name := filename
+			if strings.Contains(name, ".docx") {
+				name = strings.TrimSuffix(name, ".docx")
+			}
+			if strings.Contains(name, ".DOCX") {
+				name = strings.TrimSuffix(name, ".DOCX")
+			}
+			fileContent = fmt.Sprintf("CV de %s - Erreur extraction DOCX", name)
+		} else {
+			log.Printf("DEBUG: Extraction DOCX réussie, %d caractères extraits", len(fileContent))
+		}
+		
+		// Sauvegarder le texte extrait pour debug
+		debugFile := fmt.Sprintf("debug_extracted_text_%s.txt", strings.ReplaceAll(filename, ".docx", ""))
+		if err := os.WriteFile(debugFile, []byte(fileContent), 0644); err != nil {
+			log.Printf("WARNING: Impossible de sauvegarder le debug: %v", err)
+		} else {
+			log.Printf("DEBUG: Texte extrait sauvegardé dans %s", debugFile)
+		}
+		
+	case "doc":
+		log.Printf("DEBUG: Fichier DOC détecté, tentative d'extraction")
+		fileContent, err = extractTextFromDOC(file)
+		if err != nil {
+			log.Printf("ERROR: Erreur extraction DOC: %v", err)
+			// Fallback: utiliser le nom du fichier
+			name := filename
+			if strings.Contains(name, ".doc") {
+				name = strings.TrimSuffix(name, ".doc")
+			}
+			if strings.Contains(name, ".DOC") {
+				name = strings.TrimSuffix(name, ".DOC")
+			}
+			fileContent = fmt.Sprintf("CV de %s - %s", name, err.Error())
+		} else {
+			log.Printf("DEBUG: Extraction DOC réussie, %d caractères extraits", len(fileContent))
+		}
+		
+	case "pages":
+		log.Printf("DEBUG: Fichier Pages détecté, extraction du PDF intégré")
+		fileContent, err = extractTextFromPages(file)
+		if err != nil {
+			log.Printf("ERROR: Erreur extraction Pages: %v", err)
+			// Fallback: utiliser le nom du fichier
+			name := filename
+			if strings.Contains(name, ".pages") {
+				name = strings.TrimSuffix(name, ".pages")
+			}
+			if strings.Contains(name, ".PAGES") {
+				name = strings.TrimSuffix(name, ".PAGES")
+			}
+			fileContent = fmt.Sprintf("CV de %s - Erreur extraction Pages", name)
+		} else {
+			log.Printf("DEBUG: Extraction Pages réussie, %d caractères extraits", len(fileContent))
+		}
+		
+		// Sauvegarder le texte extrait pour debug
+		debugFile := fmt.Sprintf("debug_extracted_text_%s.txt", strings.ReplaceAll(filename, ".pages", ""))
+		if err := os.WriteFile(debugFile, []byte(fileContent), 0644); err != nil {
+			log.Printf("WARNING: Impossible de sauvegarder le debug: %v", err)
+		} else {
+			log.Printf("DEBUG: Texte extrait sauvegardé dans %s", debugFile)
+		}
+		
+	case "rtf":
+		log.Printf("DEBUG: Fichier RTF détecté, extraction du texte")
+		fileContent, err = extractTextFromRTF(file)
+		if err != nil {
+			log.Printf("ERROR: Erreur extraction RTF: %v", err)
+			// Fallback: utiliser le nom du fichier
+			name := filename
+			if strings.Contains(name, ".rtf") {
+				name = strings.TrimSuffix(name, ".rtf")
+			}
+			fileContent = fmt.Sprintf("CV de %s - Erreur extraction RTF", name)
+		} else {
+			log.Printf("DEBUG: Extraction RTF réussie, %d caractères extraits", len(fileContent))
+		}
+		
+	case "odt":
+		log.Printf("DEBUG: Fichier ODT détecté, extraction du texte")
+		fileContent, err = extractTextFromODT(file)
+		if err != nil {
+			log.Printf("ERROR: Erreur extraction ODT: %v", err)
+			// Fallback: utiliser le nom du fichier
+			name := filename
+			if strings.Contains(name, ".odt") {
+				name = strings.TrimSuffix(name, ".odt")
+			}
+			fileContent = fmt.Sprintf("CV de %s - Erreur extraction ODT", name)
+		} else {
+			log.Printf("DEBUG: Extraction ODT réussie, %d caractères extraits", len(fileContent))
+		}
+		
+	case "html":
+		log.Printf("DEBUG: Fichier HTML détecté, extraction du texte")
+		fileContent, err = extractTextFromHTML(file)
+		if err != nil {
+			log.Printf("ERROR: Erreur extraction HTML: %v", err)
+			// Fallback: utiliser le nom du fichier
+			name := filename
+			if strings.Contains(name, ".html") {
+				name = strings.TrimSuffix(name, ".html")
+			}
+			if strings.Contains(name, ".htm") {
+				name = strings.TrimSuffix(name, ".htm")
+			}
+			fileContent = fmt.Sprintf("CV de %s - Erreur extraction HTML", name)
+		} else {
+			log.Printf("DEBUG: Extraction HTML réussie, %d caractères extraits", len(fileContent))
+		}
+		
+	case "markdown":
+		// Fichier Markdown - traitement direct
+		fileContent = string(file)
+		log.Printf("DEBUG: Fichier Markdown détecté, %d caractères", len(fileContent))
+		
+	case "txt":
 		// Fichier texte
 		fileContent = string(file)
 		log.Printf("DEBUG: Fichier texte détecté, %d caractères", len(fileContent))
+		
+	default:
+		log.Printf("DEBUG: Type de fichier non reconnu (%s), traitement comme texte", fileType)
+		fileContent = string(file)
 	}
 	
 	// Si le contenu est vide ou très petit, utiliser le nom comme fallback

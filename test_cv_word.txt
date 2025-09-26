@@ -1,0 +1,38 @@
+CV - Test Candidat Word
+
+INFORMATIONS PERSONNELLES
+Nom: Jean Dupont
+Email: jean.dupont@email.com
+Téléphone: 01 23 45 67 89
+Adresse: 123 Rue de la Paix, 75001 Paris
+
+EXPÉRIENCE PROFESSIONNELLE
+
+2020-2024 - Développeur Full Stack
+- Développement d'applications web avec React et Node.js
+- Gestion de bases de données PostgreSQL
+- Collaboration avec une équipe de 5 développeurs
+
+2018-2020 - Développeur Frontend
+- Création d'interfaces utilisateur avec Vue.js
+- Intégration de designs responsive
+- Optimisation des performances web
+
+FORMATION
+
+2016-2018 - Master en Informatique
+Université de Paris, France
+
+2014-2016 - Licence en Mathématiques
+Université de Lyon, France
+
+COMPÉTENCES TECHNIQUES
+- Langages: JavaScript, Python, Go, Java
+- Frameworks: React, Vue.js, Express.js, Django
+- Bases de données: PostgreSQL, MongoDB, Redis
+- Outils: Git, Docker, AWS, Kubernetes
+
+LANGUES
+- Français: Langue maternelle
+- Anglais: Courant (TOEIC 950)
+- Espagnol: Intermédiaire
