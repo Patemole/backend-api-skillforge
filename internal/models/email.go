@@ -11,11 +11,14 @@ type CandidateData struct {
 	Title           string       `json:"title"`
 	ExperienceYears int          `json:"experience_years"`
 	Prenom          string       `json:"prenom"`
+	Nom             string       `json:"nom"`
 	Age             int          `json:"age"`
 	Languages       string       `json:"languages"`
 	Mobility        string       `json:"mobility"`
 	Availability    string       `json:"availability"`
 	PermisB         string       `json:"permis_b"`
+	SecteursActivites []string   `json:"secteurs_activites"`
+	DomainesExpertise []string   `json:"domaines_expertise"`
 	Formations      []Formation  `json:"formations"`
 	Experiences     []Experience `json:"experiences"`
 	Logiciels       []Logiciel   `json:"logiciels"`
@@ -32,14 +35,15 @@ type FormationEmail struct {
 
 // ExperienceEmail définit la structure pour une expérience dans l'email
 type ExperienceEmail struct {
-	Company      string   `json:"company"`
-	Title        string   `json:"title"`
-	Project      string   `json:"project"`
-	Poste        string   `json:"poste"`
-	Entreprise   string   `json:"entreprise"`
-	Projet       string   `json:"projet"`
-	Realisations []string `json:"realisations"`
-	Logiciels    string   `json:"logiciels"`
+	Company           string   `json:"company"`
+	DetailEntreprise  string   `json:"detail_entreprise"`
+	Title             string   `json:"title"`
+	Project           string   `json:"project"`
+	Poste             string   `json:"poste"`
+	Entreprise        string   `json:"entreprise"`
+	Projet            string   `json:"projet"`
+	Realisations      []string `json:"realisations"`
+	Logiciels         string   `json:"logiciels"`
 }
 
 // LogicielEmail définit la structure pour un logiciel dans l'email

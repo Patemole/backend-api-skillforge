@@ -10,6 +10,7 @@ NE CHANGE SURTOUT PAS LES CLÉS DE CE DICTIONNAIRE, CAR IL DOIT ÊTRE UTILISÉ A
 
 {
   "prenom": "",
+  "nom": "Nom de famille du candidat. Si il n'est pas explicitement présent dans le CV, laisse ce champ vide (\"\"). Ne l'invente pas.",
   "email": "Adresse email du candidat. Si elle n'est pas explicitement présente dans le CV, laisse ce champ vide (\"\"). Ne l'invente pas.",
   "phone": "Numéro de téléphone du candidat. Si il n'est pas explicitement présent dans le CV, laisse ce champ vide (\"\"). Ne l'invente pas.",
   "summary": "Résumé professionnel en 2-3 lignes maximum présentant le candidat, ses compétences clés et son expérience principale. Sois concis mais impactant pour donner une vision d'ensemble du profil.",
@@ -22,6 +23,8 @@ NE CHANGE SURTOUT PAS LES CLÉS DE CE DICTIONNAIRE, CAR IL DOIT ÊTRE UTILISÉ A
   "permis_B": "",
   "hobbies": ["Liste des centres d'intérêts"],
   "languages": ["Liste des langues parlées (ex: Français, Anglais, Allemand, Espagnol, etc.)"],
+  "secteurs_activites": ["Liste des secteurs d'activités dans lesquels le candidat a travaillé (ex: Automobile, Aéronautique, Informatique, Finance, Santé, etc.)"],
+  "domaines_expertise": ["Liste des domaines de compétences d'expertise du candidat (ex: Développement Web, Data Science, Gestion de Projet, Marketing Digital, etc.)"],
   "formations": [
     {
       "date_debut": "OBLIGATOIRE - Année de début (ex: 2020, 2018-2019)",
@@ -35,6 +38,7 @@ NE CHANGE SURTOUT PAS LES CLÉS DE CE DICTIONNAIRE, CAR IL DOIT ÊTRE UTILISÉ A
       "date_debut": "OBLIGATOIRE - Date de début au format mois et année (ex: Février 2020, Janvier 2018, Septembre 2019)",
       "date_fin": "OBLIGATOIRE - Date de fin au format mois et année (ex: Décembre 2022, Août 2020, En cours). Si l'expérience est en cours, utilise 'En cours'",
       "entreprise": "OBLIGATOIRE - Nom de l'entreprise",
+      "detail_entreprise": "OBLIGATOIRE - Description de l'entreprise en 1-2 phrases : secteur d'activité, taille, spécialité, position sur le marché. Exemple : 'Startup spécialisée dans l'intelligence artificielle et le machine learning, comptant 50 employés et leader dans l'analyse prédictive pour le secteur bancaire'",
       "durée": "OBLIGATOIRE - Durée calculée automatiquement (ex: 2 ans, 6 mois, 1 an 3 mois). Si inférieur à 1 an, affiche en mois. Si supérieur ou égal à 1 an, affiche en années.",
       "poste": "OBLIGATOIRE - Titre du poste occupé (ex: Ingénieur Conception, Développeur Senior, Chef de Projet, etc.)",
       "contexte": "Résume l'expérience succinctement pour présenter le projet réalisé en une phrase.",
@@ -60,13 +64,17 @@ INSTRUCTIONS CRITIQUES :
 1. **EXTRACTIONS OBLIGATOIRES** :
    - Extrais TOUTES les expériences professionnelles (stages, CDI, CDD, alternances, etc.) - NE PAS EN OUBLIER UNE SEULE
    - Pour chaque formation : date_debut, date_fin, diplome ET ecole_cursus sont OBLIGATOIRES
-   - Pour chaque expérience : date_debut, date_fin, entreprise, durée, poste ET logiciels sont OBLIGATOIRES
+   - Pour chaque expérience : date_debut, date_fin, entreprise, detail_entreprise, durée, poste ET logiciels sont OBLIGATOIRES
    - **CRITIQUE** : Relis le CV plusieurs fois pour être sûr d'avoir extrait TOUTES les expériences mentionnées
 
 2. **NOUVEAUX CHAMPS** :
    - **"phone"** : Extrais le numéro de téléphone s'il est présent dans le CV. Format : "+33 1 23 45 67 89" ou "01.23.45.67.89" ou "0123456789". Si absent, laisse vide.
+   - **"nom"** : Extrais le nom de famille du candidat s'il est présent dans le CV. Si absent, laisse vide.
    - **"summary"** : Crée un résumé professionnel concis (2-3 lignes max) qui présente le candidat, ses compétences principales et son expérience clé. Sois impactant et professionnel.
    - **"languages"** : Extrais toutes les langues mentionnées dans le CV (section langues, expériences internationales, formations, etc.). Utilise les noms complets en français : "Français", "Anglais", "Allemand", "Espagnol", "Italien", etc. Si aucune langue n'est mentionnée, laisse un tableau vide [].
+   - **"secteurs_activites"** : Extrais tous les secteurs d'activités dans lesquels le candidat a travaillé (ex: "Automobile", "Aéronautique", "Informatique", "Finance", "Santé", "Énergie", "Télécommunications", etc.). Analyse les expériences professionnelles pour identifier les secteurs.
+   - **"domaines_expertise"** : Extrais les domaines de compétences d'expertise du candidat (ex: "Développement Web", "Data Science", "Gestion de Projet", "Marketing Digital", "Conception Mécanique", "Intelligence Artificielle", etc.). Base-toi sur les compétences techniques et les expériences.
+   - **"detail_entreprise"** : Pour chaque expérience, ajoute une description de l'entreprise en 1-2 phrases incluant : secteur d'activité, taille (startup, PME, grand groupe), spécialité, position sur le marché. Sois précis et informatif.
 
 3. **CHAMP "poste"** :
    - C'est le TITRE DU POSTE RECHERCHÉ basé sur l'analyse des expériences passées
