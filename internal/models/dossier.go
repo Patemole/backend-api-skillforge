@@ -40,6 +40,7 @@ type CompetenceDossier struct {
 	Disponibilite     string       `json:"disponibilité"`
 	PermisB           string       `json:"permis_B"`
 	Hobbies           []string     `json:"hobbies"`
+	Languages         []string     `json:"languages"`
 	SecteursActivites []string     `json:"secteurs_activites"`
 	DomainesExpertise []string     `json:"domaines_expertise"`
 	Formations        []Formation  `json:"formations"`
