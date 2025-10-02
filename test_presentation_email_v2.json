@@ -1,0 +1,31 @@
+{
+  "candidateData": {
+    "prenom": "Jean",
+    "titre_poste": "Ingénieur Mécanique",
+    "nombre_experience": 3,
+    "disponibilite": "immédiatement",
+    "mobilite": "région parisienne",
+    "diplome": "Master en Génie Mécanique",
+    "langues": ["Français (natif)", "Anglais (courant)"],
+    "certifications": "Certification SolidWorks, Formation 3DExperience",
+    "hobbies": "Sports mécaniques, Modélisme",
+    "experience": "Formation 3DExperience chez Alten (3 mois) - Conception de systèmes complexes pour le secteur naval\nAssistant Chef de Projet chez Sidas (5 mois) - Développement de solutions de moulage innovantes\nStage Ingénieur chez Renault (6 mois) - Optimisation de processus de production",
+    "experience_count": 3,
+    "logiciel": "SolidWorks",
+    "logiciels": "SolidWorks (Expert), Créo (Intermédiaire), 3DExperience (Débutant), AutoCAD (Intermédiaire), CATIA (Débutant)",
+    "logiciels_count": 5,
+    "competences_techniques": "Conception 3D, Simulation FEA, Optimisation de processus, Gestion de projet",
+    "competences_fonctionnelles": "Travail en équipe, Communication technique, Résolution de problèmes",
+    "projets": "Projet de conception de système de freinage (6 mois), Optimisation de ligne de production (3 mois)",
+    "projets_count": 2
+  },
+  "need": "Recherche d'un ingénieur mécanique spécialisé en conception 3D et simulation pour des projets dans le secteur automobile. Expérience en SolidWorks et Créo requise.",
+  "templateId": "template-123",
+  "template": {
+    "id": "template-123",
+    "name": "Template Ingénieur Mécanique",
+    "subject": "{{prenom}}, {{titre_poste}} – {{nombre_experience}} ans d'expériences",
+    "content": "Bonjour,\n\nJe vous présente {{prenom}}, {{titre_poste}} avec {{nombre_experience}} ans d'expérience disponible {{disponibilite}} et mobile en {{mobilite}}.\n\nDernières expériences pertinentes :\n- {{experiences}}\n\nLogiciels maîtrisés : {{logiciels}}\n\nCe profil correspond-il à vos besoins ? Souhaitez-vous le rencontrer pour échanger plus techniquement avec lui ?\n\nCordialement",
+    "isDefault": false
+  }
+}

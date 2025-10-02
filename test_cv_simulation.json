@@ -1,0 +1,31 @@
+{
+  "candidateData": {
+    "prenom": "Aymeric",
+    "titre_poste": "Ingénieur Conception Mécanique",
+    "nombre_experience": 3,
+    "disponibilite": "Immédiate",
+    "mobilite": "France",
+    "diplome": "Master en Génie Mécanique",
+    "langues": ["Français (natif)", "Anglais (courant)", "Espagnol (notions)"],
+    "certifications": "Certification SolidWorks, Formation 3DExperience",
+    "hobbies": "Sports d'endurance, Bricolage, Modélisme",
+    "experience": "Formation 3DExperience chez Alten (3 mois) - Conception de systèmes complexes pour le secteur naval\nAssistant Chef de Projet chez Sidas (5 mois) - Développement de solutions de moulage innovantes\nStage Ingénieur chez Renault (6 mois) - Optimisation de processus de production",
+    "experience_count": 3,
+    "logiciel": "SolidWorks",
+    "logiciels": "SolidWorks (Avancé), Créo (Intermédiaire), Onshape (Débutant), 3DExperience (Intermédiaire), Bubble (Débutant), Figma (Débutant)",
+    "logiciels_count": 6,
+    "competences_techniques": "Conception 3D, Simulation FEA, Optimisation de processus, Gestion de projet, Méthodologie LeanStartup",
+    "competences_fonctionnelles": "Travail en équipe, Communication technique, Résolution de problèmes, Innovation",
+    "projets": "Projet de conception de système de freinage (6 mois), Optimisation de ligne de production (3 mois), Développement d'application web (2 mois)",
+    "projets_count": 3
+  },
+  "need": "Recherche d'un ingénieur mécanique spécialisé en conception 3D et simulation pour des projets dans le secteur automobile. Expérience en SolidWorks et Créo requise.",
+  "templateId": "template-123",
+  "template": {
+    "id": "template-123",
+    "name": "Template Ingénieur Mécanique",
+    "subject": "{{prenom}}, {{titre_poste}} – {{nombre_experience}} ans d'expériences - Leaf Ingénierie",
+    "content": "Bonjour,\n\nJe me permets de vous présenter un profil disponible {{disponibilite}} et mobile {{mobilite}} :\n\n{{prenom}}, {{titre_poste}} – {{nombre_experience}} ans d'expériences diplômé de {{diplome}} :\n\n**Expériences pertinentes :**\n{{experience}}\n\n**Logiciels maîtrisés :**\n{{logiciels}}\n\n**Compétences techniques :**\n{{competences_techniques}}\n\nCe profil est-il pertinent ? Souhaitez-vous le rencontrer pour échanger plus techniquement avec lui ?\n\nPlus généralement, avez-vous des besoins sur lesquels je peux vous accompagner ?\n\nBonne journée,",
+    "isDefault": false
+  }
+}

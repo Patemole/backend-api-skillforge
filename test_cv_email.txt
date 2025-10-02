@@ -1,0 +1,5 @@
+Jean Dupont
+Ingénieur logiciel avec 5 ans d'expérience.
+Email: jean.dupont@example.com
+Téléphone: 06 12 34 56 78
+Compétences: Go, Python, AWS, Docker

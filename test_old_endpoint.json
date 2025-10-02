@@ -1,0 +1,46 @@
+{
+  "candidateData": {
+    "title": "Ingénieur Mécanique",
+    "experience_years": 3,
+    "prenom": "Jean",
+    "age": 28,
+    "languages": "Français (natif), Anglais (courant)",
+    "mobility": "région parisienne",
+    "availability": "immédiatement",
+    "permis_b": "Oui",
+    "formations": [
+      {
+        "degree": "Master en Génie Mécanique",
+        "institution": "École d'Ingénieurs",
+        "startDate": "2018",
+        "endDate": "2020"
+      }
+    ],
+    "experiences": [
+      {
+        "company": "Renault",
+        "title": "Stage Ingénieur",
+        "project": "Optimisation de processus de production",
+        "poste": "Stage Ingénieur",
+        "entreprise": "Renault",
+        "projet": "Optimisation de processus de production",
+        "realisations": ["Amélioration des performances de 15%", "Réduction des coûts de production"],
+        "logiciels": "SolidWorks, AutoCAD"
+      }
+    ],
+    "logiciels": [
+      {
+        "logiciel": "SolidWorks",
+        "level": "Expert",
+        "temps_utilisation": 24
+      },
+      {
+        "logiciel": "Créo",
+        "level": "Intermédiaire",
+        "temps_utilisation": 12
+      }
+    ],
+    "hobbies": ["Sports mécaniques", "Modélisme"]
+  },
+  "need": "Recherche d'un ingénieur mécanique spécialisé en conception 3D"
+}

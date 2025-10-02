@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 	"time"
 
@@ -40,6 +41,30 @@ func CreateJob(c *gin.Context) {
 	rawPayload := req.Payload
 	rawDossier, dossierExists := rawPayload["competence_dossier"]
 	templateURL, _ := rawPayload["template_url"]
+	organizationName, _ := rawPayload["organization_name"]
+
+	// Log détaillé du payload reçu du frontend
+	log.Printf("🔍 DEBUG JOBS - Payload reçu du frontend:")
+	log.Printf("   - Type: %s", req.Type)
+	log.Printf("   - UserID: %s", req.UserID)
+	log.Printf("   - TemplateURL: %v", templateURL)
+	log.Printf("   - OrganizationName: %v", organizationName)
+	log.Printf("   - DossierExists: %t", dossierExists)
+
+	if dossierExists {
+		// Log du dossier brut reçu
+		dossierJSON, _ := json.MarshalIndent(rawDossier, "   ", "  ")
+		log.Printf("   - RawDossier (JSON brut):\n%s", string(dossierJSON))
+
+		// Log spécifique des langues si présentes
+		if rawDossierMap, ok := rawDossier.(map[string]interface{}); ok {
+			if languages, exists := rawDossierMap["languages"]; exists {
+				log.Printf("   - Languages détectées dans rawDossier: %+v (type: %T)", languages, languages)
+			} else {
+				log.Printf("   - ⚠️ Aucun champ 'languages' trouvé dans rawDossier")
+			}
+		}
+	}
 
 	// 2. Préparer le dossier de compétences structuré.
 	dossier := models.CompetenceDossier{}
@@ -60,12 +85,41 @@ func CreateJob(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to map dossier data to structure"})
 			return
 		}
+
+		// Log du dossier après transformation
+		log.Printf("🔄 DEBUG JOBS - Dossier après transformation:")
+		dossierJSON, _ := json.MarshalIndent(dossier, "   ", "  ")
+		log.Printf("   - Dossier structuré:\n%s", string(dossierJSON))
+
+		// Log spécifique des langues après transformation
+		log.Printf("   - Languages après transformation: %+v (type: %T)", dossier.Languages, dossier.Languages)
+		if len(dossier.Languages) == 0 {
+			log.Printf("   - ⚠️ Aucune langue dans le dossier structuré")
+		} else {
+			log.Printf("   - ✅ %d langues détectées: %v", len(dossier.Languages), dossier.Languages)
+		}
 	}
 
 	// 4. On reconstruit un payload propre et final pour le worker.
 	finalPayload := map[string]any{
 		"competence_dossier": dossier,
 		"template_url":       templateURL,
+		"organization_name":  organizationName,
+	}
+
+	// Log du payload final envoyé au worker
+	log.Printf("📤 DEBUG JOBS - Payload final envoyé au worker:")
+	finalPayloadJSON, _ := json.MarshalIndent(finalPayload, "   ", "  ")
+	log.Printf("   - FinalPayload:\n%s", string(finalPayloadJSON))
+
+	// Log spécifique des langues dans le payload final
+	if finalDossier, ok := finalPayload["competence_dossier"].(models.CompetenceDossier); ok {
+		log.Printf("   - Languages dans payload final: %+v (type: %T)", finalDossier.Languages, finalDossier.Languages)
+		if len(finalDossier.Languages) == 0 {
+			log.Printf("   - ⚠️ Aucune langue transmise au worker")
+		} else {
+			log.Printf("   - ✅ %d langues transmises au worker: %v", len(finalDossier.Languages), finalDossier.Languages)
+		}
 	}
 
 	// --- Fin de la Transformation ---

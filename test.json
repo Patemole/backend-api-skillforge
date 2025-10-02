@@ -1,0 +1,17 @@
+{
+    "candidateData": {
+      "title": "Ingénieur Conception Mécanique",
+      "experience_years": 2,
+      "prenom": "Aymeric",
+      "age": 23,
+      "languages": "Français (C2), Anglais (B2)",
+      "mobility": "France entière",
+      "availability": "Immédiate",
+      "permis_b": "Permis B",
+      "formations": [{"date_debut": "2020", "date_fin": "2022", "diplome": "Master Ingénierie", "ecole_cursus": "École d'Ingénieurs"}],
+      "experiences": [{"entreprise": "Alten", "durée": "2 ans", "poste": "Concepteur Naval", "contexte": "Conception navale", "projet": "Systèmes navals complexes", "logiciels": ["3DExperience"], "réalisations": ["Modélisation 3D", "Tests validation"], "AI_suggest": []}],
+      "logiciels": [{"logiciel": "SolidWorks", "level": "Avancé", "temps_utilisation": "36 mois"}],
+      "hobbies": ["Sports d'endurance"]
+    },
+    "need": "Recherche ingénieur mécanique pour conception navale"
+  }
