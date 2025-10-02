@@ -41,7 +41,7 @@ func (s *PresentationEmailGeneratorService) GeneratePresentationEmail(req models
 
 	// Préparer la requête OpenAI
 	payload := map[string]interface{}{
-		"model":       "gpt-4o-2024-08-06",
+		"model": "gpt-4o-2024-08-06",
 		"messages": []map[string]string{
 			{
 				"role":    "system",
@@ -123,7 +123,7 @@ func (s *PresentationEmailGeneratorService) GeneratePresentationEmail(req models
 func (s *PresentationEmailGeneratorService) buildPresentationPrompt(req models.PresentationEmailRequest) string {
 	// Construire le contexte du candidat
 	candidateContext := s.buildCandidateContext(req.CandidateData)
-	
+
 	// Construire le contexte du besoin si présent
 	needContext := ""
 	if req.Need != nil && *req.Need != "" {
@@ -158,17 +158,32 @@ func (s *PresentationEmailGeneratorService) buildPresentationPrompt(req models.P
    - **INTERDICTION ABSOLUE : Ne rajoute AUCUNE nouvelle phrase**
    - Utilise UNIQUEMENT les expériences fournies, telles quelles
 
-3. **SÉLECTION DE LOGICIELS (si besoin présent) :**
+3. **SÉLECTION DE RÉALISATIONS (si besoin présent) :**
+   - Si un besoin spécifique est fourni, sélectionne 3-5 réalisations les plus pertinentes parmi les expériences choisies
+   - Les réalisations sont séparées par des virgules dans chaque expérience
+   - **INTERDICTION ABSOLUE : Ne rajoute AUCUNE nouvelle phrase**
+   - Utilise UNIQUEMENT les réalisations fournies, telles quelles
+   - **IMPORTANT : Ne liste PAS toutes les réalisations d'une expérience, sélectionne seulement les 2-3 plus pertinentes par expérience**
+   - Exemple : au lieu de "A, B, C, D, E, F" → sélectionne "A, C, E" si ce sont les plus pertinentes
+
+4. **SÉLECTION DE LOGICIELS (si besoin présent) :**
    - Si un besoin spécifique est fourni, sélectionne 3-5 logiciels les plus pertinents
    - **INTERDICTION ABSOLUE : Ne rajoute AUCUNE nouvelle phrase**
    - Utilise UNIQUEMENT les logiciels fournis, telles quelles
 
-4. **RESPECT DU TEMPLATE :**
+5. **RESPECT DU TEMPLATE :**
    - Suis EXACTEMENT le template fourni
    - Remplace UNIQUEMENT les variables par les valeurs
    - **INTERDICTION ABSOLUE : Ne rajoute AUCUNE phrase supplémentaire**
 
-5. **RÈGLES D'OR :**
+6. **PRÉSERVATION DU FORMATAGE HTML :**
+   - **PRÉSERVE TOUT LE FORMATAGE HTML EXISTANT** (couleurs, gras, italique, listes)
+   - **NE NETTOIE PAS** les balises HTML comme <strong>, <em>, <span style="...">, <ul>, <li>, etc.
+   - **RENVOIE LE CONTENU TEL QUEL** avec le formatage HTML intact
+   - **AJOUTE UN SAUT DE LIGNE** <br><br> entre le sujet et le début du contenu de l'email
+   - **SUPPRIME "Contenu:"** du template (ex: "Contenu: Bonjour," → "Bonjour,")
+
+7. **RÈGLES D'OR :**
    - **MICRO-AJUSTEMENTS SEULEMENT** (1-2 mots max par phrase)
    - **AUCUNE NOUVELLE PHRASE**
    - **AUCUNE INFORMATION SUPPLEMENTAIRE**
@@ -179,6 +194,9 @@ func (s *PresentationEmailGeneratorService) buildPresentationPrompt(req models.P
 - "un talent" → "un talent prometteur" ✅
 - "il est au début" → "il est au début de sa carrière" ✅
 - "sa capacité" → "sa capacité à s'adapter" ✅
+- Sélectionner les réalisations : "A, B, C, D, E, F" → "A, C, E" (les plus pertinentes) ✅
+- Préserver le HTML : "<strong>titre</strong>" → "<strong>titre</strong>" (inchangé) ✅
+- Supprimer "Contenu:" : "Sujet: Titre\nContenu: Bonjour" → "Sujet: Titre<br><br>Bonjour" ✅
 
 **EXEMPLE DE CE QUE TU NE PEUX PAS FAIRE :**
 - Rajouter "J'espère que cet email vous trouve bien" ❌
