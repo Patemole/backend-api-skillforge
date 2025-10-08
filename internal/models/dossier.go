@@ -10,6 +10,8 @@ type Formation struct {
 
 // Experience defines the structure for a professional experience record.
 type Experience struct {
+	DateDebut        string   `json:"date_debut"`
+	DateFin          string   `json:"date_fin"`
 	Entreprise       string   `json:"entreprise"`
 	DetailEntreprise string   `json:"detail_entreprise"`
 	Duree            string   `json:"durée"`
