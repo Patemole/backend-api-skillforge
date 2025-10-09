@@ -1,0 +1,63 @@
+ANDRII SYVASH
+
+asyvash.work.it@gmail.com | linkedin.com/in/asyvash | github.com/redarling
+
+Summary
+
+Software Engineering student in France, specializing in full-stack development and AI-driven solutions. Seeking final
+internship or entry-level role.
+
+Education
+
+42 Angouleme
+Bachelor’s Degree in Applicative Software Development
+
+Odesa Polytechnic National University
+Bachelor’s Degree in Computer Science (studies paused due to war)
+
+Angouleme, France
+2026
+
+Odesa, Ukraine
+2022
+
+Experience
+
+Software Engineering Intern
+Bluco - AI-powered ATS with WhatsApp-based applications (Future 40) Paris, Station F, France
+March 2025 – Sep. 2025
+
+● Increased application conversion by 27% through user behavior analysis and running UX experiments with PostHog.
+● Led migration from MessageBird to WhatsApp Cloud API, cutting service costs by 81% and reducing response latency
+by 60% through optimized backend integration using Next.js + PostgreSQL.
+● Streamlined recruiter evaluation time by 40% by collaborating on MistralAI integration, shortening the application
+process for candidates and enhancing the overall hiring experience.
+● Refactored 90% of legacy codebase, implementing a modular and testable architecture boosting maintainability and
+system performance.
+
+Projects
+
+RoadBuddy-AI Paris, France
+Tech Europe Hackathon GitHub
+● Built an AI-powered Telegram chatbot with a team of 4, generating driving theory questions from Google Street View
+images and tested by 200+ users during the hackathon.
+● Integrated MistralAI to create personalized multiple-choice questions, adapting to user answers to boost engagement
+and learning effectiveness.
+
+ArenaCollectiblez Paris, France
+Chiliz Hackathon GitHub
+● Collaborated to develop a lootbox platform delivering randomized NFT soccer fan cards for PSG supporters, boosting
+fan engagement through gamification.
+● Showcased the product live at PSG Stadium to 100+ attendees, earning positive jury feedback.
+● Implemented official match ticket scanning using Next.js, TypeScript, and PostgreSQL and deployed Solidity smart
+contracts, ensuring only verified fans received rewards.
+
+Additional Information
+
+Programming Languages: Python, TypeScript, JavaScript, C/C++, SQL
+Technologies: Docker, Git, ORM, AWS, CI/CD, Kafka, RabbitMQ, PostgreSQL, Redis, MongoDB
+Frameworks & Libraries: Next.js, Node.js, React, Django, FastAPI, Tailwind CSS
+Monitoring & Observability: Datadog, Sentry, Dash0, OpenTelemetry
+Languages: English fluent, French B1, Ukrainian native, Russian native
+
+
