@@ -9,7 +9,7 @@ func GetExtractionPrompt(nuextractJSON string) string {
 NE CHANGE SURTOUT PAS LES CLÉS DE CE DICTIONNAIRE, CAR IL DOIT ÊTRE UTILISÉ AUTREMENT PAR LA SUITE.
 
 {
-  "prenom": "",
+  "prenom": "PRÉNOM DU CANDIDAT - OBLIGATOIRE. Extrais le prénom du candidat depuis le CV. Ce champ doit TOUJOURS être rempli sauf cas exceptionnel où le prénom n'est vraiment pas mentionné dans le CV. Cherche dans l'en-tête, la signature, ou toute mention du nom complet du candidat.",
   "nom": "Nom de famille du candidat. Si il n'est pas explicitement présent dans le CV, laisse ce champ vide (\"\"). Ne l'invente pas.",
   "email": "Adresse email du candidat. Si elle n'est pas explicitement présente dans le CV, laisse ce champ vide (\"\"). Ne l'invente pas.",
   "phone": "Numéro de téléphone du candidat. Si il n'est pas explicitement présent dans le CV, laisse ce champ vide (\"\"). Ne l'invente pas.",
@@ -62,6 +62,7 @@ NE CHANGE SURTOUT PAS LES CLÉS DE CE DICTIONNAIRE, CAR IL DOIT ÊTRE UTILISÉ A
 INSTRUCTIONS CRITIQUES :
 
 1. **EXTRACTIONS OBLIGATOIRES** :
+   - **PRÉNOM** : Le champ "prenom" est OBLIGATOIRE et doit TOUJOURS être rempli. Cherche le prénom dans l'en-tête, la signature, ou toute mention du nom complet. Ne laisse ce champ vide que dans des cas exceptionnels où le prénom n'est vraiment pas mentionné.
    - Extrais TOUTES les expériences professionnelles (stages, CDI, CDD, alternances, etc.) - NE PAS EN OUBLIER UNE SEULE
    - Pour chaque formation : date_debut, date_fin, diplome ET ecole_cursus sont OBLIGATOIRES
    - Pour chaque expérience : date_debut, date_fin, entreprise, detail_entreprise, durée, poste ET logiciels sont OBLIGATOIRES
@@ -122,9 +123,6 @@ Voici le JSON d'extraction à analyser :
 Réponds UNIQUEMENT avec le JSON structuré, sans texte avant ou après.
 `
 }
-
-
-
 
 // GetEmailPrompt retourne le prompt pour générer un email de présentation de candidat
 func GetEmailPrompt(candidateData, need string) string {

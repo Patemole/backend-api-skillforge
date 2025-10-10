@@ -5,6 +5,7 @@ go 1.24.1
 toolchain go1.24.3
 
 require (
+	baliance.com/gooxml v1.0.1
 	github.com/gin-contrib/cors v1.7.6
 	github.com/gin-gonic/gin v1.10.1
 	github.com/google/uuid v1.6.0
