@@ -42,6 +42,7 @@ func CreateJob(c *gin.Context) {
 	rawDossier, dossierExists := rawPayload["competence_dossier"]
 	templateURL, _ := rawPayload["template_url"]
 	organizationName, _ := rawPayload["organization_name"]
+	dossierID, _ := rawPayload["dossier_id"]
 
 	// Log détaillé du payload reçu du frontend
 	log.Printf("🔍 DEBUG JOBS - Payload reçu du frontend:")
@@ -49,6 +50,7 @@ func CreateJob(c *gin.Context) {
 	log.Printf("   - UserID: %s", req.UserID)
 	log.Printf("   - TemplateURL: %v", templateURL)
 	log.Printf("   - OrganizationName: %v", organizationName)
+	log.Printf("   - DossierID: %v", dossierID)
 	log.Printf("   - DossierExists: %t", dossierExists)
 
 	if dossierExists {
@@ -105,6 +107,7 @@ func CreateJob(c *gin.Context) {
 		"competence_dossier": dossier,
 		"template_url":       templateURL,
 		"organization_name":  organizationName,
+		"dossier_id":         dossierID,
 	}
 
 	// Log du payload final envoyé au worker
