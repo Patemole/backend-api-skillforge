@@ -15,7 +15,7 @@ NE CHANGE SURTOUT PAS LES CLÉS DE CE DICTIONNAIRE, CAR IL DOIT ÊTRE UTILISÉ A
   "phone": "Numéro de téléphone du candidat. Si il n'est pas explicitement présent dans le CV, laisse ce champ vide (\"\"). Ne l'invente pas.",
   "summary": "Résumé professionnel en 2-3 lignes maximum présentant le candidat, ses compétences clés et son expérience principale. Sois concis mais impactant pour donner une vision d'ensemble du profil.",
   "age": "Si l'âge n'est pas explicitement mentionné dans le CV, laisse ce champ vide (\"\"). Ne l'estime pas.",
-  "poste": "TITRE DU POSTE RECHERCHÉ - Analyse les expériences passées et déduis le titre de poste le plus approprié en etant precis si il a un domaine d'activite precis. Si le candidat cherche un poste spécifique, utilise-le. Sinon, déduis du poste le plus récent ou le plus représentatif de son profil. Exemples : 'Ingénieur Conception Mécanique', 'Solution Architecte', 'Data Engineer', 'Chef de Projet', 'Développeur Full Stack'",
+  "poste": "TITRE DU POSTE RECHERCHÉ - Analyse les expériences passées et déduis le titre de poste le plus approprié en etant precis si il a un domaine d'activite precis. Si le candidat cherche un poste spécifique, utilise-le. Sinon, déduis du poste le plus récent ou le plus représentatif de son profil. IMPORTANT : Supprime les mots 'alternant', 'stagiaire', 'stage', 'apprenti', 'apprentissage' du titre. Exemples : 'Ingénieur Conception Mécanique', 'Solution Architecte', 'Data Engineer', 'Chef de Projet', 'Développeur Full Stack'",
   "diplome": "Formation principale (nom de l'école d'ingénieur, de commerce ou du M2)",
   "expérience": "Calcule l'expérience totale en années : trouve la date de début de l'expérience la plus ancienne et soustrais de l'année actuelle (2025). Si aucune date n'est disponible, laisse vide.",
   "mobilité": "Position géographique recherchée si précisée.",
@@ -40,7 +40,7 @@ NE CHANGE SURTOUT PAS LES CLÉS DE CE DICTIONNAIRE, CAR IL DOIT ÊTRE UTILISÉ A
       "entreprise": "OBLIGATOIRE - Nom de l'entreprise",
       "detail_entreprise": "OBLIGATOIRE - Description de l'entreprise en 1-2 phrases : secteur d'activité, taille, spécialité, position sur le marché. Exemple : 'Startup spécialisée dans l'intelligence artificielle et le machine learning, comptant 50 employés et leader dans l'analyse prédictive pour le secteur bancaire'",
       "durée": "OBLIGATOIRE - Durée calculée automatiquement (ex: 2 ans, 6 mois, 1 an 3 mois). Si inférieur à 1 an, affiche en mois. Si supérieur ou égal à 1 an, affiche en années.",
-      "poste": "OBLIGATOIRE - Titre du poste occupé (ex: Ingénieur Conception, Développeur Senior, Chef de Projet, etc.)",
+      "poste": "OBLIGATOIRE - Titre du poste occupé (ex: Ingénieur Conception, Développeur Senior, Chef de Projet, etc.) - CRITIQUE : Supprime OBLIGATOIREMENT les mots 'alternant', 'stagiaire', 'stage', 'apprenti', 'apprentissage' du titre. Exemples de transformation : 'Stagiaire Développeur' → 'Développeur', 'Alternant Ingénieur' → 'Ingénieur', 'Stagiaire de Recherche' → 'Chercheur'",
       "contexte": "Résume l'expérience succinctement pour présenter le projet réalisé en une phrase.",
       "projet": "Ici, étoffe autant que possible les objectifs / projets de cette expérience et reformule pour rendre cela le plus long possible, sous forme de titre, sans faire apparaître le nom du candidat.",
       "logiciels": ["OBLIGATOIRE - Extrais TOUS les logiciels/outils mentionnés dans cette expérience (ex: SolidWorks, Python, React, AWS, Docker, etc.) - même s'ils ne sont pas explicitement listés, déduis-les du contexte"],
@@ -84,6 +84,7 @@ INSTRUCTIONS CRITIQUES :
      b) Sinon, analyse toutes les expériences et déduis le titre le plus représentatif
      c) Privilégie le poste le plus récent ou celui qui reflète le mieux l'évolution de carrière
      d) Sois précis et professionnel dans le titre (évite les termes génériques)
+   - **IMPORTANT** : Supprime TOUJOURS les mots "alternant", "stagiaire", "stage", "apprenti", "apprentissage" du titre du poste
    - Exemples : "Ingénieur Conception Mécanique", "Solution Architecte", "Data Engineer", "Développeur Full Stack", "Chef de Projet", "Consultant", "Ingénieur Génie Civil", "Product Manager"
 
 4. **DATES ET CALCUL D'EXPÉRIENCE** :
@@ -111,6 +112,18 @@ INSTRUCTIONS CRITIQUES :
    - **VÉRIFICATION** : Compte le nombre d'expériences mentionnées dans le CV et assure-toi d'en avoir extrait le même nombre
 
 NB : Ne fais pas apparaître le type de contrat (exemple : Stage, Alternance, CDI, CDD...) dans les expériences.
+
+**RÈGLE CRITIQUE POUR LES TERMES DE STAGE/ALTERNANCE** :
+- Supprime TOUJOURS les mots "alternant", "stagiaire", "stage", "apprenti", "apprentissage" des titres de postes (champ "poste" principal et champ "poste" des expériences)
+- Conserve TOUTES les expériences (stages, alternances, etc.) mais traite-les comme des expériences professionnelles normales
+- Reformule les titres pour qu'ils soient professionnels sans mentionner le statut
+- **EXEMPLES DE TRANSFORMATION OBLIGATOIRES** :
+  * "Stagiaire Développeur" → "Développeur"
+  * "Alternant Ingénieur" → "Ingénieur" 
+  * "Stagiaire de Recherche" → "Chercheur"
+  * "Apprenti Data Analyst" → "Data Analyst"
+  * "Stage Marketing" → "Marketing"
+  * "Alternance Commercial" → "Commercial"
 
 Ajoute autant d'informations que possible en analysant le CV et en déduisant des éléments qui ne sont pas forcément présents, comme le ferait un expert RH.
 
