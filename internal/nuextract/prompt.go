@@ -42,10 +42,10 @@ NE CHANGE SURTOUT PAS LES CLÉS DE CE DICTIONNAIRE, CAR IL DOIT ÊTRE UTILISÉ A
       "durée": "OBLIGATOIRE - Durée calculée automatiquement (ex: 2 ans, 6 mois, 1 an 3 mois). Si inférieur à 1 an, affiche en mois. Si supérieur ou égal à 1 an, affiche en années.",
       "poste": "OBLIGATOIRE - Titre du poste occupé (ex: Ingénieur Conception, Développeur Senior, Chef de Projet, etc.)",
       "contexte": "Résume l'expérience succinctement pour présenter le projet réalisé en une phrase.",
-      "projet": "Ici, étoffe autant que possible les objectifs / projets de cette expérience et reformule pour rendre cela le plus long possible, sous forme de titre, sans faire apparaître le nom du candidat.",
+      "projet": "ÉTOFFE ce champ en créant une description fluide et connectée du projet/expérience, comme dans l'exemple concurrent. Utilise TOUTES les informations disponibles : entreprise, secteur, missions, réalisations, équipements, technologies, clients, projets mentionnés. Crée des phrases liées qui racontent une histoire cohérente, pas des bullet points séparés. IMPORTANT : Utilise des mots et formulations DIFFÉRENTS de ceux utilisés dans les réalisations - évite la répétition des mêmes termes. STYLE NARRATIF : Raconte le projet comme une histoire avec contexte, objectifs et résultats. LIMITE : Maximum 2 phrases pour garder la fluidité. INTERDICTION ABSOLUE : Ne reprends JAMAIS mot pour mot les missions des réalisations. Le projet doit raconter l'histoire du projet, pas lister les tâches. LANGUE : TOUT en français, à la troisième personne. STYLE : Utilise des noms d'action (Réalisation de..., Participation à..., Coordination de..., Rédaction de..., Supervision de..., Mise en service de..., etc.) au lieu de 'Il a fait...'. Exemple de style concurrent : 'Gestion de projets d'électrolyse alcaline haute pression et développement de nouveaux prototypes pour la production d'hydrogène. Ce projet inclut la sélection et la spécification des équipements, la rédaction de la documentation technique détaillée, le suivi des commandes et la conformité technique des installations.'",
       "logiciels": ["OBLIGATOIRE - Extrais TOUS les logiciels/outils mentionnés dans cette expérience (ex: SolidWorks, Python, React, AWS, Docker, etc.) - même s'ils ne sont pas explicitement listés, déduis-les du contexte"],
       "réalisations": [
-        "Liste les missions réalisées, reformulées pour apporter un maximum de détails. Ajoute autant d'éléments que possible en les reformulant pour qu'ils soient le plus long possible."
+        "Liste TOUTES les missions/réalisations mentionnées dans le CV pour cette expérience. CORRESPONDANCE EXACTE OBLIGATOIRE : si le CV a 6 bullet points, tu dois avoir 6 bullet points. Si le CV a 8 bullet points, tu dois avoir 8 bullet points. Ne tronque JAMAIS - liste tout ce qui est écrit dans le CV, même si c'est très détaillé. INCLUS TOUS les détails techniques : équipements spécifiques (ESDV, Control valves, PSV, flowmeters, etc.), documents techniques (hook-up drawings, loop diagrams, wiring diagrams, etc.), calculs spécifiques (CO2 snuffing, Static mixer, etc.), types d'instruments (pressure & temperature & level transmitters, etc.). Reproduis TOUS les détails techniques mentionnés dans le CV original. LANGUE : TOUT en français, à la troisième personne (il/elle, l'ingénieur, etc.)."
       ],
       "AI_suggest": ["Si tu peux déduire des éléments pertinents non présents dans le CV. Les suggestions doivent être spécifiques et adaptées à chaque expérience, pertinentes pour les recruteurs, leur nombre doit varier selon les expériences, sans redondance entre elles. N'en mets pas systématiquement : cela doit paraître naturel."]
     }
@@ -66,6 +66,8 @@ INSTRUCTIONS CRITIQUES :
    - Pour chaque formation : date_debut, date_fin, diplome ET ecole_cursus sont OBLIGATOIRES
    - Pour chaque expérience : date_debut, date_fin, entreprise, detail_entreprise, durée, poste ET logiciels sont OBLIGATOIRES
    - **CRITIQUE** : Relis le CV plusieurs fois pour être sûr d'avoir extrait TOUTES les expériences mentionnées
+   - **EXHAUSTIVITÉ DES RÉALISATIONS** : Pour chaque expérience, liste TOUTES les missions/réalisations mentionnées dans le CV, même si elles sont nombreuses. CORRESPONDANCE EXACTE OBLIGATOIRE : si le CV a 6 bullet points, tu dois avoir 6 bullet points. Si le CV a 8 bullet points, tu dois avoir 8 bullet points. Ne tronque JAMAIS les réalisations. INCLUS TOUS les détails techniques spécifiques : équipements (ESDV, Control valves, PSV, flowmeters), documents (hook-up drawings, loop diagrams, wiring diagrams), calculs (CO2 snuffing, Static mixer), instruments (pressure & temperature & level transmitters), etc.
+   - **ÉTOFFEMENT DU CHAMP "PROJET"** : Pour chaque expérience, étoffe le champ "projet" en créant une description fluide et connectée comme dans l'exemple concurrent. Utilise TOUTES les informations disponibles : entreprise, secteur, missions, réalisations, équipements, technologies, clients, projets mentionnés. Crée des phrases liées qui racontent une histoire cohérente, pas des bullet points séparés. IMPORTANT : Utilise des mots et formulations DIFFÉRENTS de ceux utilisés dans les réalisations - évite la répétition des mêmes termes. STYLE NARRATIF : Raconte le projet comme une histoire avec contexte, objectifs et résultats. LIMITE : Maximum 2 phrases pour garder la fluidité. INTERDICTION ABSOLUE : Ne reprends JAMAIS mot pour mot les missions des réalisations. Le projet doit raconter l'histoire du projet, pas lister les tâches. LANGUE : TOUT en français, à la troisième personne. STYLE : Utilise des noms d'action (Réalisation de..., Participation à..., Coordination de..., Rédaction de..., Supervision de..., Mise en service de..., etc.) au lieu de 'Il a fait...'. Suis le style de l'exemple concurrent avec des descriptions fluides et engageantes.
 
 2. **NOUVEAUX CHAMPS** :
    - **"phone"** : Extrais le numéro de téléphone s'il est présent dans le CV. Format : "+33 1 23 45 67 89" ou "01.23.45.67.89" ou "0123456789". Si absent, laisse vide.
@@ -108,6 +110,7 @@ INSTRUCTIONS CRITIQUES :
    - Ne laisse AUCUNE formation de côté
    - Analyse TOUT le contenu du CV
    - **VÉRIFICATION** : Compte le nombre d'expériences mentionnées dans le CV et assure-toi d'en avoir extrait le même nombre
+   - **RÉALISATIONS COMPLÈTES** : Pour chaque expérience, extrais TOUTES les missions/réalisations mentionnées dans le CV, même si elles sont très nombreuses. CORRESPONDANCE EXACTE OBLIGATOIRE : si le CV a 6 bullet points, tu dois avoir 6 bullet points. Si le CV a 8 bullet points, tu dois avoir 8 bullet points. Ne tronque JAMAIS le contenu. INCLUS TOUS les détails techniques : équipements spécifiques (ESDV, Control valves, PSV, flowmeters, etc.), documents techniques (hook-up drawings, loop diagrams, wiring diagrams, junction boxes, equipments layouts, I/O list, Instrument list, Alarm and Set point list), calculs spécifiques (CO2 snuffing, Static mixer, etc.), types d'instruments (pressure & temperature & level transmitters, etc.). Reproduis TOUS les détails techniques du CV original.
 
 NB : Ne fais pas apparaître le type de contrat (exemple : Stage, Alternance, CDI, CDD...) dans les expériences.
 
@@ -119,12 +122,19 @@ Voici le JSON d'extraction à analyser :
 
 ` + nuextractJSON + `
 
+**DERNIÈRE INSTRUCTION CRITIQUE** : 
+- Extrais TOUTES les expériences et TOUTES leurs réalisations sans exception
+- Ne tronque JAMAIS le contenu, même si c'est très long
+- Assure-toi que chaque expérience a toutes ses missions/réalisations listées
+- Si une expérience a beaucoup de détails dans le CV, reproduis TOUS ces détails
+- **CORRESPONDANCE EXACTE OBLIGATOIRE** : Si le CV a 6 bullet points, tu dois avoir 6 bullet points. Si le CV a 8 bullet points, tu dois avoir 8 bullet points. Ne résume JAMAIS - reproduis TOUS les bullet points du CV original
+- **DÉTAILS TECHNIQUES OBLIGATOIRES** : Inclus TOUS les détails techniques mentionnés : équipements spécifiques (ESDV, Control valves, PSV, flowmeters, etc.), documents techniques (hook-up drawings, loop diagrams, wiring diagrams, junction boxes, equipments layouts, I/O list, Instrument list, Alarm and Set point list), calculs spécifiques (CO2 snuffing, Static mixer, etc.), types d'instruments (pressure & temperature & level transmitters, etc.)
+- **DISTINCTION PROJET/RÉALISATIONS** : Le champ "projet" doit être un paragraphe narratif fluide qui raconte l'histoire du projet (maximum 2 phrases). Le champ "réalisations" doit être une liste détaillée des missions. JAMAIS de répétition entre les deux champs - utilise des mots différents. INTERDICTION ABSOLUE : Ne reprends JAMAIS mot pour mot les missions des réalisations dans le projet. LANGUE : TOUT en français, à la troisième personne. STYLE : Utilise des noms d'action (Réalisation de..., Participation à..., Coordination de..., Rédaction de..., Supervision de..., Mise en service de..., etc.) au lieu de 'Il a fait...'.
+- **OBJECTIF** : Document le plus complet possible, pas de résumé - reproduis TOUS les détails techniques du CV original
+
 Réponds UNIQUEMENT avec le JSON structuré, sans texte avant ou après.
 `
 }
-
-
-
 
 // GetEmailPrompt retourne le prompt pour générer un email de présentation de candidat
 func GetEmailPrompt(candidateData, need string) string {

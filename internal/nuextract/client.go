@@ -44,13 +44,13 @@ func extractTextFromPDF(fileData []byte) (string, error) {
 
 	var text strings.Builder
 	numPages := pdfReader.NumPage()
-	
+
 	for i := 1; i <= numPages; i++ {
 		page := pdfReader.Page(i)
 		if page.V.IsNull() {
 			continue
 		}
-		
+
 		content, err := page.GetPlainText(nil)
 		if err != nil {
 			log.Printf("WARNING: Erreur extraction page %d: %v", i, err)
@@ -59,7 +59,7 @@ func extractTextFromPDF(fileData []byte) (string, error) {
 		text.WriteString(content)
 		text.WriteString("\n")
 	}
-	
+
 	return text.String(), nil
 }
 
@@ -70,17 +70,17 @@ func extractTextFromPDFAlternative(fileData []byte) (string, error) {
 			log.Printf("ERROR: Panic dans extraction PDF alternative: %v", r)
 		}
 	}()
-	
+
 	// Vérifier que le fichier n'est pas vide
 	if len(fileData) < 100 {
 		return "", fmt.Errorf("fichier PDF trop petit ou corrompu (%d bytes)", len(fileData))
 	}
-	
+
 	// Vérifier que c'est bien un PDF (magic number)
 	if len(fileData) < 4 || string(fileData[:4]) != "%PDF" {
 		return "", fmt.Errorf("fichier ne semble pas être un PDF valide")
 	}
-	
+
 	reader := bytes.NewReader(fileData)
 	pdfReader, err := rscpdf.NewReader(reader, int64(len(fileData)))
 	if err != nil {
@@ -89,24 +89,24 @@ func extractTextFromPDFAlternative(fileData []byte) (string, error) {
 
 	var text strings.Builder
 	numPages := pdfReader.NumPage()
-	
+
 	if numPages == 0 {
 		return "", fmt.Errorf("PDF ne contient aucune page")
 	}
-	
+
 	for i := 1; i <= numPages; i++ {
 		page := pdfReader.Page(i)
 		if page.V.IsNull() {
 			log.Printf("WARNING: Page %d est vide", i)
 			continue
 		}
-		
+
 		content := page.Content()
 		if len(content.Text) == 0 {
 			log.Printf("WARNING: Page %d ne contient pas de texte", i)
 			continue
 		}
-		
+
 		for _, textObj := range content.Text {
 			if textObj.S != "" {
 				text.WriteString(textObj.S)
@@ -114,12 +114,12 @@ func extractTextFromPDFAlternative(fileData []byte) (string, error) {
 		}
 		text.WriteString("\n")
 	}
-	
+
 	result := text.String()
 	if len(result) < 10 {
 		return "", fmt.Errorf("extraction alternative échouée, contenu trop petit (%d caractères)", len(result))
 	}
-	
+
 	return result, nil
 }
 
@@ -143,25 +143,25 @@ func (c *Client) ExtractAndEnrichWithFilename(file []byte, filename string) ([]b
 
 	// Extraire le vrai contenu du PDF
 	log.Printf("DEBUG: Extraction du contenu réel du PDF")
-	
+
 	var fileContent string
 	var err error
-	
+
 	// Vérifier si c'est un PDF
 	if strings.HasSuffix(strings.ToLower(filename), ".pdf") || len(file) > 1000 {
 		log.Printf("DEBUG: Fichier PDF détecté, extraction du texte")
-		
+
 		// Essayer d'abord UniPDF (le plus puissant) - VERSION DEBUG
 		unipdfExtractor := NewUniPDFExtractorDebug()
 		fileContent, err = unipdfExtractor.ExtractTextFromPDFWithTablesDebug(file)
 		if err != nil || len(fileContent) < 100 {
 			log.Printf("DEBUG: UniPDF échoué ou contenu trop petit, essai méthode principale")
-			
+
 			// Essayer la méthode principale (ledongthuc/pdf)
 			fileContent, err = extractTextFromPDF(file)
 			if err != nil || len(fileContent) < 100 {
 				log.Printf("DEBUG: Méthode principale échouée ou contenu trop petit, essai méthode alternative")
-				
+
 				// Essayer la méthode alternative avec gestion d'erreur
 				func() {
 					defer func() {
@@ -172,7 +172,7 @@ func (c *Client) ExtractAndEnrichWithFilename(file []byte, filename string) ([]b
 					}()
 					fileContent, err = extractTextFromPDFAlternative(file)
 				}()
-				
+
 				if err != nil {
 					log.Printf("ERROR: Erreur extraction PDF alternative: %v", err)
 					// Fallback: utiliser le nom du fichier
@@ -193,7 +193,7 @@ func (c *Client) ExtractAndEnrichWithFilename(file []byte, filename string) ([]b
 		} else {
 			log.Printf("DEBUG: Extraction UniPDF réussie, %d caractères extraits", len(fileContent))
 		}
-		
+
 		// Sauvegarder le texte extrait pour debug
 		debugFile := fmt.Sprintf("debug_extracted_text_%s.txt", strings.ReplaceAll(filename, ".pdf", ""))
 		if err := os.WriteFile(debugFile, []byte(fileContent), 0644); err != nil {
@@ -201,7 +201,7 @@ func (c *Client) ExtractAndEnrichWithFilename(file []byte, filename string) ([]b
 		} else {
 			log.Printf("DEBUG: Texte extrait sauvegardé dans %s", debugFile)
 		}
-		
+
 		// Métriques de timing détaillées
 		extractionTime := time.Since(startTime)
 		log.Printf("DEBUG: ⏱️  MÉTRIQUES TIMING:")
@@ -212,7 +212,7 @@ func (c *Client) ExtractAndEnrichWithFilename(file []byte, filename string) ([]b
 		fileContent = string(file)
 		log.Printf("DEBUG: Fichier texte détecté, %d caractères", len(fileContent))
 	}
-	
+
 	// Si le contenu est vide ou très petit, utiliser le nom comme fallback
 	if len(fileContent) < 50 {
 		log.Printf("DEBUG: Contenu trop petit, utilisation du nom comme fallback")
@@ -315,7 +315,7 @@ func (c *Client) ExtractAndEnrichWithFilename(file []byte, filename string) ([]b
 		openAIResp.Usage.TotalTokens)
 	log.Printf("DEBUG: ⏱️  RÉSUMÉ TIMING:")
 	log.Printf("DEBUG: 📁 Upload PDF: ~0.1s")
-	log.Printf("DEBUG: 📄 Extraction PDF: ~0.1s") 
+	log.Printf("DEBUG: 📄 Extraction PDF: ~0.1s")
 	log.Printf("DEBUG: 🤖 API OpenAI: %v", openAIDuration)
 	log.Printf("DEBUG: 🏁 Total: %v", totalDuration)
 

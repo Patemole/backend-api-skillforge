@@ -1,0 +1,207 @@
+CV envoyé par Hellowork. Contient des données personnelles : ne pas utiliser, diffuser, copier sans le consentement de son auteur.
+
+Mustapha AZMAL
+DOB : 07/05/1976
+French
+Married, 4 childrens
+Mustapha_azmal@yahoo.fr
+06 86 69 47 54 364 B Allée des pinsons
+77190 Dammarie-les-Lys
+France
+
+INSTRUMENTATION ENGINEER
+
+CAREER SKILLS / KNOWLEDGE
+
+Management :
+
+-
+-
+-
+-
+Instrumentation:
+-
+-
+-
+-
+-
+-
+
+Project management certification (IFP)
+Leadership & Management training
+Leading people on IEC department
+Participating on internal Audit
+
+Measuring systems definition
+Instruments specifications
+Calculation of control valves, PSV
+P&IDs
+Loop diagrams
+Metrology
+
+Electricity:
+
+- Electrical specifications and calculation notes (motors, transformers, electric heaters, controls cables,
+VSD Systems ...),
+Electrical power balance ( lists of consumers),
+
+-
+
+Industrial programmable logic controllers and softwares:
+- CANECO, AUTOCAD LT, INTOOLS, WORD,
+- EXCEL, POWER POINT, ACCESS
+Engineering:
+
+-
+-
+-
+-
+-
+-
+
+Oil & Gas practice (GS-SAF TOTAL, GP EXXON, …)
+Internationals Standards and rules (IEC, ASME, API, ANSI, NACE, NFPA…)
+International regulations (ATEX, PED…)
+Engineering rules
+Front End Engineering Design (FEED)
+Basic and Detail engineering
+
+1/4
+
+
+CV envoyé par Hellowork. Contient des données personnelles : ne pas utiliser, diffuser, copier sans le consentement de son auteur.
+
+WORK EXPERIENCE
+
+09/2023 up to now MCPHY ENERGIES (AT)
+IEC lead engineer – high-pressure alkaline electrolysis & new prototype
+In charge of the following (Engineering activities):
+- Call for tender, technical clarifications with Client
+- Client Monitoring, sub-contractors and suppliers contracts.
+- Tendering, estimated hours and materials.
+- Call of tender for procurement, purchase orders.
+- Measuring equipments selection and elaboration of PID
+- Elaboration and follow-up of detailed design documentation: instrumentation hook-up drawings, loop
+diagrams, interconnecting wiring diagrams, wiring diagrams, junction boxes, equipments layouts, I/O
+list, Instrument list, Alarm and Set point list,
+- Purchase orders follow-up, schedule, technical conformity
+- Writing specifications and calculations:
+- Calculation notes (ESDV /Control valves, On/Off valves, Pressure Relief Valves, flowmeters, CO2
+snuffing, Static mixer ...),
+
+- Instruments specifications (ESDV / Valves, Pressure Relief Valves, flowmeters, pressure &
+temperature & level transmitters..
+
+01/2022 to end of 07/2023 TECHNIP ENERGIES (AT)
+Installation engineer
+In charge of the following (Engineering activities):
+- Understand and assimilate the philosophy behind the installation of instrumentation and control systems,
+- Write design instructions and standards,
+- Coordinate interfaces with the piping, civil engineering, electrical, equipment and HSE Design
+departments,
+- Reserving and routing cables in the 3D model using the CAD tool (Aveva E3D or Intergraph S3D).
+Prepare the layout plans for the instrumentation rooms.
+- Specify and requisition standardised equipment.
+- Carry out quantity surveys and monitor and manage quantities
+- Adapting and commenting on the documents needed to implement works contracts,
+- Assisting the project in analysing additional costs,
+- Reporting to the Instrumentation Installation Group Leader
+- Participate in field engineering and/or construction activities
+
+05/2012 to 12/2022 VEOLIA OIL & GAS & SIDEM ( CDI):
+Instrumentation lead engineer
+Project: Saoudi Arabia(Jazan), Shell (Carmon Creek), KOC project, Petron Dealim, BP Egypt, Rasgas Qatar and others
+projects in Tender.
+In charge of the following (Engineering activities):
+- Call for tender, technical clarifications with Client
+- Client Monitoring, sub-contractors and suppliers contracts.
+- Tendering, estimated hours and materials.
+- Call of tender for procurement, purchase orders.
+- Measuring equipments selection and elaboration of PID
+- Elaboration and follow-up of detailed design documentation: instrumentation hook-up drawings, loop
+diagrams, interconnecting wiring diagrams, wiring diagrams, junction boxes, equipments layouts, I/O
+list, Instrument list, Alarm and Set point list,
+- Purchase orders follow-up, schedule, technical conformity
+- Writing specifications and calculations:
+- Calculation notes (ESDV /Control valves, On/Off valves, Pressure Relief Valves, flowmeters, CO2
+snuffing, Static mixer ...),
+
+- Instruments specifications (ESDV / Valves, Pressure Relief Valves, flowmeters, pressure &
+temperature & level transmitters..
+
+08/2011 to 05 /2012 AKERSOLUTIONS (CDI):
+Head of Electrical, Instrumentation
+
+Engineering activities
+
+2/4
+
+
+CV envoyé par Hellowork. Contient des données personnelles : ne pas utiliser, diffuser, copier sans le consentement de son auteur.
+
+10/2010 to /08/2011 SPIE OIL AND GAS SERVICES (CDI)
+Instrumentation engineer – Preparator Offshore – ANGOLA
+
+Preparation electrical, instrumentation and tubing detail for Exxon mobil (FPSO Kizoumba B).
+Construction follow up on E&I activities in accordance with Exxon Mobil specification and safety rules.
+Permit preparation in accordance with jobcard system (JCD) and planning.
+Leading of 32 people (local and expatriate), and dealing on daily basis with Exxon Mobil for progress
+and punch issues.
+Preparation and team leading for pre-commissioning and commissioning activities.
+
+10/2009 to /08/2011 SPIE OIL AND GAS SERVICES (CDI)
+Instrumentation engineer – Preparator Offshore – ANGOLA
+
+Electrical and instrumentation detailed design for Cavala pig Launcher project for Sonangol /
+offshore interventions on Block 2 and New centrifuge PAL P2 Project for Sonangol / offshore
+interventions on Block 3:
+
+10/2008 to 10/2009 FOSTER WHEELER (AT)
+
+Instrumentation engineer
+
+Engineering activities
+
+03/2008 to 10/2008 TECHNIP (AT)
+Instrumentation engineer
+
+Engineering activities
+
+06/2007 to 03/2008 AIR LIQUIDE (Champigny) (AT)
+
+Instrumentation engineer
+
+Engineering activities
+
+02/2006 to 05/2007 BECHTEL (AT)
+
+Instrumentation engineer
+
+Engineering activities
+
+12/2004 to 01/2006 Sanofi Aventis (AT)
+Instrumentation technician and construction supervisor
+- Start-up of new installations, materiel reception, checking according to specifications. Works followup. Synchronization.
+- Preventive and corrective maintenance of measuring equipments.
+
+02/2001 to 12/2004 Instrumentation technician and construction supervisor (nuclear sector)
+- Preparation of work schedules
+- Team Management and supervision
+- Preventive and corrective maintenance of measuring equipments
+- Control and requalification of regulator, control valve, temperature probe, TOR and ANA sensor
+- Maintenance, troubleshooting, start up of several units
+- Metrology: control and requalification of pressure, voltage, temperature measuring equipments
+
+QUALIFICATIONS and LANGUAGES
+
+MASTER IMM (Instrumentation, Measuring, Metrology)
+
+BTS CIRA (Automatic Regulation and Industrial Control)
+BAC Energy
+
+Languages: English (speaking, writing & reading) used everyday
+Knowledge of Arabic
+
+3/4
+
+

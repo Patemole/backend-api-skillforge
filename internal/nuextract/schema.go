@@ -8,7 +8,7 @@ type CVExtractionSchema struct {
 	Phone             string       `json:"phone"`              // string (numéro de téléphone)
 	Summary           string       `json:"summary"`            // string (résumé professionnel)
 	Age               string       `json:"age"`                // string (peut être "Non précisé(e)")
-	Poste             string       `json:"poste"`               // string
+	Poste             string       `json:"poste"`              // string
 	Diplome           string       `json:"diplome"`            // string
 	Experience        string       `json:"expérience"`         // string
 	Mobilite          string       `json:"mobilité"`           // string
@@ -37,13 +37,13 @@ type Experience struct {
 	DateFin          string   `json:"date_fin"`          // string (format: "Décembre 2025")
 	Entreprise       string   `json:"entreprise"`        // string
 	DetailEntreprise string   `json:"detail_entreprise"` // string (description de l'entreprise)
-	Duree            string   `json:"durée"`              // string (calculée automatiquement)
-	Poste            string   `json:"poste"`              // string
-	Contexte         string   `json:"contexte"`           // string
-	Projet           string   `json:"projet"`             // string
-	Logiciels        []string `json:"logiciels"`          // []string
-	Realisations     []string `json:"réalisations"`       // []string
-	AISuggest        []string `json:"AI_suggest"`         // []string
+	Duree            string   `json:"durée"`             // string (calculée automatiquement)
+	Poste            string   `json:"poste"`             // string
+	Contexte         string   `json:"contexte"`          // string
+	Projet           string   `json:"projet"`            // string
+	Logiciels        []string `json:"logiciels"`         // []string
+	Realisations     []string `json:"réalisations"`      // []string
+	AISuggest        []string `json:"AI_suggest"`        // []string
 }
 
 // Logiciel définit la structure d'un logiciel
@@ -52,4 +52,3 @@ type Logiciel struct {
 	Level            string `json:"level"`             // string ("Débutant", "Intermédiaire", "Avancé", "Expert")
 	TempsUtilisation string `json:"temps_utilisation"` // string (en mois)
 }
-
