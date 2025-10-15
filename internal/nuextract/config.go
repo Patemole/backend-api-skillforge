@@ -15,7 +15,7 @@ func GetOpenAIConfig() OpenAIConfig {
 	return OpenAIConfig{
 		Model:            "gpt-4o", // Plus flexible que gpt-4-turbo
 		MaxTokens:        13000,    // Augmenté pour éviter les troncatures d'expériences
-		Temperature:      0.1,      // Faible pour plus de cohérence et de vitesse
+		Temperature:      0.3,      // Faible pour plus de cohérence et de vitesse
 		TopP:             0.9,
 		FrequencyPenalty: 0,
 		PresencePenalty:  0,
