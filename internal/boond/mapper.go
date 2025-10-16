@@ -41,7 +41,7 @@ func BuildCandidateAttributesFromCV(cv nuextract.CVExtractionSchema) map[string]
 		attributes["experience"] = s
 	}
 
-	// Concaténer les domaines, secteurs, langues et logiciels en un champ "skills" textuel
+	// Concaténer les domaines, secteurs, langues, certifications, compétences techniques et logiciels en un champ "skills" textuel
 	var skillsParts []string
 	if len(cv.DomainesExpertise) > 0 {
 		skillsParts = append(skillsParts, "Domaines d'expertise: "+strings.Join(cv.DomainesExpertise, ", "))
@@ -50,7 +50,26 @@ func BuildCandidateAttributesFromCV(cv nuextract.CVExtractionSchema) map[string]
 		skillsParts = append(skillsParts, "Secteurs: "+strings.Join(cv.SecteursActivites, ", "))
 	}
 	if len(cv.Languages) > 0 {
-		skillsParts = append(skillsParts, "Langues: "+strings.Join(cv.Languages, ", "))
+		var languages []string
+		for _, lang := range cv.Languages {
+			if name := strings.TrimSpace(lang.Language); name != "" {
+				level := strings.TrimSpace(lang.Level)
+				if level != "" {
+					languages = append(languages, name+" ("+level+")")
+				} else {
+					languages = append(languages, name)
+				}
+			}
+		}
+		if len(languages) > 0 {
+			skillsParts = append(skillsParts, "Langues: "+strings.Join(languages, ", "))
+		}
+	}
+	if len(cv.Certifications) > 0 {
+		skillsParts = append(skillsParts, "Certifications: "+strings.Join(cv.Certifications, ", "))
+	}
+	if len(cv.TechnicalSkills) > 0 {
+		skillsParts = append(skillsParts, "Compétences techniques: "+strings.Join(cv.TechnicalSkills, ", "))
 	}
 	if len(cv.Logiciels) > 0 {
 		var tools []string

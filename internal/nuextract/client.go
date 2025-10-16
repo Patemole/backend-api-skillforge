@@ -263,7 +263,7 @@ func (c *Client) ExtractAndEnrichWithFilename(file []byte, filename string, lang
 	}
 
 	// Récupérer le prompt et la configuration selon la langue
-	prompt := GetExtractionPromptWithLanguage(string(raw), language)
+	prompt := GetExtractionPromptProductionWithLanguage(string(raw), language)
 	config := GetOpenAIConfig()
 
 	payload := map[string]interface{}{

@@ -8,14 +8,16 @@ type CVExtractionSchema struct {
 	Phone             string       `json:"phone"`              // string (numéro de téléphone)
 	Summary           string       `json:"summary"`            // string (résumé professionnel)
 	Age               string       `json:"age"`                // string (peut être "Non précisé(e)")
-	Poste             string       `json:"poste"`               // string
+	Poste             string       `json:"poste"`              // string
 	Diplome           string       `json:"diplome"`            // string
 	Experience        string       `json:"expérience"`         // string
 	Mobilite          string       `json:"mobilité"`           // string
 	Disponibilite     string       `json:"disponibilité"`      // string
 	PermisB           interface{}  `json:"permis_B"`           // bool ou string
 	Hobbies           []string     `json:"hobbies"`            // []string
-	Languages         []string     `json:"languages"`          // []string (langues parlées)
+	Languages         []Language   `json:"languages"`          // []Language (langues parlées avec niveau CECR)
+	Certifications    []string     `json:"certifications"`     // []string (certifications mentionnées)
+	TechnicalSkills   []string     `json:"technical_skills"`   // []string (compétences techniques détaillées)
 	SecteursActivites []string     `json:"secteurs_activites"` // []string (secteurs d'activités du candidat)
 	DomainesExpertise []string     `json:"domaines_expertise"` // []string (domaines de compétences d'expertise)
 	Formations        []Formation  `json:"formations"`         // []Formation
@@ -37,13 +39,13 @@ type Experience struct {
 	DateFin          string   `json:"date_fin"`          // string (format: "Décembre 2025")
 	Entreprise       string   `json:"entreprise"`        // string
 	DetailEntreprise string   `json:"detail_entreprise"` // string (description de l'entreprise)
-	Duree            string   `json:"durée"`              // string (calculée automatiquement)
-	Poste            string   `json:"poste"`              // string
-	Contexte         string   `json:"contexte"`           // string
-	Projet           string   `json:"projet"`             // string
-	Logiciels        []string `json:"logiciels"`          // []string
-	Realisations     []string `json:"réalisations"`       // []string
-	AISuggest        []string `json:"AI_suggest"`         // []string
+	Duree            string   `json:"durée"`             // string (calculée automatiquement)
+	Poste            string   `json:"poste"`             // string
+	Contexte         string   `json:"contexte"`          // string
+	Projet           string   `json:"projet"`            // string
+	Logiciels        []string `json:"logiciels"`         // []string
+	Realisations     []string `json:"réalisations"`      // []string
+	AISuggest        []string `json:"AI_suggest"`        // []string
 }
 
 // Logiciel définit la structure d'un logiciel
@@ -53,3 +55,8 @@ type Logiciel struct {
 	TempsUtilisation string `json:"temps_utilisation"` // string (en mois)
 }
 
+// Language définit la structure d'une langue avec son niveau CECR
+type Language struct {
+	Language string `json:"language"` // string (nom de la langue : "Français", "Anglais", "Allemand", etc.)
+	Level    string `json:"level"`    // string (niveau CECR : "A1", "A2", "B1", "B2", "C1", "C2", "Natif", "Courant", etc.)
+}
