@@ -1,0 +1,16 @@
+{
+  "test_french_prompt": {
+    "description": "Test du prompt français avec un CV d'exemple",
+    "language": "fr",
+    "sample_cv_data": {
+      "text": "Jean Dupont\nIngénieur Informatique\nEmail: jean.dupont@email.com\nTéléphone: 01.23.45.67.89\n\nExpérience:\n- 2020-2023: Développeur Full Stack chez TechCorp\n- 2018-2020: Stagiaire Développeur chez StartupXYZ\n\nFormation:\n- 2016-2020: Diplôme d'Ingénieur en Informatique - École Polytechnique\n\nCompétences: Python, JavaScript, React, Node.js"
+    }
+  },
+  "test_english_prompt": {
+    "description": "Test du prompt anglais avec un CV d'exemple",
+    "language": "en",
+    "sample_cv_data": {
+      "text": "John Smith\nSoftware Engineer\nEmail: john.smith@email.com\nPhone: +1-555-123-4567\n\nExperience:\n- 2020-2023: Full Stack Developer at TechCorp\n- 2018-2020: Software Development Intern at StartupXYZ\n\nEducation:\n- 2016-2020: Bachelor of Science in Computer Science - MIT\n\nSkills: Python, JavaScript, React, Node.js"
+    }
+  }
+}

@@ -126,16 +126,17 @@ func extractTextFromPDFAlternative(fileData []byte) (string, error) {
 // ExtractAndEnrich sends a PDF to NuExtract, then feeds its JSON into OpenAI
 // via the Chat Completions API, returning the enriched CV JSON.
 func (c *Client) ExtractAndEnrich(file []byte) ([]byte, error) {
-	return c.ExtractAndEnrichWithFilename(file, "")
+	return c.ExtractAndEnrichWithFilename(file, "", "fr")
 }
 
 // ExtractAndEnrichWithFilename same as ExtractAndEnrich but with filename for test mode
-func (c *Client) ExtractAndEnrichWithFilename(file []byte, filename string) ([]byte, error) {
+func (c *Client) ExtractAndEnrichWithFilename(file []byte, filename string, language string) ([]byte, error) {
 	startTime := time.Now()
 	log.Printf("DEBUG: Début de l'extraction et enrichissement (MODE TEST - OpenAI SEUL)")
 	log.Printf("DEBUG: Taille du fichier: %d bytes", len(file))
 	log.Printf("DEBUG: Project ID: %s", c.projectID)
 	log.Printf("DEBUG: API Key présent: %t", c.nuexAPIKey != "")
+	log.Printf("🌍 Langue d'extraction: %s", language)
 
 	// MODE OPENAI DIRECT: On utilise OpenAI pour extraire directement le contenu du PDF
 	log.Printf("DEBUG: MODE OPENAI DIRECT - Extraction PDF avec OpenAI")
@@ -261,8 +262,8 @@ func (c *Client) ExtractAndEnrichWithFilename(file []byte, filename string) ([]b
 		return nil, fmt.Errorf("OPENAI_API_KEY not set")
 	}
 
-	// Récupérer le prompt et la configuration
-	prompt := GetExtractionPrompt(string(raw))
+	// Récupérer le prompt et la configuration selon la langue
+	prompt := GetExtractionPromptWithLanguage(string(raw), language)
 	config := GetOpenAIConfig()
 
 	payload := map[string]interface{}{

@@ -4,6 +4,19 @@ import "fmt"
 
 // GetExtractionPrompt retourne le prompt pour l'extraction et la structuration des données CV
 func GetExtractionPrompt(nuextractJSON string) string {
+	return GetExtractionPromptWithLanguage(nuextractJSON, "fr")
+}
+
+// GetExtractionPromptWithLanguage retourne le prompt pour l'extraction selon la langue
+func GetExtractionPromptWithLanguage(nuextractJSON string, language string) string {
+	if language == "en" {
+		return GetExtractionPromptEnglish(nuextractJSON)
+	}
+	return GetExtractionPromptFrench(nuextractJSON)
+}
+
+// GetExtractionPromptFrench retourne le prompt français pour l'extraction
+func GetExtractionPromptFrench(nuextractJSON string) string {
 	return `Tu es un expert RH spécialisé dans l'analyse de CV. Je souhaite que tu analyses le dictionnaire JSON de l'extraction de CV que je te fournis en input et que tu extraies TOUTES les informations pertinentes sous la forme d'un dictionnaire structuré, pouvant être enregistré en JSON, selon le modèle suivant :
 
 NE CHANGE SURTOUT PAS LES CLÉS DE CE DICTIONNAIRE, CAR IL DOIT ÊTRE UTILISÉ AUTREMENT PAR LA SUITE.
@@ -166,4 +179,141 @@ Tu dois écrire un email professionnel pour présenter un candidat à des entrep
 **FORMAT DE SORTIE :**
 Commence directement par "Objet: [objet de l'email]" suivi du contenu de l'email.
 `, candidateData, need)
+}
+
+// GetExtractionPromptEnglish retourne le prompt anglais pour l'extraction
+func GetExtractionPromptEnglish(nuextractJSON string) string {
+	return `You are an HR expert specialized in CV analysis. I want you to analyze the CV extraction JSON dictionary that I provide as input and extract ALL relevant information in the form of a structured dictionary, which can be saved as JSON, according to the following model:
+
+DO NOT CHANGE THE KEYS OF THIS DICTIONARY, AS IT WILL BE USED OTHERWISE LATER.
+
+{
+  "prenom": "CANDIDATE'S FIRST NAME - MANDATORY. Extract the candidate's first name from the CV. This field must ALWAYS be filled except in exceptional cases where the first name is really not mentioned in the CV. Look in the header, signature, or any mention of the candidate's full name.",
+  "nom": "Candidate's last name. If it is not explicitly present in the CV, leave this field empty (\"\"). Do not invent it.",
+  "email": "Candidate's email address. If it is not explicitly present in the CV, leave this field empty (\"\"). Do not invent it.",
+  "phone": "Candidate's phone number. If it is not explicitly present in the CV, leave this field empty (\"\"). Do not invent it.",
+  "summary": "Professional summary in 2-3 lines maximum presenting the candidate, their key skills and main experience. Be concise but impactful to give an overview of the profile.",
+  "age": "If age is not explicitly mentioned in the CV, leave this field empty (\"\"). Do not estimate it.",
+  "poste": "JOB TITLE SOUGHT - Analyze past experiences and deduce the most appropriate job title, being precise if they have a specific field of activity. If the candidate is looking for a specific position, use it. Otherwise, deduce from the most recent or most representative position of their profile. IMPORTANT: Remove the words 'intern', 'trainee', 'internship', 'apprentice', 'apprenticeship' from the title. Examples: 'Mechanical Design Engineer', 'Solution Architect', 'Data Engineer', 'Project Manager', 'Full Stack Developer'",
+  "diplome": "Main education (name of engineering school, business school or M2)",
+  "expérience": "Calculate total experience in years: find the start date of the oldest experience and subtract from the current year (2025). If no date is available, leave empty.",
+  "mobilité": "Geographic location sought if specified.",
+  "disponibilité": "",
+  "permis_B": "",
+  "hobbies": ["List of interests"],
+  "languages": ["List of spoken languages (e.g.: French, English, German, Spanish, etc.)"],
+  "secteurs_activites": ["List of business sectors in which the candidate has worked (e.g.: Automotive, Aerospace, IT, Finance, Health, etc.)"],
+  "domaines_expertise": ["List of candidate's expertise domains (e.g.: Web Development, Data Science, Project Management, Digital Marketing, etc.)"],
+  "formations": [
+    {
+      "date_debut": "MANDATORY - Start year (e.g.: 2020, 2018-2019)",
+      "date_fin": "MANDATORY - End year (e.g.: 2022, 2020-2021)",
+      "diplome": "MANDATORY - Precise type of degree (e.g.: Master in Mechanical Engineering, Engineering Degree, Bachelor in Computer Science, BTS Commerce, Medical Degree, MBA, etc.)",
+      "ecole_cursus": "MANDATORY - Full name of school/university (e.g.: École Centrale Paris, Pierre and Marie Curie University, HEC Paris, etc.)"
+    }
+  ],
+  "expériences": [
+    {
+      "date_debut": "MANDATORY - Start date in month and year format (e.g.: February 2020, January 2018, September 2019)",
+      "date_fin": "MANDATORY - End date in month and year format (e.g.: December 2022, August 2020, In progress). If the experience is ongoing, use 'In progress'",
+      "entreprise": "MANDATORY - Company name",
+      "detail_entreprise": "MANDATORY - Company description in 1-2 sentences: business sector, size, specialty, market position. Example: 'Startup specialized in artificial intelligence and machine learning, with 50 employees and leader in predictive analysis for the banking sector'",
+      "durée": "MANDATORY - Automatically calculated duration (e.g.: 2 years, 6 months, 1 year 3 months). If less than 1 year, display in months. If greater than or equal to 1 year, display in years.",
+      "poste": "MANDATORY - Job title held (e.g.: Design Engineer, Senior Developer, Project Manager, etc.) - CRITICAL: MANDATORY remove the words 'intern', 'trainee', 'internship', 'apprentice', 'apprenticeship' from the title. Examples of transformation: 'Intern Developer' → 'Developer', 'Apprentice Engineer' → 'Engineer', 'Research Intern' → 'Researcher'",
+      "contexte": "Summarize the experience succinctly to present the project carried out in one sentence.",
+      "projet": "Here, expand as much as possible the objectives/projects of this experience and reformulate to make it as long as possible, in the form of a title, without showing the candidate's name.",
+      "logiciels": ["MANDATORY - Extract ALL software/tools mentioned in this experience (e.g.: SolidWorks, Python, React, AWS, Docker, etc.) - even if they are not explicitly listed, deduce them from the context"],
+      "réalisations": [
+        "List the missions carried out, reformulated to provide maximum detail. Add as many elements as possible by reformulating them to be as long as possible."
+      ],
+      "AI_suggest": ["If you can deduce relevant elements not present in the CV. The suggestions must be specific and adapted to each experience, relevant for recruiters, their number must vary according to experiences, without redundancy between them. Don't put them systematically: it must seem natural."]
+    }
+  ],
+  "logiciels": [
+    {
+      "logiciel": "",
+      "level": "Estimate the level between: Beginner, Intermediate, Advanced, Expert.",
+      "temps_utilisation": "Estimate the usage time in months."
+    }
+  ]
+}
+
+CRITICAL INSTRUCTIONS:
+
+1. **MANDATORY EXTRACTIONS**:
+   - **FIRST NAME**: The "prenom" field is MANDATORY and must ALWAYS be filled. Look for the first name in the header, signature, or any mention of the full name. Do not leave this field empty except in exceptional cases where the first name is really not mentioned.
+   - Extract ALL professional experiences (internships, permanent contracts, fixed-term contracts, apprenticeships, etc.) - DO NOT MISS A SINGLE ONE
+   - For each education: date_debut, date_fin, diplome AND ecole_cursus are MANDATORY
+   - For each experience: date_debut, date_fin, entreprise, detail_entreprise, durée, poste AND logiciels are MANDATORY
+   - **CRITICAL**: Reread the CV several times to make sure you have extracted ALL mentioned experiences
+
+2. **NEW FIELDS**:
+   - **"phone"**: Extract the phone number if present in the CV. Format: "+33 1 23 45 67 89" or "01.23.45.67.89" or "0123456789". If absent, leave empty.
+   - **"nom"**: Extract the candidate's last name if present in the CV. If absent, leave empty.
+   - **"summary"**: Create a concise professional summary (2-3 lines max) that presents the candidate, their main skills and key experience. Be impactful and professional.
+   - **"languages"**: Extract all languages mentioned in the CV (language section, international experiences, education, etc.). Use full names in English: "French", "English", "German", "Spanish", "Italian", etc. If no language is mentioned, leave an empty array [].
+   - **"secteurs_activites"**: Extract all business sectors in which the candidate has worked (e.g.: "Automotive", "Aerospace", "IT", "Finance", "Health", "Energy", "Telecommunications", etc.). Analyze professional experiences to identify sectors.
+   - **"domaines_expertise"**: Extract the candidate's expertise domains (e.g.: "Web Development", "Data Science", "Project Management", "Digital Marketing", "Mechanical Design", "Artificial Intelligence", etc.). Base yourself on technical skills and experiences.
+   - **"detail_entreprise"**: For each experience, add a company description in 1-2 sentences including: business sector, size (startup, SME, large group), specialty, market position. Be precise and informative.
+
+3. **"poste" FIELD**:
+   - This is the JOB TITLE SOUGHT based on the analysis of past experiences
+   - **EXTRACTION METHOD**:
+     a) If the candidate indicates a specific sought position → use it
+     b) Otherwise, analyze all experiences and deduce the most representative title
+     c) Prioritize the most recent position or the one that best reflects career evolution
+     d) Be precise and professional in the title (avoid generic terms)
+   - **IMPORTANT**: ALWAYS remove the words "intern", "trainee", "internship", "apprentice", "apprenticeship" from the job title
+   - Examples: "Mechanical Design Engineer", "Solution Architect", "Data Engineer", "Full Stack Developer", "Project Manager", "Consultant", "Civil Engineer", "Product Manager"
+
+4. **DATES AND EXPERIENCE CALCULATION**:
+   - **EXPERIENCE DATES**: ALWAYS extract start and end dates of each experience
+   - Date format: "February 2020", "December 2022", "January 2018", etc.
+   - If the experience is ongoing, use "In progress" for date_fin
+   - **DURATION CALCULATION**: Automatically calculate the duration between date_debut and date_fin
+     - If duration < 1 year: display in months (e.g.: "6 months", "8 months")
+     - If duration ≥ 1 year: display in years (e.g.: "2 years", "1 year 3 months", "3 years")
+   - **TOTAL EXPERIENCE CALCULATION**: For the "expérience" field, find the start date of the oldest significant experience and calculate: 2025 - start_year = years of experience
+     - Example: if the first experience starts in 2018 → "7 years of experience"
+
+5. **EDUCATION**:
+   - Fill ALL fields: date_debut, date_fin, diplome, ecole_cursus
+   - Be precise on the degree type: Master, Bachelor, BTS, Engineering Degree, MBA, etc.
+
+6. **SOFTWARE IN EXPERIENCES**:
+   - Extract ALL software/tools mentioned in each experience
+   - Deduce them from context if necessary (e.g.: if "web development" → add HTML, CSS, JavaScript)
+
+7. **COMPLETENESS**:
+   - Do not leave ANY experience aside - even short internships, occasional missions, projects
+   - Do not leave ANY education aside
+   - Analyze ALL CV content
+   - **VERIFICATION**: Count the number of experiences mentioned in the CV and make sure you have extracted the same number
+
+NB: Do not show the contract type (e.g.: Internship, Apprenticeship, Permanent Contract, Fixed-term Contract...) in experiences.
+
+**CRITICAL RULE FOR INTERNSHIP/APPRENTICESHIP TERMS**:
+- ALWAYS remove the words "intern", "trainee", "internship", "apprentice", "apprenticeship" from job titles (main "poste" field and "poste" field in experiences)
+- Keep ALL experiences (internships, apprenticeships, etc.) but treat them as normal professional experiences
+- Reformulate titles to be professional without mentioning the status
+- **MANDATORY TRANSFORMATION EXAMPLES**:
+  * "Intern Developer" → "Developer"
+  * "Apprentice Engineer" → "Engineer" 
+  * "Research Intern" → "Researcher"
+  * "Apprentice Data Analyst" → "Data Analyst"
+  * "Marketing Intern" → "Marketing"
+  * "Sales Apprentice" → "Sales"
+
+Add as much information as possible by analyzing the CV and deducing elements that are not necessarily present, as an HR expert would do.
+
+The output must respect EXACTLY the model above. If information is not present and you cannot estimate it, leave the field empty (empty string "").
+
+**IMPORTANT**: All extracted content must be in English. Translate any French terms, company names, job titles, and descriptions to English while maintaining accuracy and professional terminology.
+
+Here is the extraction JSON to analyze:
+
+` + nuextractJSON + `
+
+Respond ONLY with the structured JSON, without text before or after.
+`
 }

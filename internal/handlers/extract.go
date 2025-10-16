@@ -37,10 +37,17 @@ func ExtractCV(c *gin.Context) {
 
 	log.Printf("DEBUG: Données lues - Taille: %d bytes", len(data))
 
+	// Récupération du paramètre language du FormData
+	language := strings.TrimSpace(c.PostForm("language"))
+	if language == "" {
+		language = "fr" // Valeur par défaut si non fournie
+	}
+	log.Printf("🌍 Langue sélectionnée: %s", language)
+
 	client := nuextract.New()
 	log.Printf("DEBUG: Client NuExtract créé, début de l'extraction...")
 
-	result, err := client.ExtractAndEnrichWithFilename(data, header.Filename)
+	result, err := client.ExtractAndEnrichWithFilename(data, header.Filename, language)
 	if err != nil {
 		log.Printf("ERROR: Erreur extraction NuExtract: %v", err)
 		c.JSON(http.StatusBadGateway, gin.H{"error": err.Error()})
