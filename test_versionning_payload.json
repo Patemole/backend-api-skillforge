@@ -1,0 +1,43 @@
+{
+  "new_title": "Dossier de compétence v3 - Poste Commercial",
+  "need": "Mettre en avant l'expérience commerciale B2B",
+  "candidate_id": "00000000-0000-0000-0000-000000000000",
+  "competence_dossier": {
+    "prenom": "Alice",
+    "nom": "Durand",
+    "age": "28",
+    "poste": "Business Developer",
+    "diplome": "Master École de Commerce",
+    "expérience": "5 ans",
+    "mobilité": "Île-de-France",
+    "disponibilité": "Immédiate",
+    "permis_B": "Oui",
+    "hobbies": ["sport", "voyage"],
+    "languages": ["Français", "Anglais"],
+    "secteurs_activites": ["SaaS", "Industrie"],
+    "domaines_expertise": ["Vente B2B", "Prospection", "CRM"],
+    "formations": [
+      {"date_debut": "2015", "date_fin": "2018", "diplome": "Master", "ecole_cursus": "HEC"}
+    ],
+    "expériences": [
+      {
+        "date_debut": "Janvier 2021",
+        "date_fin": "En cours",
+        "entreprise": "Acme SaaS",
+        "detail_entreprise": "Éditeur SaaS B2B, 200 employés",
+        "durée": "4 ans",
+        "poste": "Business Developer",
+        "contexte": "Développement commercial France",
+        "projet": "Acquisition clients ETI",
+        "logiciels": ["Salesforce", "HubSpot"],
+        "réalisations": ["+1M€ de CA signé"],
+        "AI_suggest": []
+      }
+    ],
+    "logiciels": [
+      {"logiciel": "Salesforce", "level": "Avancé", "temps_utilisation": "36"}
+    ]
+  }
+}
+
+

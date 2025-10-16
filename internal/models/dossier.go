@@ -18,6 +18,7 @@ type Experience struct {
 	Poste            string   `json:"poste"`
 	Contexte         string   `json:"contexte"`
 	Projet           string   `json:"projet"`
+	ProjetSummary    string   `json:"projet_summary"`
 	Logiciels        []string `json:"logiciels"`
 	Realisations     []string `json:"réalisations"`
 	AISuggest        []string `json:"AI_suggest"`
@@ -34,6 +35,9 @@ type Logiciel struct {
 type CompetenceDossier struct {
 	Prenom            string       `json:"prenom"`
 	Nom               string       `json:"nom"`
+	Email             string       `json:"email"`
+	Phone             string       `json:"phone"`
+	Summary           string       `json:"summary"`
 	Age               string       `json:"age"`
 	Poste             string       `json:"poste"`
 	Diplome           string       `json:"diplome"`
@@ -48,4 +52,12 @@ type CompetenceDossier struct {
 	Formations        []Formation  `json:"formations"`
 	Experiences       []Experience `json:"expériences"`
 	Logiciels         []Logiciel   `json:"logiciels"`
+}
+
+// ChangelogEntry représente une modification dans le changelog
+type ChangelogEntry struct {
+	Field    string `json:"field"`
+	OldValue string `json:"old_value"`
+	NewValue string `json:"new_value"`
+	Reason   string `json:"reason"`
 }

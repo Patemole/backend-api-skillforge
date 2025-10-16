@@ -1,0 +1,65 @@
+Fares Boudelaa
+
+Étudiant en Master 2 Data & IA avec une expérience pratique en fine-tuning de LLM, vision par ordinateur et
+machine learning, je recherche un stage de 5-6 mois en R&D IA/ML à partir de mars 2025.
+
+Hauts-de-Seine faresboudelaa@gmail.com 06 58 09 99 62 faresboudelaa.github.io
+
+Formation
+
+2024 aujourd’hui
+Institut Polytechnique de Paris (Télécom Paris & École Polytechnique)
+Master 2 Data & IA
+◦ Cours pertinents : Deep Learning avancé, Large Language Models, IA générative multimodale, Deep
+Reinforcement Learning, Statistiques, Imagerie médicale, et Data Mining
+2021 2024
+Université Paris Cité
+Double Licence Informatique et Mathématiques
+◦ Diplômé mention Bien.
+
+Projets
+
+2025
+Fine-Tuning d’un petit LLM pour la Summarisation, École Polytechnique
+◦ Fine-tuning de Gemma 3 4B pour la synthèse de textes en français sur un jeu de données de 5 000 documents.
+◦ Application de LoRA et AWQ pour optimiser les performances avec des ressources GPU limitées.
+◦ Évaluation avec ROUGE, BERTScore et LLM-as-a-Judge, en comparaison avec des modèles de référence.
+2025
+Morphing d’Images pour la Prédiction de Parenté, École Polytechnique
+◦ Génération du visage d’un enfant à partir des parents en exploitant l’espace latent W + de StyleGAN2.
+◦ Apprentissage des caractéristiques parentales via un encodeur transformeur et fusion par projection linéaire
+dans l’espace latent.
+◦ Évaluation des visages générés à l’aide du FID (Fréchet Inception Distance) et Inception Score.
+2024
+Détection d’Événements dans les Tweets, École Polytechnique
+◦ Implémentation d’un modèle de régression logistique pour la détection d’événements dans les tweets. Utilisation de BERT pour l’embedding de mots et l’analyse de sentiment.
+◦ Atteinte d’une précision de 80% sur les données de test.
+◦ Classement Top 4 sur 120 équipes.
+
+Expérience
+
+Stagiaire de Recherche
+Juin 2025 – Août 2025
+Télécom Paris
+◦ Réalisation d’une revue de littérature sur les LLM juridiques et création d’un jeu de données de faits de cas,
+d’arguments juridiques et de résultats.
+◦ Évaluation des biais dans les systèmes de recommandation d’emploi à l’aide de métriques d’équité (parité
+démographique, parité prédictive, exposition de groupe).
+Octobre 2024 – Janvier
+Tuteur en Mathématiques & Informatique
+Université Paris Cité 2025
+◦ Tutorat pour 10 étudiants préparant les concours d’entrée aux grandes écoles d’ingénieurs françaises, atteignant un taux d’admission de 70% à l’École Polytechnique, CentraleSupélec et Télécom Paris.
+
+Compétences & Centres d’Intérêt
+
+Programmation : Python, C, Java, SQL, Git/GitHub
+
+ML & Deep Learning : PyTorch, TensorFlow, Keras, HuggingFace Transformers, scikit-learn, XGBoost
+
+Outils & Frameworks IA : LangChain, OpenAI API, OpenCV, NumPy, Pandas
+
+Langues : Bilingue français et anglais (niveau C1 en lecture, écriture et expression orale)
+
+Centres d’intérêt : Programmation compétitive (Kaggle, LeetCode), Échecs, Jeux de stratégie
+
+

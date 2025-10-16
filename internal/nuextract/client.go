@@ -29,7 +29,7 @@ func New() *Client {
 		nuexAPIKey:   os.Getenv("NUEXTRACT_API_KEY"),
 		openAIAPIKey: os.Getenv("OPENAI_API_KEY"),
 		http: &http.Client{
-			Timeout: 5 * time.Minute, // Timeout de 5 minutes
+			Timeout: 10 * time.Minute, // Timeout de 10 minutes pour les gros fichiers
 		},
 	}
 }
@@ -126,16 +126,17 @@ func extractTextFromPDFAlternative(fileData []byte) (string, error) {
 // ExtractAndEnrich sends a PDF to NuExtract, then feeds its JSON into OpenAI
 // via the Chat Completions API, returning the enriched CV JSON.
 func (c *Client) ExtractAndEnrich(file []byte) ([]byte, error) {
-	return c.ExtractAndEnrichWithFilename(file, "")
+	return c.ExtractAndEnrichWithFilename(file, "", "fr")
 }
 
 // ExtractAndEnrichWithFilename same as ExtractAndEnrich but with filename for test mode
-func (c *Client) ExtractAndEnrichWithFilename(file []byte, filename string) ([]byte, error) {
+func (c *Client) ExtractAndEnrichWithFilename(file []byte, filename string, language string) ([]byte, error) {
 	startTime := time.Now()
 	log.Printf("DEBUG: Début de l'extraction et enrichissement (MODE TEST - OpenAI SEUL)")
 	log.Printf("DEBUG: Taille du fichier: %d bytes", len(file))
 	log.Printf("DEBUG: Project ID: %s", c.projectID)
 	log.Printf("DEBUG: API Key présent: %t", c.nuexAPIKey != "")
+	log.Printf("🌍 Langue d'extraction: %s", language)
 
 	// MODE OPENAI DIRECT: On utilise OpenAI pour extraire directement le contenu du PDF
 	log.Printf("DEBUG: MODE OPENAI DIRECT - Extraction PDF avec OpenAI")
@@ -147,8 +148,31 @@ func (c *Client) ExtractAndEnrichWithFilename(file []byte, filename string) ([]b
 	var fileContent string
 	var err error
 
-	// Vérifier si c'est un PDF
-	if strings.HasSuffix(strings.ToLower(filename), ".pdf") || len(file) > 1000 {
+	lowerName := strings.ToLower(filename)
+
+	// Détection par extension : DOCX d'abord, puis PDF
+	if strings.HasSuffix(lowerName, ".docx") {
+		log.Printf("DEBUG: Fichier DOCX détecté, extraction du texte via gooxml")
+		fileContent, err = extractTextFromDOCX(file)
+		if err != nil || len(fileContent) < 50 {
+			log.Printf("ERROR: Erreur extraction DOCX ou contenu trop petit: %v", err)
+			name := strings.TrimSuffix(filename, ".docx")
+			fileContent = fmt.Sprintf("CV de %s - Erreur extraction DOCX", name)
+		} else {
+			log.Printf("DEBUG: Extraction DOCX réussie, %d caractères extraits", len(fileContent))
+			// Afficher le texte extrait dans le terminal
+			log.Printf("=== TEXTE EXTRAIT DU DOCX ===")
+			log.Printf("%s", fileContent)
+			log.Printf("=== FIN DU TEXTE EXTRAIT ===")
+		}
+		// Sauvegarder le texte extrait pour debug
+		debugFile := fmt.Sprintf("debug_extracted_text_%s.txt", strings.ReplaceAll(filename, ".docx", ""))
+		if err := os.WriteFile(debugFile, []byte(fileContent), 0644); err != nil {
+			log.Printf("WARNING: Impossible de sauvegarder le debug DOCX: %v", err)
+		} else {
+			log.Printf("DEBUG: Texte DOCX extrait sauvegardé dans %s", debugFile)
+		}
+	} else if strings.HasSuffix(lowerName, ".pdf") {
 		log.Printf("DEBUG: Fichier PDF détecté, extraction du texte")
 
 		// Essayer d'abord UniPDF (le plus puissant) - VERSION DEBUG
@@ -208,9 +232,9 @@ func (c *Client) ExtractAndEnrichWithFilename(file []byte, filename string) ([]b
 		log.Printf("DEBUG: 📁 Upload PDF: ~0.1s")
 		log.Printf("DEBUG: 📄 Extraction PDF: %v", extractionTime)
 	} else {
-		// Fichier texte
+		// Fichier texte brut ou inconnu
 		fileContent = string(file)
-		log.Printf("DEBUG: Fichier texte détecté, %d caractères", len(fileContent))
+		log.Printf("DEBUG: Fichier brut/inconnu détecté, %d caractères", len(fileContent))
 	}
 
 	// Si le contenu est vide ou très petit, utiliser le nom comme fallback
@@ -238,8 +262,8 @@ func (c *Client) ExtractAndEnrichWithFilename(file []byte, filename string) ([]b
 		return nil, fmt.Errorf("OPENAI_API_KEY not set")
 	}
 
-	// Récupérer le prompt et la configuration
-	prompt := GetExtractionPrompt(string(raw))
+	// Récupérer le prompt et la configuration selon la langue
+	prompt := GetExtractionPromptWithLanguage(string(raw), language)
 	config := GetOpenAIConfig()
 
 	payload := map[string]interface{}{
