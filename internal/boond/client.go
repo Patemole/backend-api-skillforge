@@ -337,6 +337,214 @@ func addStdHeaders(req *http.Request, jwt string) {
 	fmt.Printf("   Accept: %s\n", req.Header.Get("Accept"))
 }
 
+// DeleteCandidate supprime un candidat Boond par son ID
+func (c *Client) DeleteCandidate(ctx context.Context, candidateID string) error {
+	if strings.TrimSpace(candidateID) == "" {
+		return fmt.Errorf("candidate ID cannot be empty")
+	}
+
+	ep := fmt.Sprintf("%s/api/candidates/%s", c.BaseURL, candidateID)
+	fmt.Printf("🗑️  [Boond] DELETE %s\n", ep)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, ep, nil)
+	if err != nil {
+		return err
+	}
+	addStdHeaders(req, c.JWT)
+
+	resp, err := c.HTTP.Do(req)
+	if err != nil {
+		fmt.Printf("❌ [Boond] DELETE error: %v\n", err)
+		return err
+	}
+	defer resp.Body.Close()
+	body, _ := io.ReadAll(resp.Body)
+
+	fmt.Printf("📥 [Boond] DELETE status=%d body_len=%d\n", resp.StatusCode, len(body))
+	if resp.StatusCode >= 400 {
+		if len(body) > 0 {
+			b := string(body)
+			if len(b) > 400 {
+				b = b[:400] + "…(tronqué)"
+			}
+			fmt.Printf("⚠️  [Boond] DELETE error body: %s\n", b)
+		}
+		return fmt.Errorf("boond delete candidate failed: status=%d body=%s", resp.StatusCode, string(body))
+	}
+
+	fmt.Printf("✅ [Boond] Candidate deleted id=%s\n", candidateID)
+	return nil
+}
+
+// UpdateCandidate met à jour un candidat Boond avec les attributs fournis
+func (c *Client) UpdateCandidate(ctx context.Context, candidateID string, attributes map[string]any) (json.RawMessage, error) {
+	if strings.TrimSpace(candidateID) == "" {
+		return nil, fmt.Errorf("candidate ID cannot be empty")
+	}
+
+	payload := map[string]any{
+		"data": map[string]any{
+			"id":         candidateID,
+			"type":       "candidate",
+			"attributes": attributes,
+		},
+	}
+	buf, err := json.Marshal(payload)
+	if err != nil {
+		return nil, err
+	}
+
+	ep := fmt.Sprintf("%s/api/candidates/%s/information", c.BaseURL, candidateID)
+	fmt.Printf("📝 [Boond] PUT %s (payload_len=%d)\n", ep, len(buf))
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, ep, bytes.NewReader(buf))
+	if err != nil {
+		return nil, err
+	}
+	addStdHeaders(req, c.JWT)
+
+	resp, err := c.HTTP.Do(req)
+	if err != nil {
+		fmt.Printf("❌ [Boond] PATCH error: %v\n", err)
+		return nil, err
+	}
+	defer resp.Body.Close()
+	body, _ := io.ReadAll(resp.Body)
+
+	fmt.Printf("📥 [Boond] PUT status=%d body_len=%d\n", resp.StatusCode, len(body))
+	if resp.StatusCode >= 400 {
+		if len(body) > 0 {
+			b := string(body)
+			if len(b) > 600 {
+				b = b[:600] + "…(tronqué)"
+			}
+			fmt.Printf("⚠️  [Boond] PUT error body: %s\n", b)
+		}
+		return body, fmt.Errorf("boond update candidate failed: status=%d body=%s", resp.StatusCode, string(body))
+	}
+
+	fmt.Printf("✅ [Boond] Candidate updated id=%s\n", candidateID)
+	return body, nil
+}
+
+// GetAvailabilityTypes récupère la liste des types de disponibilité depuis Boond
+func (c *Client) GetAvailabilityTypes(ctx context.Context) (map[string]string, error) {
+	ep := fmt.Sprintf("%s/api/application/dictionary/setting/availability", c.BaseURL)
+	fmt.Printf("📅 [Boond] GET %s\n", ep)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, ep, nil)
+	if err != nil {
+		return nil, err
+	}
+	addStdHeaders(req, c.JWT)
+
+	resp, err := c.HTTP.Do(req)
+	if err != nil {
+		fmt.Printf("❌ [Boond] GET availability types error: %v\n", err)
+		return nil, err
+	}
+	defer resp.Body.Close()
+	body, _ := io.ReadAll(resp.Body)
+
+	fmt.Printf("📥 [Boond] GET availability types status=%d body_len=%d\n", resp.StatusCode, len(body))
+	if resp.StatusCode >= 400 {
+		if len(body) > 0 {
+			b := string(body)
+			if len(b) > 400 {
+				b = b[:400] + "…(tronqué)"
+			}
+			fmt.Printf("⚠️  [Boond] GET availability types error body: %s\n", b)
+		}
+		return nil, fmt.Errorf("boond get availability types failed: status=%d body=%s", resp.StatusCode, string(body))
+	}
+
+	// Parser la réponse pour extraire les types de disponibilité
+	var dictResp struct {
+		Data []struct {
+			ID   string `json:"id"`
+			Type string `json:"type"`
+			Attr struct {
+				Name string `json:"name"`
+			} `json:"attributes"`
+		} `json:"data"`
+	}
+
+	if err := json.Unmarshal(body, &dictResp); err != nil {
+		return nil, fmt.Errorf("failed to parse availability types response: %w", err)
+	}
+
+	// Créer un mapping nom -> ID
+	availabilityMap := make(map[string]string)
+	for _, avail := range dictResp.Data {
+		if avail.Attr.Name != "" {
+			availabilityMap[avail.Attr.Name] = avail.ID
+			fmt.Printf("📅 [Boond] Type trouvé: %s -> ID %s\n", avail.Attr.Name, avail.ID)
+		}
+	}
+
+	fmt.Printf("✅ [Boond] %d types de disponibilité récupérés\n", len(availabilityMap))
+	return availabilityMap, nil
+}
+
+// GetMobilityAreas récupère la liste des zones de mobilité depuis Boond
+func (c *Client) GetMobilityAreas(ctx context.Context) (map[string]string, error) {
+	ep := fmt.Sprintf("%s/api/application/dictionary/setting/mobilityArea", c.BaseURL)
+	fmt.Printf("🗺️  [Boond] GET %s\n", ep)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, ep, nil)
+	if err != nil {
+		return nil, err
+	}
+	addStdHeaders(req, c.JWT)
+
+	resp, err := c.HTTP.Do(req)
+	if err != nil {
+		fmt.Printf("❌ [Boond] GET mobility areas error: %v\n", err)
+		return nil, err
+	}
+	defer resp.Body.Close()
+	body, _ := io.ReadAll(resp.Body)
+
+	fmt.Printf("📥 [Boond] GET mobility areas status=%d body_len=%d\n", resp.StatusCode, len(body))
+	if resp.StatusCode >= 400 {
+		if len(body) > 0 {
+			b := string(body)
+			if len(b) > 400 {
+				b = b[:400] + "…(tronqué)"
+			}
+			fmt.Printf("⚠️  [Boond] GET mobility areas error body: %s\n", b)
+		}
+		return nil, fmt.Errorf("boond get mobility areas failed: status=%d body=%s", resp.StatusCode, string(body))
+	}
+
+	// Parser la réponse pour extraire les zones de mobilité
+	var dictResp struct {
+		Data []struct {
+			ID   string `json:"id"`
+			Type string `json:"type"`
+			Attr struct {
+				Name string `json:"name"`
+			} `json:"attributes"`
+		} `json:"data"`
+	}
+
+	if err := json.Unmarshal(body, &dictResp); err != nil {
+		return nil, fmt.Errorf("failed to parse mobility areas response: %w", err)
+	}
+
+	// Créer un mapping nom -> ID
+	mobilityMap := make(map[string]string)
+	for _, area := range dictResp.Data {
+		if area.Attr.Name != "" {
+			mobilityMap[area.Attr.Name] = area.ID
+			fmt.Printf("🗺️  [Boond] Zone trouvée: %s -> ID %s\n", area.Attr.Name, area.ID)
+		}
+	}
+
+	fmt.Printf("✅ [Boond] %d zones de mobilité récupérées\n", len(mobilityMap))
+	return mobilityMap, nil
+}
+
 // maskToken retourne les n premiers caractères du token
 func maskToken(t string, n int) string {
 	if n <= 0 || len(t) <= n {

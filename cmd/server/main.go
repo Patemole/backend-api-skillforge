@@ -60,6 +60,15 @@ func main() {
 	r.OPTIONS("/versionning", func(c *gin.Context) {
 		c.Status(200)
 	})
+	r.OPTIONS("/boond/candidat/delete", func(c *gin.Context) {
+		c.Status(200)
+	})
+	r.OPTIONS("/boond/candidat/modify", func(c *gin.Context) {
+		c.Status(200)
+	})
+	r.OPTIONS("/boond/candidat/dc", func(c *gin.Context) {
+		c.Status(200)
+	})
 
 	// ✅ Initialiser les handlers
 	candidateValidationHandler := handlers.NewCandidateValidationHandler()
@@ -76,6 +85,9 @@ func main() {
 	r.POST("/versionning", handlers.CreateDossierVersion)
 	r.POST("/candidate-validation", candidateValidationHandler.HandleCandidateValidation)
 	r.POST("/candidate-invite", candidateInviteHandler.HandleCandidateInvite)
+	r.POST("/boond/candidat/delete", handlers.DeleteBoondCandidate)
+	r.POST("/boond/candidat/modify", handlers.ModifyBoondCandidate)
+	r.POST("/boond/candidat/dc", handlers.UploadBoondCandidateDC)
 
 	port := os.Getenv("PORT")
 	if port == "" {

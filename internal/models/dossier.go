@@ -52,6 +52,8 @@ type CompetenceDossier struct {
 	Formations        []Formation  `json:"formations"`
 	Experiences       []Experience `json:"expériences"`
 	Logiciels         []Logiciel   `json:"logiciels"`
+	Certifications    []string     `json:"certifications"`
+	TechnicalSkills   []string     `json:"technical_skills"`
 }
 
 // ChangelogEntry représente une modification dans le changelog
