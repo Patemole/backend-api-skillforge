@@ -7,7 +7,6 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 
 	"backend-api-skillforge/internal/models"
@@ -221,9 +220,8 @@ func (s *PresentationEmailGeneratorService) buildCandidateContext(data models.Pr
 - Diplôme: %s`,
 		data.Prenom, data.TitrePoste, data.NombreExperience, data.Disponibilite, data.Mobilite, data.Diplome)
 
-	if len(data.Langues) > 0 {
-		languesStr := strings.Join(data.Langues, ", ")
-		context += fmt.Sprintf("\n- Langues: %s", languesStr)
+	if data.Langues != "" {
+		context += fmt.Sprintf("\n- Langues: %s", data.Langues)
 	}
 	if data.Certifications != "" {
 		context += fmt.Sprintf("\n- Certifications: %s", data.Certifications)
