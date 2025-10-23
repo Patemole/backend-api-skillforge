@@ -81,6 +81,21 @@ func ExtractCV(c *gin.Context) {
 		} else {
 			log.Printf("WARNING: JSON non parsable pour normalisation (no JWT): %v", err)
 		}
+
+		// Ajouter le champ DC_language à la réponse
+		var response map[string]any
+		if err := json.Unmarshal(result, &response); err == nil {
+			response["DC_language"] = language
+			if enrichedResult, err := json.Marshal(response); err == nil {
+				result = enrichedResult
+				log.Printf("🌍 Champ 'DC_language' ajouté à la réponse: %s", language)
+			} else {
+				log.Printf("WARNING: Échec du marshalling avec DC_language (no JWT): %v", err)
+			}
+		} else {
+			log.Printf("WARNING: Échec du parsing JSON pour ajout DC_language (no JWT): %v", err)
+		}
+
 		log.Printf("📤 Réponse normale envoyée au frontend (pas de JWT Boond) - taille: %d bytes", len(result))
 		c.Data(http.StatusOK, "application/json", result)
 		return
@@ -222,9 +237,10 @@ func ExtractCV(c *gin.Context) {
 			}
 		}
 
-		// Ajouter l'ID Boond à la réponse
+		// Ajouter l'ID Boond et le DC_language à la réponse
 		response["boond_candidate_id"] = createdID
-		log.Printf("✅ boond_candidate_id ajouté à la réponse: %s", createdID)
+		response["DC_language"] = language
+		log.Printf("✅ boond_candidate_id et DC_language ajoutés à la réponse: id=%s, DC_language=%s", createdID, language)
 
 		// Renvoyer la réponse enrichie
 		enrichedResult, err := json.Marshal(response)
@@ -244,7 +260,20 @@ func ExtractCV(c *gin.Context) {
 		return
 	}
 
-	// Si pas de JWT ou échec de création Boond, renvoyer le JSON d'extraction normal
+	// Si pas de JWT ou échec de création Boond, renvoyer le JSON d'extraction normal avec DC_language
+	var response map[string]any
+	if err := json.Unmarshal(result, &response); err == nil {
+		response["DC_language"] = language
+		if enrichedResult, err := json.Marshal(response); err == nil {
+			result = enrichedResult
+			log.Printf("🌍 Champ 'DC_language' ajouté à la réponse finale: %s", language)
+		} else {
+			log.Printf("WARNING: Échec du marshalling avec DC_language (fallback): %v", err)
+		}
+	} else {
+		log.Printf("WARNING: Échec du parsing JSON pour ajout DC_language (fallback): %v", err)
+	}
+
 	log.Printf("📤 Réponse normale envoyée au frontend (sans boond_candidate_id) - taille: %d bytes", len(result))
 	c.Data(http.StatusOK, "application/json", result)
 }

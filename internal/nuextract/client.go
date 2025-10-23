@@ -231,6 +231,24 @@ func (c *Client) ExtractAndEnrichWithFilename(file []byte, filename string, lang
 		log.Printf("DEBUG: ⏱️  MÉTRIQUES TIMING:")
 		log.Printf("DEBUG: 📁 Upload PDF: ~0.1s")
 		log.Printf("DEBUG: 📄 Extraction PDF: %v", extractionTime)
+	} else if strings.HasSuffix(lowerName, ".doc") {
+		log.Printf("DEBUG: Fichier DOC détecté (ancien format), tentative d'extraction de texte")
+		// Pour les fichiers .doc, essayer d'extraire le texte visible
+		fileContent = extractTextFromLegacyDOC(file)
+		if len(fileContent) < 100 {
+			log.Printf("WARNING: Contenu DOC extrait trop petit (%d caractères), utilisation du nom comme fallback", len(fileContent))
+			name := strings.TrimSuffix(filename, ".doc")
+			fileContent = fmt.Sprintf("CV de %s - Contenu DOC non extractible", name)
+		} else {
+			log.Printf("DEBUG: Extraction DOC réussie, %d caractères extraits", len(fileContent))
+		}
+		// Sauvegarder le texte extrait pour debug
+		debugFile := fmt.Sprintf("debug_extracted_text_%s.txt", strings.ReplaceAll(filename, ".doc", ""))
+		if err := os.WriteFile(debugFile, []byte(fileContent), 0644); err != nil {
+			log.Printf("WARNING: Impossible de sauvegarder le debug DOC: %v", err)
+		} else {
+			log.Printf("DEBUG: Texte DOC extrait sauvegardé dans %s", debugFile)
+		}
 	} else {
 		// Fichier texte brut ou inconnu
 		fileContent = string(file)
@@ -256,6 +274,21 @@ func (c *Client) ExtractAndEnrichWithFilename(file []byte, filename string, lang
 
 	log.Printf("DEBUG: Contenu réel du fichier utilisé (taille: %d caractères)", len(fileContent))
 
+	// ANALYSE DU CONTENU AVANT ENVOI À OPENAI
+	log.Printf("🔍 ANALYSE DU CONTENU:")
+	log.Printf("📄 Taille du fichier original: %d bytes", len(file))
+	log.Printf("📝 Taille du contenu extrait: %d caractères", len(fileContent))
+
+	// Afficher un aperçu du contenu (premiers 500 caractères)
+	preview := fileContent
+	if len(preview) > 500 {
+		preview = preview[:500] + "..."
+	}
+	log.Printf("👀 Aperçu du contenu (500 premiers caractères):")
+	log.Printf("--- DEBUT CONTENU ---")
+	log.Printf("%s", preview)
+	log.Printf("--- FIN APERÇU ---")
+
 	// 2) Call OpenAI Chat Completions API (plus rapide que Responses API)
 	openAIStart := time.Now()
 	if c.openAIAPIKey == "" {
@@ -266,6 +299,21 @@ func (c *Client) ExtractAndEnrichWithFilename(file []byte, filename string, lang
 	prompt := GetExtractionPromptProductionWithLanguage(string(raw), language)
 	config := GetOpenAIConfig()
 
+	// ANALYSE DU PROMPT COMPLET
+	log.Printf("🤖 ANALYSE DU PROMPT:")
+	log.Printf("📏 Taille du prompt: %d caractères", len(prompt))
+	log.Printf("📊 Estimation tokens (approximative): %d tokens", len(prompt)/4) // Estimation approximative
+
+	// Afficher un aperçu du prompt (premiers 1000 caractères)
+	promptPreview := prompt
+	if len(promptPreview) > 1000 {
+		promptPreview = promptPreview[:1000] + "..."
+	}
+	log.Printf("👀 Aperçu du prompt (1000 premiers caractères):")
+	log.Printf("--- DEBUT PROMPT ---")
+	log.Printf("%s", promptPreview)
+	log.Printf("--- FIN APERÇU PROMPT ---")
+
 	payload := map[string]interface{}{
 		"model": config.Model,
 		"messages": []map[string]string{
@@ -274,11 +322,27 @@ func (c *Client) ExtractAndEnrichWithFilename(file []byte, filename string, lang
 				"content": prompt,
 			},
 		},
-		"max_tokens":        config.MaxTokens,
-		"temperature":       config.Temperature,
-		"top_p":             config.TopP,
-		"frequency_penalty": config.FrequencyPenalty,
-		"presence_penalty":  config.PresencePenalty,
+	}
+
+	// Ajouter les paramètres supportés selon le modèle
+	if config.MaxCompletionTokens > 0 {
+		payload["max_completion_tokens"] = config.MaxCompletionTokens
+	} else if config.MaxTokens > 0 {
+		payload["max_tokens"] = config.MaxTokens
+	}
+
+	// Ajouter les paramètres de contrôle seulement s'ils sont configurés
+	if config.Temperature > 0 {
+		payload["temperature"] = config.Temperature
+	}
+	if config.TopP > 0 {
+		payload["top_p"] = config.TopP
+	}
+	if config.FrequencyPenalty != 0 {
+		payload["frequency_penalty"] = config.FrequencyPenalty
+	}
+	if config.PresencePenalty != 0 {
+		payload["presence_penalty"] = config.PresencePenalty
 	}
 
 	bodyBytes, err := json.Marshal(payload)
@@ -344,4 +408,82 @@ func (c *Client) ExtractAndEnrichWithFilename(file []byte, filename string, lang
 	log.Printf("DEBUG: 🏁 Total: %v", totalDuration)
 
 	return finalJSON, nil
+}
+
+// extractTextFromLegacyDOC extrait le texte d'un fichier .doc (ancien format Word)
+// Cette fonction utilise une approche simple pour extraire le texte visible
+func extractTextFromLegacyDOC(fileData []byte) string {
+	// Convertir le fichier en string pour analyser le contenu
+	content := string(fileData)
+
+	// Nettoyer le contenu en supprimant les caractères de contrôle et en gardant seulement le texte visible
+	var result strings.Builder
+
+	// Parcourir le contenu caractère par caractère
+	for _, char := range content {
+		// Garder les caractères imprimables (lettres, chiffres, ponctuation, espaces)
+		if char >= 32 && char <= 126 || char == '\n' || char == '\r' || char == '\t' {
+			result.WriteRune(char)
+		}
+	}
+
+	cleaned := result.String()
+
+	// Nettoyer les espaces multiples et les lignes vides
+	lines := strings.Split(cleaned, "\n")
+	var cleanLines []string
+
+	for _, line := range lines {
+		// Supprimer les espaces en début et fin de ligne
+		line = strings.TrimSpace(line)
+		// Garder seulement les lignes qui contiennent du texte significatif
+		if len(line) > 2 && !strings.Contains(line, "\x00") {
+			cleanLines = append(cleanLines, line)
+		}
+	}
+
+	// Rejoindre les lignes propres
+	finalContent := strings.Join(cleanLines, "\n")
+
+	// Si le contenu est encore trop petit, essayer une approche plus agressive
+	if len(finalContent) < 100 {
+		// Essayer d'extraire des mots-clés communs dans les CV
+		keywords := []string{"experience", "education", "skills", "work", "job", "company", "university", "degree", "engineer", "manager", "supervisor", "project", "responsibilities", "achievements", "patrick", "fos", "spie", "subsea", "supervisor"}
+
+		var foundText strings.Builder
+		contentLower := strings.ToLower(content)
+
+		for _, keyword := range keywords {
+			if strings.Contains(contentLower, keyword) {
+				// Trouver le contexte autour du mot-clé
+				index := strings.Index(contentLower, keyword)
+				start := index - 50
+				if start < 0 {
+					start = 0
+				}
+				end := index + len(keyword) + 50
+				if end > len(content) {
+					end = len(content)
+				}
+
+				context := content[start:end]
+				// Nettoyer le contexte
+				cleanContext := strings.Map(func(r rune) rune {
+					if r >= 32 && r <= 126 || r == '\n' || r == '\r' || r == '\t' {
+						return r
+					}
+					return ' '
+				}, context)
+
+				foundText.WriteString(cleanContext)
+				foundText.WriteString("\n")
+			}
+		}
+
+		if foundText.Len() > 0 {
+			finalContent = foundText.String()
+		}
+	}
+
+	return finalContent
 }
