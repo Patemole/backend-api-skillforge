@@ -48,8 +48,8 @@ NE CHANGE SURTOUT PAS LES CLÉS DE CE DICTIONNAIRE, CAR IL DOIT ÊTRE UTILISÉ A
   ],
   "expériences": [
     {
-      "date_debut": "OBLIGATOIRE - Date de début au format mois et année (ex: Février 2020, Janvier 2018, Septembre 2019)",
-      "date_fin": "OBLIGATOIRE - Date de fin au format mois et année (ex: Décembre 2022, Août 2020, En cours). Si l'expérience est en cours, utilise 'En cours'",
+      "date_debut": "OBLIGATOIRE - Date de début au format MM/YY (ex: 02/20, 09/19)",
+      "date_fin": "OBLIGATOIRE - Date de fin au format MM/YY (ex: 12/22, 08/20). Si l'expérience est en cours, utilise 'En cours'",
       "entreprise": "OBLIGATOIRE - Nom de l'entreprise",
       "detail_entreprise": "OBLIGATOIRE - Description de l'entreprise en 1-2 phrases : secteur d'activité, taille, spécialité, position sur le marché. Exemple : 'Startup spécialisée dans l'intelligence artificielle et le machine learning, comptant 50 employés et leader dans l'analyse prédictive pour le secteur bancaire'",
       "durée": "OBLIGATOIRE - Durée calculée automatiquement (ex: 2 ans, 6 mois, 1 an 3 mois). Si inférieur à 1 an, affiche en mois. Si supérieur ou égal à 1 an, affiche en années.",
@@ -101,9 +101,9 @@ INSTRUCTIONS CRITIQUES :
    - Exemples : "Ingénieur Conception Mécanique", "Solution Architecte", "Data Engineer", "Développeur Full Stack", "Chef de Projet", "Consultant", "Ingénieur Génie Civil", "Product Manager"
 
 4. **DATES ET CALCUL D'EXPÉRIENCE** :
-   - **DATES D'EXPÉRIENCES** : Extrais TOUJOURS les dates de début et fin de chaque expérience
-   - Format des dates : "Février 2020", "Décembre 2022", "Janvier 2018", etc.
-   - Si l'expérience est en cours, utilise "En cours" pour date_fin
+  - **DATES D'EXPÉRIENCES** : Extrais TOUJOURS les dates de début et fin de chaque expérience
+  - Format des dates : MM/YY strictement (ex: 02/20, 12/22). AUCUN autre format n'est accepté
+  - Si l'expérience est en cours, utilise "En cours" pour date_fin (pas de MM/YY)
    - **CALCUL DE LA DURÉE** : Calcule automatiquement la durée entre date_debut et date_fin
      - Si durée < 1 an : affiche en mois (ex: "6 mois", "8 mois")
      - Si durée ≥ 1 an : affiche en années (ex: "2 ans", "1 an 3 mois", "3 ans")

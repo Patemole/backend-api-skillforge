@@ -51,10 +51,10 @@ func GetExtractionPromptProductionFrench(nuextractJSON string) string {
 		"ecole_cursus": "OBLIGATOIRE - Nom complet de l'école/université (ex: École Centrale Paris, Université Pierre et Marie Curie, HEC Paris, etc.)"
 	  }
 	],
-	"expériences": [
+    "expériences": [
 	  {
-		"date_debut": "OBLIGATOIRE - Date de début au format mois et année (ex: Février 2020, Janvier 2018, Septembre 2019)",
-		"date_fin": "OBLIGATOIRE - Date de fin au format mois et année (ex: Décembre 2022, Août 2020, En cours). Si l'expérience est en cours, utilise 'En cours'",
+        "date_debut": "OBLIGATOIRE - Date de début au format MM/YY (ex: 02/20, 09/19)",
+        "date_fin": "OBLIGATOIRE - Date de fin au format MM/YY (ex: 12/22, 08/20). Si l'expérience est en cours, utilise 'En cours'",
 		"entreprise": "OBLIGATOIRE - Nom de l'entreprise",
 		"detail_entreprise": "OBLIGATOIRE - Description de l'entreprise en 1-2 phrases : secteur d'activité, taille, spécialité, position sur le marché. Exemple : 'Startup spécialisée dans l'intelligence artificielle et le machine learning, comptant 50 employés et leader dans l'analyse prédictive pour le secteur bancaire'",
 		"durée": "OBLIGATOIRE - Durée calculée automatiquement (ex: 2 ans, 6 mois, 1 an 3 mois). Si inférieur à 1 an, affiche en mois. Si supérieur ou égal à 1 an, affiche en années.",
@@ -108,9 +108,9 @@ func GetExtractionPromptProductionFrench(nuextractJSON string) string {
 	 - Exemples : "Ingénieur Conception Mécanique", "Solution Architecte", "Data Engineer", "Développeur Full Stack", "Chef de Projet", "Consultant", "Ingénieur Génie Civil", "Product Manager"
   
   4. **DATES ET CALCUL D'EXPÉRIENCE** :
-	 - **DATES D'EXPÉRIENCES** : Extrais TOUJOURS les dates de début et fin de chaque expérience
-	 - Format des dates : "Février 2020", "Décembre 2022", "Janvier 2018", etc.
-	 - Si l'expérience est en cours, utilise "En cours" pour date_fin
+     - **DATES D'EXPÉRIENCES** : Extrais TOUJOURS les dates de début et fin de chaque expérience
+     - Format des dates : MM/YY strictement (ex: 02/20, 12/22). AUCUN autre format n'est accepté
+     - Si l'expérience est en cours, utilise "En cours" pour date_fin (pas de MM/YY)
 	 - **CALCUL DE LA DURÉE** : Calcule automatiquement la durée entre date_debut et date_fin
 	   - Si durée < 1 an : affiche en mois (ex: "6 mois", "8 mois")
 	   - Si durée ≥ 1 an : affiche en années (ex: "2 ans", "1 an 3 mois", "3 ans")
@@ -208,8 +208,8 @@ DO NOT CHANGE THE KEYS OF THIS DICTIONARY, AS IT WILL BE USED OTHERWISE LATER.
   ],
   "expériences": [
     {
-      "date_debut": "MANDATORY - Start date in month and year format (e.g.: February 2020, January 2018, September 2019)",
-      "date_fin": "MANDATORY - End date in month and year format (e.g.: December 2022, August 2020, In progress). If the experience is ongoing, use 'In progress'",
+      "date_debut": "MANDATORY - Start date in MM/YY format (e.g.: 02/20, 09/19)",
+      "date_fin": "MANDATORY - End date in MM/YY format (e.g.: 12/22, 08/20). If the experience is ongoing, use 'In progress'",
       "entreprise": "MANDATORY - Company name",
       "detail_entreprise": "MANDATORY - Company description in 1-2 sentences: business sector, size, specialty, market position. Example: 'Startup specialized in artificial intelligence and machine learning, with 50 employees and leader in predictive analysis for the banking sector'",
       "durée": "MANDATORY - Automatically calculated duration (e.g.: 2 years, 6 months, 1 year 3 months). If less than 1 year, display in months. If greater than or equal to 1 year, display in years.",
@@ -264,8 +264,8 @@ CRITICAL INSTRUCTIONS:
 
 4. **DATES AND EXPERIENCE CALCULATION**:
    - **EXPERIENCE DATES**: ALWAYS extract start and end dates of each experience
-   - Date format: "February 2020", "December 2022", "January 2018", etc.
-   - If the experience is ongoing, use "In progress" for date_fin
+   - Date format: strictly MM/YY (e.g.: 02/20, 12/22). NO other format is accepted
+   - If the experience is ongoing, use "In progress" for date_fin (not MM/YY)
    - **DURATION CALCULATION**: Automatically calculate the duration between date_debut and date_fin
      - If duration < 1 year: display in months (e.g.: "6 months", "8 months")
      - If duration ≥ 1 year: display in years (e.g.: "2 years", "1 year 3 months", "3 years")

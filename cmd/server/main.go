@@ -54,6 +54,9 @@ func main() {
 	r.OPTIONS("/api/email/generate-presentation-v2", func(c *gin.Context) {
 		c.Status(200)
 	})
+	r.OPTIONS("/meeting/transcript", func(c *gin.Context) {
+		c.Status(200)
+	})
 	r.OPTIONS("/api/dossier/versionning", func(c *gin.Context) {
 		c.Status(200)
 	})
@@ -67,6 +70,15 @@ func main() {
 		c.Status(200)
 	})
 	r.OPTIONS("/boond/candidat/dc", func(c *gin.Context) {
+		c.Status(200)
+	})
+	r.OPTIONS("/boond/agencies", func(c *gin.Context) {
+		c.Status(200)
+	})
+	r.OPTIONS("/boond/resources", func(c *gin.Context) {
+		c.Status(200)
+	})
+	r.OPTIONS("/boond/orgchart", func(c *gin.Context) {
 		c.Status(200)
 	})
 
@@ -88,6 +100,10 @@ func main() {
 	r.POST("/boond/candidat/delete", handlers.DeleteBoondCandidate)
 	r.POST("/boond/candidat/modify", handlers.ModifyBoondCandidate)
 	r.POST("/boond/candidat/dc", handlers.UploadBoondCandidateDC)
+	r.POST("/meeting/transcript", handlers.MeetingTranscript)
+	r.POST("/boond/agencies", handlers.GetBoondAgencies)
+	r.POST("/boond/resources", handlers.GetBoondResources)
+	r.POST("/boond/orgchart", handlers.BuildBoondOrgChart)
 
 	port := os.Getenv("PORT")
 	if port == "" {

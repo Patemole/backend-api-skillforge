@@ -27,6 +27,34 @@ type BoondCandidateDCRequest struct {
 	Filename         string                `form:"filename" binding:"required"`
 }
 
+// BoondAgenciesRequest représente la requête pour récupérer les agences
+type BoondAgenciesRequest struct {
+	BoondJwt string `json:"boondJwt" binding:"required"`
+}
+
+// BoondAgency représente une agence Boond
+type BoondAgency struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
+// BoondResourcesRequest représente la requête pour récupérer les ressources (filtrable)
+type BoondResourcesRequest struct {
+	BoondJwt   string `json:"boondJwt" binding:"required"`
+	MaxResults *int   `json:"maxResults,omitempty"` // 1..500, défaut 500 par page
+
+	// Filtres optionnels
+	TypeOf    []int `json:"typeOf,omitempty"`    // Filtre par types de rôle (ex: [2,4,5] pour manager, direction, RH)
+	IsVisible *bool `json:"isVisible,omitempty"` // Filtre par visibilité (true = visible, false = caché)
+}
+
+// BoondOrgChartRequest permet de demander l'organigramme (et optionnellement les liens RH)
+type BoondOrgChartRequest struct {
+	BoondJwt       string `json:"boondJwt" binding:"required"`
+	MaxResults     *int   `json:"maxResults,omitempty"`
+	IncludeHREdges *bool  `json:"includeHREdges,omitempty"`
+}
+
 // BoondCandidateResponse représente la réponse standard pour les opérations Boond
 type BoondCandidateResponse struct {
 	Success          bool   `json:"success"`

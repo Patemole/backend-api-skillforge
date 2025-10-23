@@ -1,0 +1,6 @@
+{
+  "boondJwt": "VOTRE_JWT_BOOND_ICI",
+  "maxResults": 500,
+  "typeOf": [2, 4, 5],
+  "isVisible": true
+}

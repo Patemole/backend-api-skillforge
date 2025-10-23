@@ -545,6 +545,209 @@ func (c *Client) GetMobilityAreas(ctx context.Context) (map[string]string, error
 	return mobilityMap, nil
 }
 
+// GetAgencies récupère la liste des agences depuis Boond
+func (c *Client) GetAgencies(ctx context.Context) ([]map[string]string, error) {
+	ep := fmt.Sprintf("%s/api/agencies", c.BaseURL)
+	fmt.Printf("🏢 [Boond] GET %s\n", ep)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, ep, nil)
+	if err != nil {
+		return nil, err
+	}
+	addStdHeaders(req, c.JWT)
+
+	resp, err := c.HTTP.Do(req)
+	if err != nil {
+		fmt.Printf("❌ [Boond] GET agencies error: %v\n", err)
+		return nil, err
+	}
+	defer resp.Body.Close()
+	body, _ := io.ReadAll(resp.Body)
+
+	fmt.Printf("📥 [Boond] GET agencies status=%d body_len=%d\n", resp.StatusCode, len(body))
+	if resp.StatusCode >= 400 {
+		if len(body) > 0 {
+			b := string(body)
+			if len(b) > 400 {
+				b = b[:400] + "…(tronqué)"
+			}
+			fmt.Printf("⚠️  [Boond] GET agencies error body: %s\n", b)
+		}
+		return nil, fmt.Errorf("boond get agencies failed: status=%d body=%s", resp.StatusCode, string(body))
+	}
+
+	// Parser la réponse pour extraire les agences
+	var agenciesResp struct {
+		Data []struct {
+			ID   string `json:"id"`
+			Type string `json:"type"`
+			Attr struct {
+				Name string `json:"name"`
+			} `json:"attributes"`
+		} `json:"data"`
+	}
+
+	if err := json.Unmarshal(body, &agenciesResp); err != nil {
+		return nil, fmt.Errorf("failed to parse agencies response: %w", err)
+	}
+
+	// Créer une liste d'agences avec ID et nom
+	var agencies []map[string]string
+	for _, agency := range agenciesResp.Data {
+		if agency.Attr.Name != "" {
+			agencies = append(agencies, map[string]string{
+				"id":   agency.ID,
+				"name": agency.Attr.Name,
+			})
+			fmt.Printf("🏢 [Boond] Agence trouvée: %s -> ID %s\n", agency.Attr.Name, agency.ID)
+		}
+	}
+
+	fmt.Printf("✅ [Boond] %d agences récupérées\n", len(agencies))
+	return agencies, nil
+}
+
+// GetAllResources récupère toutes les ressources (consultants, managers, RH, etc.) en paginant
+func (c *Client) GetAllResources(ctx context.Context, maxResults int, typeOfFilter []int, isVisibleFilter *bool) ([]map[string]any, error) {
+	if maxResults <= 0 || maxResults > 500 {
+		maxResults = 500
+	}
+
+	var allResources []map[string]any
+	page := 1
+
+	for {
+		// Construire l'URL avec pagination
+		params := url.Values{}
+		params.Set("page", fmt.Sprintf("%d", page))
+		params.Set("maxResults", fmt.Sprintf("%d", maxResults))
+		ep := fmt.Sprintf("%s/api/resources?%s", c.BaseURL, params.Encode())
+		fmt.Printf("👥 [Boond] GET %s\n", ep)
+
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, ep, nil)
+		if err != nil {
+			return nil, err
+		}
+		addStdHeaders(req, c.JWT)
+
+		resp, err := c.HTTP.Do(req)
+		if err != nil {
+			fmt.Printf("❌ [Boond] GET resources error: %v\n", err)
+			return nil, err
+		}
+		body, _ := io.ReadAll(resp.Body)
+		_ = resp.Body.Close()
+
+		fmt.Printf("📥 [Boond] GET resources status=%d body_len=%d\n", resp.StatusCode, len(body))
+		if resp.StatusCode >= 400 {
+			if len(body) > 0 {
+				b := string(body)
+				if len(b) > 600 {
+					b = b[:600] + "…(tronqué)"
+				}
+				fmt.Printf("⚠️  [Boond] GET resources error body: %s\n", b)
+			}
+			return nil, fmt.Errorf("boond get resources failed: status=%d body=%s", resp.StatusCode, string(body))
+		}
+
+		// Parser la page
+		var pageResp struct {
+			Data []struct {
+				ID   string         `json:"id"`
+				Type string         `json:"type"`
+				Attr map[string]any `json:"attributes"`
+				Rel  map[string]any `json:"relationships"`
+			} `json:"data"`
+		}
+
+		if err := json.Unmarshal(body, &pageResp); err != nil {
+			return nil, fmt.Errorf("failed to parse resources response: %w", err)
+		}
+
+		// Transformer en structure simple et appliquer les filtres
+		for _, it := range pageResp.Data {
+			res := map[string]any{
+				"id":            it.ID,
+				"type":          it.Type,
+				"attributes":    it.Attr,
+				"relationships": it.Rel,
+			}
+
+			// Appliquer les filtres
+			if shouldIncludeResource(res, typeOfFilter, isVisibleFilter) {
+				allResources = append(allResources, res)
+			}
+		}
+
+		fmt.Printf("✅ [Boond] Page %d: %d ressources\n", page, len(pageResp.Data))
+
+		if len(pageResp.Data) < maxResults {
+			// Dernière page
+			break
+		}
+		page++
+
+		// Garde-fou pour éviter les boucles infinies
+		if page > 2000 {
+			fmt.Printf("⚠️  [Boond] Arrêt pagination de sécurité après %d pages\n", page)
+			break
+		}
+	}
+
+	fmt.Printf("👥 [Boond] Total ressources agrégées: %d\n", len(allResources))
+	return allResources, nil
+}
+
+// shouldIncludeResource vérifie si une ressource doit être incluse selon les filtres
+func shouldIncludeResource(resource map[string]any, typeOfFilter []int, isVisibleFilter *bool) bool {
+	attrs, ok := resource["attributes"].(map[string]any)
+	if !ok {
+		return false
+	}
+
+	// Filtre par typeOf
+	if len(typeOfFilter) > 0 {
+		typeOf, ok := attrs["typeOf"]
+		if !ok {
+			return false
+		}
+
+		var typeOfInt int
+		switch v := typeOf.(type) {
+		case float64:
+			typeOfInt = int(v)
+		case int:
+			typeOfInt = v
+		default:
+			return false
+		}
+
+		found := false
+		for _, allowedType := range typeOfFilter {
+			if typeOfInt == allowedType {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return false
+		}
+	}
+
+	// Filtre par isVisible
+	if isVisibleFilter != nil {
+		isVisible, ok := attrs["isVisible"].(bool)
+		if !ok {
+			return false
+		}
+		if isVisible != *isVisibleFilter {
+			return false
+		}
+	}
+
+	return true
+}
+
 // maskToken retourne les n premiers caractères du token
 func maskToken(t string, n int) string {
 	if n <= 0 || len(t) <= n {

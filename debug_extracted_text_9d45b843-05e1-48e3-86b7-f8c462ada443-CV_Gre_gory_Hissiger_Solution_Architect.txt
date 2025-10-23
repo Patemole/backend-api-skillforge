@@ -1,0 +1,95 @@
+GRÉGORY HISSIGER
+
++33 (0)7 69 29 04 08 | gregoryhissiger3@gmail.com | linkedin/ghissiger
+
+PROFESSIONAL EXPERIENCE
+
+Co-Founder & CTO San Francisco, USA
+Sep 2023 - Aug 2025 (2 yrs)
+● Lucy - AI Academic Advisor
+o Delivered solution architecture & led solution engineering for a multi-agent AI assistant, from use case modeling to
+cloud-native deployment (AWS), engaging C-level stakeholders and delivering POCs, technical workshops, and
+integrations (SSO, REST APIs, frontend) with security, scalability & compliance (GDPR, SOC 2)
+o Scaled adoption to 5,000+ Monthly Active Users (MAU) across Ivy League campuses (Penn, Harvard, Columbia)
+o Cut staff email volume by 43% and slashed response time from 48–72 h to < 1 min
+o Raised $342k in pre-seed; incubated by Station F & The Wharton School’s VIP-X (Top 3 global business school)
+
+Business Engineer
+● Prime Engineering - Consulting
+
+o
+o
+o
+o
+
+Paris, France
+Sep 2022 - Aug 2023 (1 yr)
+
+Built and scaled a new aerospace & energy business unit, generating ≃ €300k revenue in year 1
+Recruited and managed 8 consultants, sustaining 100% billable utilization with zero turnover
+Opened two strategic enterprise accounts to final-proposal stage, positioning the BU to double revenue
+Steered the full client lifecycle — requirements gathering, contract negotiation, project oversight and retention
+
+Co-Founder & CEO Paris, France
+Jan 2021 - July 2023 (2.5 yrs)
+● ViteUnProf - On-Demand Tutoring Marketplace
+o Built and deployed the product from MVP to full release, owning roadmap, UX iterations, and user feedback loop
+o Led product strategy and go-to-market execution (pricing, positioning, acquisition channels, and KPIs)
+o Achieved a 1-minute average match time via a real-time matching engine for 400 learners after onboarding 1,000+
+tutors through partnerships with top French institutions (Supaero, l’X, Sciences Po, CentraleSupelec…)
+o Secured €160k pre-seed alongside the co-founder of Marmiton and the former president of Nokia France
+
+Risk Management Intern Redu, Belgium
+May 2021 - Aug 2021 (4 mths)
+● RHEA Group - for the European Space Agency (ESA)
+o Conducted a state-of-the-art analysis of cyber threats targeting ground control systems and space assets (satellites)
+o Reviewed ESA’s risk management frameworks for space system security and contributed to internal documentation
+
+EDUCATION
+
+ENSEA Graduate School
+● Master’s Degree in Engineering (Computer Science & Applied Mathematics)
+o Core Competencies: Cloud Computing, System Design, Networking & Security, Databases Paris, France
+Sep 2019 - Aug 2022
+
+(SQL/NoSQL), Data Structures & Algorithms, ML, DL, Python / C / Java, Embedded Systems
+
+London School of Economics and Political Science (LSE) London, England
+May 2022 - Aug 2022
+● Exchange program - Finance
+o Core Competencies: Business Analysis & Valuation, Financial Markets & Portfolio Management
+
+Audencia Business School Nantes, France
+Sep 2021 - May 2022
+● Master’s Degree – Dual Degree in Engineering & Management
+o Core Competencies Business Strategy, Product Management, Technology & Innovation Management,
+
+Financial Analysis, Accounting, Valuation Techniques, Cash Management
+
+Lycée Édouard Branly Lyon, France
+Sep 2018 - Jun 2019
+● Classes Préparatoires (CPGE)
+o Highly selective undergraduate program preparing for competitive entrance to top engineering schools
+o Relevant coursework: Mathematics, Physics, Engineering Sciences, French, English
+
+LANGUAGES & SKILLS
+
+Languages: French (Native), English (C2), German (Basic)
+Cloud & Infrastructure: AWS, Kubernetes, Terraform,
+Docker, CI/CD, Databricks, REST APIs, Cloud Security, GenAI
+Certifications: AWS Certified Solutions Architect – Associate
+Solution Architecture & Design: Solution Architecture,
+System Design, Requirements Gathering, Technical Scoping
+Programming: Python, JS/TS, Go, SQL, Bash, Java, C
+
+ACTIVITIES & INTERESTS
+
+Activities: Reservist, 12th Cuirassiers Regiment for the
+French Army — President of the ENSEA Student Union
+(35 members, €120k budget) — Manager at Parkours
+(EdTech), led 80 tutors for 300 students
+Sports: Tennis (7 yrs), Running (5 yrs), Squash
+Interests: Photography, Spatial, Robotics, Hackathons
+Projects: Github profile
+
+

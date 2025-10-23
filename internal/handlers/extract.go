@@ -2,9 +2,12 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
+	"regexp"
+	"strconv"
 	"strings"
 
 	"backend-api-skillforge/internal/boond"
@@ -65,7 +68,19 @@ func ExtractCV(c *gin.Context) {
 		log.Printf("🔐 BOOND JWT aperçu: len=%d prefix=%s… suffix=…%s", len(boondJWT), maskToken(boondJWT, 10), tailToken(boondJWT, 10))
 	}
 	if boondJWT == "" {
-		// Pas d'intégration Boond demandée → retour immédiat du JSON
+		// Pas d'intégration Boond demandée → tenter une normalisation des dates avant retour
+		cleaned := sanitizeJSONResult(result)
+		var cv nuextract.CVExtractionSchema
+		if err := json.Unmarshal(cleaned, &cv); err == nil {
+			normalizeExperienceDates(&cv, language)
+			if normalized, err := json.Marshal(cv); err == nil {
+				result = normalized
+			} else {
+				log.Printf("WARNING: Échec du marshalling après normalisation des dates (no JWT): %v", err)
+			}
+		} else {
+			log.Printf("WARNING: JSON non parsable pour normalisation (no JWT): %v", err)
+		}
 		log.Printf("📤 Réponse normale envoyée au frontend (pas de JWT Boond) - taille: %d bytes", len(result))
 		c.Data(http.StatusOK, "application/json", result)
 		return
@@ -92,6 +107,9 @@ func ExtractCV(c *gin.Context) {
 		c.Data(http.StatusOK, "application/json", result)
 		return
 	}
+
+	// Normaliser les dates d'expériences au format MM/YY
+	normalizeExperienceDates(&cv, language)
 
 	// Construire les attributs Boond à partir du CV extrait
 	attributes := boond.BuildCandidateAttributesFromCV(cv)
@@ -181,12 +199,27 @@ func ExtractCV(c *gin.Context) {
 		// Enrichir la réponse avec l'ID du candidat Boond pour la synchronisation future
 		log.Printf("🔄 Enrichissement de la réponse avec boond_candidate_id=%s", createdID)
 
+		// Repartir de la version normalisée
 		var response map[string]any
-		if err := json.Unmarshal(cleaned, &response); err != nil {
-			log.Printf("❌ Erreur parsing JSON nettoyé pour enrichissement: %v", err)
-			// Si erreur de parsing, renvoyer le JSON original
-			c.Data(http.StatusOK, "application/json", result)
-			return
+		normalizedCleaned, mErr := json.Marshal(cv)
+		if mErr != nil {
+			log.Printf("❌ Erreur marshalling CV normalisé pour enrichissement: %v", mErr)
+			// fallback: tenter avec cleaned
+			if err := json.Unmarshal(cleaned, &response); err != nil {
+				log.Printf("❌ Erreur parsing JSON nettoyé pour enrichissement: %v", err)
+				c.Data(http.StatusOK, "application/json", result)
+				return
+			}
+		} else {
+			if err := json.Unmarshal(normalizedCleaned, &response); err != nil {
+				log.Printf("❌ Erreur parsing CV normalisé en map pour enrichissement: %v", err)
+				// fallback: tenter avec cleaned
+				if err := json.Unmarshal(cleaned, &response); err != nil {
+					log.Printf("❌ Erreur parsing JSON nettoyé pour enrichissement (fallback): %v", err)
+					c.Data(http.StatusOK, "application/json", result)
+					return
+				}
+			}
 		}
 
 		// Ajouter l'ID Boond à la réponse
@@ -247,4 +280,118 @@ func tailToken(t string, n int) string {
 		return t
 	}
 	return t[len(t)-n:]
+}
+
+// normalizeExperienceDates force les dates des expériences au format MM/YY
+func normalizeExperienceDates(cv *nuextract.CVExtractionSchema, language string) {
+	if cv == nil || len(cv.Experiences) == 0 {
+		return
+	}
+	for i := range cv.Experiences {
+		start := strings.TrimSpace(cv.Experiences[i].DateDebut)
+		end := strings.TrimSpace(cv.Experiences[i].DateFin)
+
+		if start != "" {
+			if m, y, ok := parseMonthYear(start); ok {
+				cv.Experiences[i].DateDebut = fmt.Sprintf("%02d/%02d", m, y%100)
+			} else {
+				// tentative sur formats numériques courants
+				if formatted, ok2 := normalizeNumericDate(start); ok2 {
+					cv.Experiences[i].DateDebut = formatted
+				}
+			}
+		}
+
+		if end != "" {
+			// valeurs de type "En cours" / "In progress"
+			if isPresent(end) {
+				if strings.ToLower(strings.TrimSpace(language)) == "fr" {
+					cv.Experiences[i].DateFin = "En cours"
+				} else {
+					cv.Experiences[i].DateFin = "In progress"
+				}
+			} else if m, y, ok := parseMonthYear(end); ok {
+				cv.Experiences[i].DateFin = fmt.Sprintf("%02d/%02d", m, y%100)
+			} else {
+				if formatted, ok2 := normalizeNumericDate(end); ok2 {
+					cv.Experiences[i].DateFin = formatted
+				}
+			}
+		}
+	}
+}
+
+// isPresent détecte des variantes de "en cours" / "present"
+func isPresent(s string) bool {
+	v := strings.ToLower(strings.TrimSpace(s))
+	switch v {
+	case "en cours", "encours", "actuel", "actuellement", "present", "présent", "in progress", "ongoing", "current", "now":
+		return true
+	}
+	return false
+}
+
+// normalizeNumericDate gère des formats type MM/YYYY, YYYY-MM, MM-YY, etc.
+func normalizeNumericDate(s string) (string, bool) {
+	str := strings.TrimSpace(s)
+	// MM/YYYY ou M/YYYY ou MM/YY
+	re1 := regexp.MustCompile(`^(?i)\s*(\d{1,2})[\-/\.](\d{2,4})\s*$`)
+	if m := re1.FindStringSubmatch(str); len(m) == 3 {
+		mm, _ := strconv.Atoi(m[1])
+		yy, _ := strconv.Atoi(m[2])
+		if yy >= 100 { // YYYY → YY
+			yy = yy % 100
+		}
+		if mm >= 1 && mm <= 12 {
+			return fmt.Sprintf("%02d/%02d", mm, yy), true
+		}
+	}
+	// YYYY-MM ou YYYY/MM
+	re2 := regexp.MustCompile(`^(?i)\s*(\d{4})[\-/\.](\d{1,2})\s*$`)
+	if m := re2.FindStringSubmatch(str); len(m) == 3 {
+		yy, _ := strconv.Atoi(m[1])
+		mm, _ := strconv.Atoi(m[2])
+		if mm >= 1 && mm <= 12 {
+			return fmt.Sprintf("%02d/%02d", mm, yy%100), true
+		}
+	}
+	return "", false
+}
+
+// parseMonthYear gère des libellés avec mois en FR/EN et année, ex: "Février 2020", "Aug 2018"
+func parseMonthYear(s string) (int, int, bool) {
+	if s == "" {
+		return 0, 0, false
+	}
+	cleaned := strings.ToLower(strings.TrimSpace(s))
+	cleaned = strings.ReplaceAll(cleaned, ".", "")
+	cleaned = strings.ReplaceAll(cleaned, ",", "")
+	// Regex: <mois> <annee>
+	re := regexp.MustCompile(`^([a-zàâäéèêëîïôöùûüç]{3,})\s+(\d{4})$`)
+	mm := re.FindStringSubmatch(cleaned)
+	if len(mm) == 3 {
+		monName := strings.TrimSpace(mm[1])
+		year, _ := strconv.Atoi(mm[2])
+		if monthNum, ok := monthNameToNumber(monName); ok {
+			return monthNum, year, true
+		}
+	}
+	return 0, 0, false
+}
+
+func monthNameToNumber(name string) (int, bool) {
+	m := map[string]int{
+		// Français complets
+		"janvier": 1, "février": 2, "fevrier": 2, "mars": 3, "avril": 4, "mai": 5, "juin": 6, "juillet": 7, "août": 8, "aout": 8, "septembre": 9, "octobre": 10, "novembre": 11, "décembre": 12, "decembre": 12,
+		// Français abréviations courantes
+		"janv": 1, "fev": 2, "févr": 2, "fevr": 2, "avr": 4, "sept": 9, "oct": 10, "nov": 11, "déc": 12, "dec": 12,
+		// Anglais complets
+		"january": 1, "february": 2, "march": 3, "april": 4, "may": 5, "june": 6, "july": 7, "august": 8, "september": 9, "october": 10, "november": 11, "december": 12,
+		// Anglais abréviations
+		"jan": 1, "feb": 2, "mar": 3, "apr": 4, "jun": 6, "jul": 7, "aug": 8, "sep": 9,
+	}
+	if v, ok := m[name]; ok {
+		return v, true
+	}
+	return 0, false
 }

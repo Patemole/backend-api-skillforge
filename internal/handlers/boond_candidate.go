@@ -11,6 +11,7 @@ import (
 
 	"backend-api-skillforge/internal/boond"
 	"backend-api-skillforge/internal/models"
+	"backend-api-skillforge/internal/orgchart"
 )
 
 // DeleteBoondCandidate gère la suppression d'un candidat Boond
@@ -93,6 +94,68 @@ func DeleteBoondCandidate(c *gin.Context) {
 		Message: "Candidat supprimé avec succès",
 		Data: map[string]string{
 			"boondCandidateId": req.BoondCandidateId,
+		},
+	})
+}
+
+// BuildBoondOrgChart construit l'organigramme et renvoie la structure + un graphe DOT
+func BuildBoondOrgChart(c *gin.Context) {
+	var req models.BoondOrgChartRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, models.BoondCandidateResponse{
+			Success: false,
+			Message: "Données de requête invalides: " + err.Error(),
+		})
+		return
+	}
+
+	if strings.TrimSpace(req.BoondJwt) == "" {
+		c.JSON(http.StatusBadRequest, models.BoondCandidateResponse{
+			Success: false,
+			Message: "Le JWT Boond est requis",
+		})
+		return
+	}
+
+	client := boond.New(req.BoondJwt)
+	max := 500
+	if req.MaxResults != nil {
+		if *req.MaxResults < 1 {
+			max = 1
+		} else if *req.MaxResults > 500 {
+			max = 500
+		} else {
+			max = *req.MaxResults
+		}
+	}
+
+	resources, err := client.GetAllResources(c.Request.Context(), max, nil, nil)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.BoondCandidateResponse{
+			Success:          false,
+			Message:          "Échec de la récupération des ressources",
+			ErrorCode:        "GET_RESOURCES_FAILED",
+			Details:          "Impossible de générer l'organigramme sans ressources",
+			TechnicalDetails: err.Error(),
+		})
+		return
+	}
+
+	includeHR := false
+	if req.IncludeHREdges != nil {
+		includeHR = *req.IncludeHREdges
+	}
+
+	roots, dot, orphanCount := orgchart.BuildOrgChartFromResources(resources, includeHR)
+
+	c.JSON(http.StatusOK, models.BoondCandidateResponse{
+		Success: true,
+		Message: "Organigramme généré",
+		Data: map[string]any{
+			"roots":       roots,
+			"dot":         dot,
+			"orphanCount": orphanCount,
+			"count":       len(resources),
 		},
 	})
 }
@@ -406,6 +469,178 @@ func UploadBoondCandidateDC(c *gin.Context) {
 			"boondCandidateId": req.BoondCandidateId,
 			"documentId":       docID,
 			"filename":         req.Filename,
+		},
+	})
+}
+
+// GetBoondAgencies gère la récupération des agences Boond
+func GetBoondAgencies(c *gin.Context) {
+	var req models.BoondAgenciesRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, models.BoondCandidateResponse{
+			Success: false,
+			Message: "Données de requête invalides: " + err.Error(),
+		})
+		return
+	}
+
+	// Validation des champs requis
+	if strings.TrimSpace(req.BoondJwt) == "" {
+		c.JSON(http.StatusBadRequest, models.BoondCandidateResponse{
+			Success: false,
+			Message: "Le JWT Boond est requis",
+		})
+		return
+	}
+
+	// Créer le client Boond
+	client := boond.New(req.BoondJwt)
+
+	// Récupérer les agences
+	agencies, err := client.GetAgencies(c.Request.Context())
+	if err != nil {
+		// Gestion d'erreurs spécifiques selon le type d'erreur
+		if strings.Contains(err.Error(), "401") || strings.Contains(err.Error(), "unauthorized") {
+			c.JSON(http.StatusUnauthorized, models.BoondCandidateResponse{
+				Success:   false,
+				Message:   "Authentification échouée",
+				ErrorCode: "AUTHENTICATION_FAILED",
+				Details:   "Le token JWT fourni n'est pas valide ou a expiré",
+			})
+			return
+		}
+
+		if strings.Contains(err.Error(), "403") || strings.Contains(err.Error(), "forbidden") {
+			c.JSON(http.StatusForbidden, models.BoondCandidateResponse{
+				Success:   false,
+				Message:   "Accès refusé",
+				ErrorCode: "INSUFFICIENT_PERMISSIONS",
+				Details:   "Vous n'avez pas les permissions nécessaires pour récupérer les agences",
+			})
+			return
+		}
+
+		// Erreur générique
+		c.JSON(http.StatusInternalServerError, models.BoondCandidateResponse{
+			Success:          false,
+			Message:          "Échec de la récupération des agences",
+			ErrorCode:        "GET_AGENCIES_FAILED",
+			Details:          "Une erreur inattendue s'est produite lors de la récupération des agences depuis Boond Manager",
+			TechnicalDetails: err.Error(),
+		})
+		return
+	}
+
+	// Convertir en format BoondAgency
+	var boondAgencies []models.BoondAgency
+	for _, agency := range agencies {
+		boondAgencies = append(boondAgencies, models.BoondAgency{
+			ID:   agency["id"],
+			Name: agency["name"],
+		})
+	}
+
+	c.JSON(http.StatusOK, models.BoondCandidateResponse{
+		Success: true,
+		Message: "Agences récupérées avec succès",
+		Data: map[string]any{
+			"agencies": boondAgencies,
+			"count":    len(boondAgencies),
+		},
+	})
+}
+
+// GetBoondResources gère la récupération paginée de toutes les ressources Boond
+func GetBoondResources(c *gin.Context) {
+	var req models.BoondResourcesRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, models.BoondCandidateResponse{
+			Success: false,
+			Message: "Données de requête invalides: " + err.Error(),
+		})
+		return
+	}
+
+	if strings.TrimSpace(req.BoondJwt) == "" {
+		c.JSON(http.StatusBadRequest, models.BoondCandidateResponse{
+			Success: false,
+			Message: "Le JWT Boond est requis",
+		})
+		return
+	}
+
+	client := boond.New(req.BoondJwt)
+
+	max := 500
+	if req.MaxResults != nil {
+		if *req.MaxResults < 1 {
+			max = 1
+		} else if *req.MaxResults > 500 {
+			max = 500
+		} else {
+			max = *req.MaxResults
+		}
+	}
+
+	resources, err := client.GetAllResources(c.Request.Context(), max, req.TypeOf, req.IsVisible)
+	if err != nil {
+		if strings.Contains(err.Error(), "401") || strings.Contains(err.Error(), "unauthorized") {
+			c.JSON(http.StatusUnauthorized, models.BoondCandidateResponse{
+				Success:   false,
+				Message:   "Authentification échouée",
+				ErrorCode: "AUTHENTICATION_FAILED",
+				Details:   "Le token JWT fourni n'est pas valide ou a expiré",
+			})
+			return
+		}
+
+		if strings.Contains(err.Error(), "403") || strings.Contains(err.Error(), "forbidden") {
+			c.JSON(http.StatusForbidden, models.BoondCandidateResponse{
+				Success:   false,
+				Message:   "Accès refusé",
+				ErrorCode: "INSUFFICIENT_PERMISSIONS",
+				Details:   "Vous n'avez pas les permissions nécessaires pour récupérer les ressources",
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, models.BoondCandidateResponse{
+			Success:          false,
+			Message:          "Échec de la récupération des ressources",
+			ErrorCode:        "GET_RESOURCES_FAILED",
+			Details:          "Une erreur inattendue s'est produite lors de la récupération des ressources depuis Boond Manager",
+			TechnicalDetails: err.Error(),
+		})
+		return
+	}
+
+	// Créer une liste simplifiée pour les équipes internes (managers, direction, RH)
+	var filteredResources []map[string]any
+	for _, resource := range resources {
+		attrs, ok := resource["attributes"].(map[string]any)
+		if !ok {
+			continue
+		}
+
+		// Extraire les infos essentielles
+		simplified := map[string]any{
+			"id":        resource["id"],
+			"email":     attrs["email1"],
+			"typeOf":    attrs["typeOf"],
+			"firstName": attrs["firstName"],
+			"lastName":  attrs["lastName"],
+			"title":     attrs["title"],
+		}
+		filteredResources = append(filteredResources, simplified)
+	}
+
+	c.JSON(http.StatusOK, models.BoondCandidateResponse{
+		Success: true,
+		Message: "Ressources récupérées avec succès",
+		Data: map[string]any{
+			"resources":         resources,
+			"count":             len(resources),
+			"filteredResources": filteredResources,
 		},
 	})
 }
