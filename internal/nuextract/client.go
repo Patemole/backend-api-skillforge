@@ -21,6 +21,8 @@ type Client struct {
 	nuexAPIKey   string
 	openAIAPIKey string
 	http         *http.Client
+	// modelOverride permet de forcer un modèle précis (ex: gpt-5-mini) uniquement pour /extract
+	modelOverride string
 }
 
 func New() *Client {
@@ -32,6 +34,13 @@ func New() *Client {
 			Timeout: 10 * time.Minute, // Timeout de 10 minutes pour les gros fichiers
 		},
 	}
+}
+
+// NewWithModel crée un client en forçant un modèle OpenAI spécifique
+func NewWithModel(model string) *Client {
+	c := New()
+	c.modelOverride = strings.TrimSpace(model)
+	return c
 }
 
 // extractTextFromPDF extrait le texte d'un fichier PDF
@@ -298,6 +307,12 @@ func (c *Client) ExtractAndEnrichWithFilename(file []byte, filename string, lang
 	// Récupérer le prompt et la configuration selon la langue
 	prompt := GetExtractionPromptProductionWithLanguage(string(raw), language)
 	config := GetOpenAIConfig()
+	// Surcharger le modèle si un override est défini (uniquement utilisé par /extract)
+	if strings.TrimSpace(c.modelOverride) != "" {
+		log.Printf("⚡ Override du modèle: %s -> %s", config.Model, c.modelOverride)
+		config.Model = c.modelOverride
+	}
+	log.Printf("🤖 Modèle OpenAI utilisé: %s", config.Model)
 
 	// ANALYSE DU PROMPT COMPLET
 	log.Printf("🤖 ANALYSE DU PROMPT:")

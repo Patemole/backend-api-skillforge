@@ -47,7 +47,14 @@ func ExtractCV(c *gin.Context) {
 	}
 	log.Printf("🌍 Langue sélectionnée: %s", language)
 
-	client := nuextract.New()
+	// Sélection du modèle selon generationMode: fast -> gpt-5-mini, detailed -> gpt-5
+	generationMode := strings.TrimSpace(c.PostForm("generationMode"))
+	model := "gpt-5"
+	if generationMode == "fast" {
+		model = "gpt-5-mini"
+	}
+	log.Printf("⚡ Mode de génération: %s, modèle sélectionné: %s", generationMode, model)
+	client := nuextract.NewWithModel(model)
 	log.Printf("DEBUG: Client NuExtract créé, début de l'extraction...")
 
 	result, err := client.ExtractAndEnrichWithFilename(data, header.Filename, language)

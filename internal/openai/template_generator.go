@@ -40,7 +40,7 @@ func (s *TemplateGeneratorService) GenerateTemplate(req models.TemplateGenerateR
 
 	// Préparer la requête OpenAI avec JSON mode
 	payload := map[string]interface{}{
-		"model":       "gpt-4o-2024-08-06", // Utiliser le modèle le plus récent
+		"model": "gpt-4o-2024-08-06", // Utiliser le modèle le plus récent
 		"messages": []map[string]string{
 			{
 				"role":    "system",
@@ -132,7 +132,7 @@ func (s *TemplateGeneratorService) GenerateTemplate(req models.TemplateGenerateR
 func (s *TemplateGeneratorService) buildTemplatePrompt(req models.TemplateGenerateRequest) string {
 	// Convertir les exemples en JSON pour le prompt
 	examplesJSON, _ := json.MarshalIndent(req.EmailExamples, "", "  ")
-	
+
 	// Organiser les variables par catégories pour une meilleure compréhension
 	variablesByCategory := s.organizeVariablesByCategory(req.AvailableVariables)
 	variablesJSON, _ := json.MarshalIndent(variablesByCategory, "", "  ")
@@ -207,13 +207,13 @@ func (s *TemplateGeneratorService) buildTemplatePrompt(req models.TemplateGenera
 // organizeVariablesByCategory organise les variables par catégories pour une meilleure compréhension
 func (s *TemplateGeneratorService) organizeVariablesByCategory(variables []string) map[string][]string {
 	categories := map[string][]string{
-		"Informations de base": {},
-		"Expériences (globales)": {},
-		"Expériences (détails)": {},
+		"Informations de base":    {},
+		"Expériences (globales)":  {},
+		"Expériences (détails)":   {},
 		"Logiciels & Compétences": {},
-		"Projets": {},
-		"Formations": {},
-		"Autres": {},
+		"Projets":                 {},
+		"Formations":              {},
+		"Autres":                  {},
 	}
 
 	for _, variable := range variables {

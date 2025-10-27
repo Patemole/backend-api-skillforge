@@ -3,7 +3,6 @@ package main
 import (
 	"log"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -25,20 +24,20 @@ func main() {
 
 	// ✅ Configuration CORS - domaines autorisés
 	// En production sur Koyeb: utiliser variable ALLOWED_ORIGINS pour override
-	allowedOrigins := os.Getenv("ALLOWED_ORIGINS")
-	if allowedOrigins == "" {
-		// Valeurs par défaut: production + localhost pour dev
-		allowedOrigins = "https://getskillforge.app,http://localhost:5173,http://localhost:3000,http://localhost:8080"
-	}
+	// allowedOrigins := os.Getenv("ALLOWED_ORIGINS")
+	// if allowedOrigins == "" {
+	// 	// Valeurs par défaut: production + localhost pour dev
+	// 	allowedOrigins = "https://getskillforge.app,http://localhost:5173,http://localhost:3000,http://localhost:8080"
+	// }
 
-	originsList := []string{}
-	for _, origin := range strings.Split(allowedOrigins, ",") {
-		originsList = append(originsList, strings.TrimSpace(origin))
-	}
+	// originsList := []string{}
+	// for _, origin := range strings.Split(allowedOrigins, ",") {
+	// 	originsList = append(originsList, strings.TrimSpace(origin))
+	// }
 
 	// ✅ Middleware CORS avancé
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     originsList, // Domaines autorisés depuis env
+		AllowOrigins:     []string{"*"}, // TEMPORAIRE: test CORS avec toutes les origines
 		AllowMethods:     []string{"GET", "POST", "OPTIONS"},
 		AllowHeaders:     []string{"Authorization", "Content-Type", "apikey", "x-client-info"},
 		ExposeHeaders:    []string{"Content-Length"},
