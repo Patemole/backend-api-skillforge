@@ -12,6 +12,7 @@ import (
 	"backend-api-skillforge/internal/handlers"
 	"backend-api-skillforge/internal/middleware"
 	"backend-api-skillforge/internal/supabase"
+	"backend-api-skillforge/internal/worker"
 )
 
 func main() {
@@ -21,6 +22,14 @@ func main() {
 	r := gin.New()
 	r.Use(gin.Recovery())
 	r.Use(middleware.Logger())
+
+	// 🚀 Lancer PLUSIEURS workers pour traiter en parallèle
+	// Avec 50 workers: on peut traiter jusqu'à 50 CV en même temps (~1000 CV/minute)
+	workerCount := 50
+	for i := 1; i <= workerCount; i++ {
+		worker.StartExtractCVWorker()
+	}
+	log.Printf("✅ Tous les workers ont démarré (%d workers extract_cv en parallèle)", workerCount)
 
 	// ✅ Configuration CORS robuste - fonctionne toujours
 	r.Use(cors.New(cors.Config{
@@ -87,7 +96,8 @@ func main() {
 	candidateInviteHandler := handlers.NewCandidateInviteHandler()
 
 	r.GET("/health", handlers.Health)
-	r.POST("/extract", handlers.ExtractCV)
+	// Basculer /extract en asynchrone (création d'un job extract_cv)
+	r.POST("/extract", handlers.ExtractCVAsync)
 	r.POST("/jobs", handlers.CreateJob)
 	r.GET("/jobs/:id/status", handlers.GetJobStatus)
 	r.POST("/api/email/generate-presentation", handlers.GeneratePresentationEmail)

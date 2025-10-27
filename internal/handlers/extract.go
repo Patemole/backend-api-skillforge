@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -9,11 +10,15 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"backend-api-skillforge/internal/boond"
+	"backend-api-skillforge/internal/models"
 	"backend-api-skillforge/internal/nuextract"
+	"backend-api-skillforge/internal/supabase"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 // ExtractCV traite l'upload d'un CV, renvoie le JSON NuExtract
@@ -283,6 +288,98 @@ func ExtractCV(c *gin.Context) {
 
 	log.Printf("📤 Réponse normale envoyée au frontend (sans boond_candidate_id) - taille: %d bytes", len(result))
 	c.Data(http.StatusOK, "application/json", result)
+}
+
+// ExtractCVAsync crée un job asynchrone pour l'extraction de CV et renvoie immédiatement un job_id
+func ExtractCVAsync(c *gin.Context) {
+	log.Printf("ASYNC: Début de la création de job extract_cv")
+
+	// Récupération du fichier depuis le multipart/form-data
+	file, header, err := c.Request.FormFile("file")
+	if err != nil {
+		log.Printf("ERROR: Erreur récupération fichier: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "file not provided"})
+		return
+	}
+	defer file.Close()
+
+	data, err := io.ReadAll(file)
+	if err != nil {
+		log.Printf("ERROR: Erreur lecture fichier: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "cannot read file"})
+		return
+	}
+
+	// Paramètres optionnels
+	language := strings.TrimSpace(c.PostForm("language"))
+	if language == "" {
+		language = "fr"
+	}
+	generationMode := strings.TrimSpace(c.PostForm("generationMode"))
+	if generationMode == "" {
+		generationMode = "fast"
+	}
+	userIDStr := strings.TrimSpace(c.PostForm("user_id"))
+	if userIDStr == "" {
+		// fallback soft si non fourni: UUID nul (0000..)
+		userIDStr = "00000000-0000-0000-0000-000000000000"
+	}
+	userID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "invalid user_id"})
+		return
+	}
+
+	// Encodage base64 du fichier (évite d'avoir à gérer Storage de suite; le worker le décodera)
+	encoded := base64.StdEncoding.EncodeToString(data)
+
+	payload := map[string]any{
+		"filename":       header.Filename,
+		"file_base64":    encoded,
+		"language":       language,
+		"generationMode": generationMode,
+	}
+
+	now := time.Now().UTC().Format(time.RFC3339)
+	newJob := models.Job{
+		Type:      "extract_cv",
+		UserID:    userID,
+		Payload:   payload,
+		Status:    "pending", // Les jobs extract_cv seront traités par notre worker Go
+		CreatedAt: now,
+		UpdatedAt: now,
+	}
+
+	// Insert job et récupérer l'id via representation
+	dataJSON, _, err := supabase.Client.From("jobs").Insert(newJob, false, "representation", "", "").Execute()
+	if err != nil {
+		log.Printf("ERROR: Échec de la création du job extract_cv: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success":           false,
+			"error":             "Échec de la création du job",
+			"error_code":        "JOB_CREATION_FAILED",
+			"technical_details": err.Error(),
+		})
+		return
+	}
+
+	var inserted []models.Job
+	if err := json.Unmarshal(dataJSON, &inserted); err != nil || len(inserted) == 0 {
+		log.Printf("ERROR: Parsing résultat insert job: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success":    false,
+			"error":      "Échec du parsing du résultat de création du job",
+			"error_code": "JOB_PARSING_FAILED",
+		})
+		return
+	}
+
+	c.JSON(http.StatusAccepted, gin.H{
+		"success": true,
+		"job_id":  inserted[0].ID,
+		"status":  "pending",
+		"type":    "extract_cv",
+	})
 }
 
 // sanitizeJSONResult retire d'éventuels blocs de code ```json ... ``` et extrait uniquement l'objet JSON
