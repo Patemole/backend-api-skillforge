@@ -146,20 +146,61 @@ func processOneExtractJob() error {
 		return nil
 	}
 
+	// ANALYSE COMPLÈTE DE LA RÉPONSE D'OPENAI
+	log.Printf("🔍 [worker extract_cv] ANALYSE RÉPONSE OpenAI pour job %s:", idStr)
+	log.Printf("📏 Taille brute: %d bytes", len(resultBytes))
+
+	// Log des premiers caractères pour debug
+	previewRaw := 1000
+	if len(resultBytes) < previewRaw {
+		previewRaw = len(resultBytes)
+	}
+	log.Printf("👀 Aperçu brut (premiers %d chars): %s", previewRaw, string(resultBytes[:previewRaw]))
+
 	// Nettoyer la réponse d'OpenAI (retirer les backticks ```json ... ```)
 	cleanedBytes := sanitizeJSONResponse(resultBytes)
+	log.Printf("📏 Taille après nettoyage: %d bytes", len(cleanedBytes))
+
+	// Aperçu après nettoyage
+	previewClean := 1000
+	if len(cleanedBytes) < previewClean {
+		previewClean = len(cleanedBytes)
+	}
+	log.Printf("👀 Aperçu nettoyé (premiers %d chars): %s", previewClean, string(cleanedBytes[:previewClean]))
 
 	var result map[string]any
 	if err := json.Unmarshal(cleanedBytes, &result); err != nil {
-		// Si non JSON, envelopper dans une clé raw
-		previewLen := 500
-		if len(cleanedBytes) < previewLen {
-			previewLen = len(cleanedBytes)
+		// DEBUG: Si non JSON, on log TOUTE la réponse pour comprendre
+		log.Printf("❌ [worker extract_cv] ÉCHEC parsing JSON pour job %s:", idStr)
+		log.Printf("❌ Erreur: %v", err)
+		log.Printf("❌ Taille réponse: %d bytes", len(cleanedBytes))
+		log.Printf("❌ Contenu complet: %s", string(cleanedBytes))
+
+		// Si le contenu est vide, c'est un problème grave
+		if len(strings.TrimSpace(string(cleanedBytes))) == 0 {
+			log.Printf("💥 ERREUR CRITIQUE: Réponse vide ou None!")
+			result = map[string]any{
+				"raw":   "",
+				"error": "Extraction échouée : aucune donnée extraite",
+			}
+		} else {
+			// Envelopper dans une clé raw pour garder l'info
+			result = map[string]any{"raw": string(cleanedBytes)}
 		}
-		log.Printf("⚠️  [worker extract_cv] Réponse JSON invalide pour job %s: %v | Premiers %d chars: %s", idStr, err, previewLen, string(cleanedBytes[:previewLen]))
-		result = map[string]any{"raw": string(cleanedBytes)}
 	} else {
-		log.Printf("✅ [worker extract_cv] JSON parsé avec succès pour job %s", idStr)
+		log.Printf("✅ [worker extract_cv] JSON parsé avec succès pour job %s (champs: %d)", idStr, len(result))
+		// Log les premières clés pour vérifier la structure
+		keys := make([]string, 0, len(result))
+		for k := range result {
+			keys = append(keys, k)
+		}
+		if len(keys) > 0 {
+			maxKeys := 10
+			if len(keys) < maxKeys {
+				maxKeys = len(keys)
+			}
+			log.Printf("📋 Champs extraits: %v", keys[:maxKeys])
+		}
 	}
 
 	// Mettre à jour en done
@@ -181,17 +222,59 @@ func processOneExtractJob() error {
 func sanitizeJSONResponse(b []byte) []byte {
 	s := strings.TrimSpace(string(b))
 
-	// S'il n'y a pas de backticks, renvoyer tel quel
-	if !strings.Contains(s, "```") {
+	// Si la réponse est vide
+	if len(s) == 0 {
+		return b
+	}
+
+	// Nettoyer les backticks de code markdown ```json ... ``` ou ``` ... ```
+	if strings.Contains(s, "```") {
+		// Trouver le début du JSON (après ```json ou ```)
+		start := 0
+		if idx := strings.Index(s, "```json"); idx >= 0 {
+			start = idx + 7 // Position après ```json
+		} else if idx := strings.Index(s, "```"); idx >= 0 {
+			start = idx + 3 // Position après ```
+		}
+
+		// Trouver la fin
+		end := len(s)
+		if idx := strings.LastIndex(s, "```"); idx > start {
+			end = idx
+		}
+
+		if start > 0 && end > start {
+			s = s[start:end]
+		}
+	}
+
+	// Nettoyer les retours à la ligne et espaces en début/fin
+	s = strings.TrimSpace(s)
+
+	// Si c'est déjà un objet JSON valide, renvoyer
+	if (strings.HasPrefix(s, "{") && strings.HasSuffix(s, "}")) ||
+		(strings.HasPrefix(s, "[") && strings.HasSuffix(s, "]")) {
 		return []byte(s)
 	}
 
-	// Essayer de trouver le premier '{' et le dernier '}'
+	// Chercher le premier '{' et le dernier '}' pour extraire le JSON
 	start := strings.Index(s, "{")
 	end := strings.LastIndex(s, "}")
+
 	if start >= 0 && end > start {
 		inner := s[start : end+1]
-		return []byte(inner)
+		return []byte(strings.TrimSpace(inner))
 	}
-	return b
+
+	// Chercher aussi des tableaux
+	start = strings.Index(s, "[")
+	end = strings.LastIndex(s, "]")
+
+	if start >= 0 && end > start {
+		inner := s[start : end+1]
+		return []byte(strings.TrimSpace(inner))
+	}
+
+	// Si rien ne fonctionne, renvoyer le contenu original
+	return []byte(s)
 }
