@@ -1,0 +1,133 @@
+CV envoyé par Hellowork. Contient des données personnelles : ne pas utiliser, diffuser, copier sans le consentement de son auteur.
+
+Mamadou Ciré Oury DIALLO
+
+À la recherche d'un stage de fin d'études en Automatisme/Informatique
+industrielle industrielle
+
+ 07 81 07 24 63
+Ó mdoucireod95@gmail.com J Mobile sur toute la FRANCE
+ʘ Permis B en cours
+
+Étudiante en Master 2 Automatique, Robotique et Services à l’Université de Reims Champagne-Ardenne, je
+recherche un stage de fin d’études en automatisme et contrôle commande dès janvier 2025, afin de mettre
+en pratique mes compétences en programmation d’automates et en supervision industrielle.
+
+Compétences
+
+Electricité:
+Habilitation électrique : B1(V), B2(V),
+B2V Essai, BR, BE Essai et/ou Mesure et/ou
+Vérification, BC.
+
+Automatisme & Informatique industrielle
+Programmation automates Siemens (TIA
+Portal) et Schneider(Unity Pro)
+Protocoles industriels : Modbus, Profibus,
+Ethernet/IP, IO-Link, RFID
+Développement IHM
+Analyse fonctionnelle(Grafcet)
+
+Électrotechnique & systèmes embarqués
+Électronique de puissance, moteurs électriques,
+énergies renouvelables.
+ESP32, Arduino, MySQL
+
+Supervision et tests : Factory IO, AVEVA, PcVue
+
+Programmation & Robotique
+Langages : Matlab, VHDL, Python, C, C++, SQL,
+Ladder, ST
+Simulation et programmation robot ABB
+(RobotStudio, ROS 2)
+logiciels: LabVIEW
+Pack office: Word, Excel, Power Point
+
+Expériences professionnelles
+
+Assistance technicienne stagiaire
+De mars 2019 à mai 2019 ENPT Guinée
+
+Assistance à l'installation et à la configuration des équipements
+électroniques, informatiques et des réseaux de
+télécommunication (fibre optique, réseau mobile, équipements
+de transmission).
+Participation au développement des techniques de transmission
+d'informations (câblage, connexions).
+
+Projets réalisés au cours de mon master
+
+Projet de fin d’études - Mise en place d'une solution IO-Link sur une
+cellule flexible
+2025 EISINE Reims
+
+Programmation et intégration d’un système automatisé sous TIA
+Portal avec un automate Siemens ET200SP (gestion des réseaux
+Profinet et AS-i)
+Intégration d’un maître IO-Link AL1302 pour la communication
+avec des capteurs optiques OGD592 et des têtes RFID DTI515
+(détection et traçabilité).
+Intégration et paramétrage d’un variateur de vitesse G120 pour le
+pilotage du convoyeur.
+Développement d’une IHM de supervision en temps réel
+Technologies : TIA Portal, Profinet, IO-Link, AS-i, capteurs optiques
+OGD592, RFID DTI515, variateur SINAMICS G120
+
+Automatisation d'un banc de traitement de surface
+2025 EISINE Reims
+
+Diplômes et Formations
+
+Master Mécatronique
+Depuis 2023
+Ecole d’ingénieurs en Sciences industrielles et
+Numérique France
+
+Licence EEEA (Electronique Energie Electrique
+Automatique)
+De 2020 à 2022
+Université de Reims Champagne-Ardenne France
+France
+
+Licence Génie Electronique (Télécommunications)
+De 2015 à 2019
+Université Gamal Abdel Nasser de Conakry Guinée
+Guinée
+
+Langues
+
+Français
+Niveau : bilingue
+
+Anglais
+Niveau B1: Intermédiaire
+
+Conception et automatisation d’un banc de traitement avec 8
+postes et 2 chariots motorisés.
+Programmation et supervision de l’automate Schneider M340
+(Unity Pro) avec cycles manuels et automatiques et suivi des
+variables critiques du process.
+
+Simulation d’une cellule robotisée ABB sous RobotStudio
+2025 EISINE Reims
+
+Développer un programme RAPID modulaire avec interface
+utilisateur pour automatiser le déplacement des produits,
+contrôler la station (robot, convoyeurs, pince, capteurs) et gérer
+les priorités de traitement afin d’optimiser le cycle.
+
+Autres expériences professionnelles
+
+Agent d'accueil en gare
+2024 SNCF Paris
+
+Agent de conditionnement
+2023 Caillot Reims
+
+Atouts
+
+Curiosité et sens critique
+
+Esprit d'équipe
+
+

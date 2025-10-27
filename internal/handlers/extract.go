@@ -334,11 +334,23 @@ func normalizeExperienceDates(cv *nuextract.CVExtractionSchema, language string)
 		if end != "" {
 			// valeurs de type "En cours" / "In progress"
 			if isPresent(end) {
-				if strings.ToLower(strings.TrimSpace(language)) == "fr" {
-					cv.Experiences[i].DateFin = "En cours"
-				} else {
-					cv.Experiences[i].DateFin = "In progress"
+				lang := strings.ToLower(strings.TrimSpace(language))
+				label := "In progress"
+				switch lang {
+				case "fr":
+					label = "En cours"
+				case "en":
+					label = "In progress"
+				case "pr":
+					label = "Em curso"
+				case "de":
+					label = "Laufend"
+				case "sp":
+					label = "En curso"
+				case "it":
+					label = "In corso"
 				}
+				cv.Experiences[i].DateFin = label
 			} else if m, y, ok := parseMonthYear(end); ok {
 				cv.Experiences[i].DateFin = fmt.Sprintf("%02d/%02d", m, y%100)
 			} else {
@@ -354,7 +366,7 @@ func normalizeExperienceDates(cv *nuextract.CVExtractionSchema, language string)
 func isPresent(s string) bool {
 	v := strings.ToLower(strings.TrimSpace(s))
 	switch v {
-	case "en cours", "encours", "actuel", "actuellement", "present", "présent", "in progress", "ongoing", "current", "now":
+	case "en cours", "encours", "actuel", "actuellement", "present", "présent", "in progress", "ongoing", "current", "now", "em curso", "em andamento", "laufend", "en curso", "in corso":
 		return true
 	}
 	return false

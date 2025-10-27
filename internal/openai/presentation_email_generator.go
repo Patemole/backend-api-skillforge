@@ -10,13 +10,12 @@ import (
 	"time"
 
 	"backend-api-skillforge/internal/models"
-	"backend-api-skillforge/internal/nuextract"
 )
 
 // PresentationEmailGeneratorService gère la génération d'emails de présentation avec reformatage
 type PresentationEmailGeneratorService struct {
 	apiKey string
-	config nuextract.OpenAIConfig
+	config EmailConfig
 }
 
 // NewPresentationEmailGeneratorService crée une nouvelle instance du service
@@ -26,7 +25,7 @@ func NewPresentationEmailGeneratorService() *PresentationEmailGeneratorService {
 		panic("OPENAI_API_KEY not set")
 	}
 
-	config := nuextract.GetOpenAIConfig()
+	config := GetEmailConfig()
 	return &PresentationEmailGeneratorService{
 		apiKey: apiKey,
 		config: config,
@@ -40,7 +39,7 @@ func (s *PresentationEmailGeneratorService) GeneratePresentationEmail(req models
 
 	// Préparer la requête OpenAI
 	payload := map[string]interface{}{
-		"model": "gpt-4o-2024-08-06",
+		"model": s.config.Model,
 		"messages": []map[string]string{
 			{
 				"role":    "system",
@@ -51,11 +50,28 @@ func (s *PresentationEmailGeneratorService) GeneratePresentationEmail(req models
 				"content": prompt,
 			},
 		},
-		"max_tokens":        s.config.MaxTokens,
-		"temperature":       0.3, // Température basse pour plus de cohérence
-		"top_p":             s.config.TopP,
-		"frequency_penalty": s.config.FrequencyPenalty,
-		"presence_penalty":  s.config.PresencePenalty,
+	}
+
+	// Ajouter les paramètres de tokens selon le modèle
+	if s.config.MaxCompletionTokens > 0 {
+		payload["max_completion_tokens"] = s.config.MaxCompletionTokens
+	}
+	if s.config.MaxTokens > 0 {
+		payload["max_tokens"] = s.config.MaxTokens
+	}
+
+	// Ajouter les paramètres de contrôle
+	if s.config.Temperature > 0 {
+		payload["temperature"] = s.config.Temperature
+	}
+	if s.config.TopP > 0 {
+		payload["top_p"] = s.config.TopP
+	}
+	if s.config.FrequencyPenalty != 0 {
+		payload["frequency_penalty"] = s.config.FrequencyPenalty
+	}
+	if s.config.PresencePenalty != 0 {
+		payload["presence_penalty"] = s.config.PresencePenalty
 	}
 
 	bodyBytes, err := json.Marshal(payload)

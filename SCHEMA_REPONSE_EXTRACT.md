@@ -143,7 +143,7 @@ L'endpoint `/extract` renvoie maintenant le champ `DC_language` dans toutes les 
 ### Description
 - **Nom du champ** : `DC_language`
 - **Type** : `string`
-- **Valeurs possibles** : `"fr"` ou `"en"`
+- **Valeurs possibles** : `"fr"`, `"en"`, `"pr"` (portugais), `"de"` (allemand), `"sp"` (espagnol), `"it"` (italien)
 - **Valeur par défaut** : `"fr"` (si non fournie dans la requête)
 - **Comportement** : Retourne exactement la valeur reçue du frontend
 
