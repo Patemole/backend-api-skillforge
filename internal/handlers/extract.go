@@ -319,6 +319,8 @@ func ExtractCVAsync(c *gin.Context) {
 	if generationMode == "" {
 		generationMode = "fast"
 	}
+	// JWT Boond optionnel (si fourni → création candidat côté worker)
+	boondJWT := strings.TrimSpace(c.PostForm("boondJwt"))
 	userIDStr := strings.TrimSpace(c.PostForm("user_id"))
 	if userIDStr == "" {
 		// fallback soft si non fourni: UUID nul (0000..)
@@ -338,6 +340,7 @@ func ExtractCVAsync(c *gin.Context) {
 		"file_base64":    encoded,
 		"language":       language,
 		"generationMode": generationMode,
+		"boondJwt":       boondJWT,
 	}
 
 	now := time.Now().UTC().Format(time.RFC3339)

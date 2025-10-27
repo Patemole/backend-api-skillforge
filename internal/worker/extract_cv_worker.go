@@ -1,6 +1,7 @@
 package worker
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"log"
@@ -8,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"backend-api-skillforge/internal/boond"
 	"backend-api-skillforge/internal/models"
 	"backend-api-skillforge/internal/nuextract"
 	"backend-api-skillforge/internal/supabase"
@@ -201,6 +203,43 @@ func processOneExtractJob() error {
 			}
 			log.Printf("📋 Champs extraits: %v", keys[:maxKeys])
 		}
+	}
+
+	// Intégration Boond si un JWT est présent dans le payload
+	boondJWT, _ := job.Payload["boondJwt"].(string)
+	if strings.TrimSpace(boondJWT) != "" {
+		log.Printf("🚀 [worker extract_cv] boondJwt détecté → création candidat Boond")
+		ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+		defer cancel()
+
+		bClient := boond.New(boondJWT)
+
+		// Construire les attributs Boond à partir du résultat
+		var cv nuextract.CVExtractionSchema
+		if raw, err := json.Marshal(result); err == nil {
+			_ = json.Unmarshal(raw, &cv)
+		}
+		attributes := boond.BuildCandidateAttributesFromCV(cv)
+
+		createdID, _, err := bClient.CreateCandidate(ctx, attributes)
+		if err != nil {
+			log.Printf("❌ [worker extract_cv] Échec de création du candidat Boond: %v", err)
+		} else if strings.TrimSpace(createdID) != "" {
+			log.Printf("🎉 [worker extract_cv] Candidat Boond créé (id=%s)", createdID)
+			// Upload du CV
+			if _, err := bClient.UploadDocument(ctx, createdID, fileBytes, filename); err != nil {
+				log.Printf("❌ [worker extract_cv] Échec upload du CV vers Boond: %v", err)
+			} else {
+				log.Printf("📄 [worker extract_cv] CV uploadé avec succès pour candidat %s", createdID)
+			}
+			// Enrichir le résultat du job
+			result["boond_candidate_id"] = createdID
+		}
+	}
+
+	// Ajouter toujours la langue utilisée dans le résultat
+	if strings.TrimSpace(language) != "" {
+		result["DC_language"] = language
 	}
 
 	// Mettre à jour en done
