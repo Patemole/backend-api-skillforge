@@ -1,62 +1,264 @@
 package nuextract
 
-// CVExtractionSchema définit la structure JSON envoyée au front-end après extraction et enrichissement
+// CVExtractionSchema représente la structure d'un CV extrait
 type CVExtractionSchema struct {
-	Prenom            string       `json:"prenom"`             // string
-	Nom               string       `json:"nom"`                // string (nom de famille)
-	Email             string       `json:"email"`              // string (laisser vide si non présent)
-	Phone             string       `json:"phone"`              // string (numéro de téléphone)
-	Summary           string       `json:"summary"`            // string (résumé professionnel)
-	Age               string       `json:"age"`                // string (peut être "Non précisé(e)")
-	Poste             string       `json:"poste"`              // string
-	Diplome           string       `json:"diplome"`            // string
-	Experience        string       `json:"expérience"`         // string
-	Mobilite          string       `json:"mobilité"`           // string
-	Disponibilite     string       `json:"disponibilité"`      // string
-	PermisB           interface{}  `json:"permis_B"`           // bool ou string
-	Hobbies           []string     `json:"hobbies"`            // []string
-	Languages         []Language   `json:"languages"`          // []Language (langues parlées avec niveau CECR)
-	Certifications    []string     `json:"certifications"`     // []string (certifications mentionnées)
-	TechnicalSkills   []string     `json:"technical_skills"`   // []string (compétences techniques détaillées)
-	SecteursActivites []string     `json:"secteurs_activites"` // []string (secteurs d'activités du candidat)
-	DomainesExpertise []string     `json:"domaines_expertise"` // []string (domaines de compétences d'expertise)
-	Formations        []Formation  `json:"formations"`         // []Formation
-	Experiences       []Experience `json:"expériences"`        // []Experience
-	Logiciels         []Logiciel   `json:"logiciels"`          // []Logiciel
+	Prenom            string         `json:"prenom"`
+	Nom               string         `json:"nom"`
+	Email             string         `json:"email"`
+	Phone             string         `json:"phone"`
+	Age               string         `json:"age"`
+	Summary           string         `json:"summary"`
+	Poste             string         `json:"poste"`
+	Diplome           string         `json:"diplome"`
+	Experience        string         `json:"expérience"`
+	Mobilite          string         `json:"mobilité"`
+	Disponibilite     string         `json:"disponibilité"`
+	PermisB           bool           `json:"permis_B"`
+	Hobbies           []string       `json:"hobbies"`
+	Languages         []LanguageInfo `json:"languages"`
+	Certifications    []string       `json:"certifications"`
+	TechnicalSkills   []string       `json:"technical_skills"`
+	SecteursActivites []string       `json:"secteurs_activites"`
+	DomainesExpertise []string       `json:"domaines_expertise"`
+	Formations        []Formation    `json:"formations"`
+	Experiences       []Experience   `json:"expériences"`
+	Logiciels         []LogicielInfo `json:"logiciels"`
 }
 
-// Formation définit la structure d'une formation
+// LanguageInfo représente une langue parlée
+type LanguageInfo struct {
+	Language string `json:"language"`
+	Level    string `json:"level"`
+}
+
+// Formation représente une formation
 type Formation struct {
-	DateDebut   string `json:"date_debut"`   // string (format: "YYYY-MM")
-	DateFin     string `json:"date_fin"`     // string (format: "YYYY-MM")
-	Diplome     string `json:"diplome"`      // string
-	EcoleCursus string `json:"ecole_cursus"` // string
+	DateDebut   string `json:"date_debut"`
+	DateFin     string `json:"date_fin"`
+	Diplome     string `json:"diplome"`
+	EcoleCursus string `json:"ecole_cursus"`
 }
 
-// Experience définit la structure d'une expérience professionnelle
+// Experience représente une expérience professionnelle
 type Experience struct {
-	DateDebut        string   `json:"date_debut"`        // string (format: "Février 2025")
-	DateFin          string   `json:"date_fin"`          // string (format: "Décembre 2025")
-	Entreprise       string   `json:"entreprise"`        // string
-	DetailEntreprise string   `json:"detail_entreprise"` // string (description de l'entreprise)
-	Duree            string   `json:"durée"`             // string (calculée automatiquement)
-	Poste            string   `json:"poste"`             // string
-	Contexte         string   `json:"contexte"`          // string
-	Projet           string   `json:"projet"`            // string
-	Logiciels        []string `json:"logiciels"`         // []string
-	Realisations     []string `json:"réalisations"`      // []string
-	AISuggest        []string `json:"AI_suggest"`        // []string
+	DateDebut        string   `json:"date_debut"`
+	DateFin          string   `json:"date_fin"`
+	Entreprise       string   `json:"entreprise"`
+	DetailEntreprise string   `json:"detail_entreprise"`
+	Duree            string   `json:"durée"`
+	Poste            string   `json:"poste"`
+	Contexte         string   `json:"contexte"`
+	Projet           string   `json:"projet"`
+	Logiciels        []string `json:"logiciels"`
+	Realisations     []string `json:"réalisations"`
+	AISuggest        []string `json:"AI_suggest"`
 }
 
-// Logiciel définit la structure d'un logiciel
-type Logiciel struct {
-	Logiciel         string `json:"logiciel"`          // string
-	Level            string `json:"level"`             // string ("Débutant", "Intermédiaire", "Avancé", "Expert")
-	TempsUtilisation string `json:"temps_utilisation"` // string (en mois)
+// LogicielInfo représente un logiciel utilisé
+type LogicielInfo struct {
+	Logiciel         string `json:"logiciel"`
+	Level            string `json:"level"`
+	TempsUtilisation string `json:"temps_utilisation"`
 }
 
-// Language définit la structure d'une langue avec son niveau CECR
-type Language struct {
-	Language string `json:"language"` // string (nom de la langue : "Français", "Anglais", "Allemand", etc.)
-	Level    string `json:"level"`    // string (niveau CECR : "A1", "A2", "B1", "B2", "C1", "C2", "Natif", "Courant", etc.)
+// GetCVExtractionSchema retourne le schéma JSON pour le mode structured outputs
+func GetCVExtractionSchema() map[string]interface{} {
+	return map[string]interface{}{
+		"prenom": map[string]interface{}{
+			"type":        "string",
+			"description": "Prénom du candidat",
+		},
+		"nom": map[string]interface{}{
+			"type":        "string",
+			"description": "Nom du candidat",
+		},
+		"email": map[string]interface{}{
+			"type":        "string",
+			"description": "Email du candidat",
+		},
+		"phone": map[string]interface{}{
+			"type":        "string",
+			"description": "Téléphone du candidat",
+		},
+		"age": map[string]interface{}{
+			"type":        "string",
+			"description": "Âge du candidat",
+		},
+		"summary": map[string]interface{}{
+			"type":        "string",
+			"description": "Résumé professionnel",
+		},
+		"poste": map[string]interface{}{
+			"type":        "string",
+			"description": "Poste recherché",
+		},
+		"diplome": map[string]interface{}{
+			"type":        "string",
+			"description": "Diplôme principal",
+		},
+		"expérience": map[string]interface{}{
+			"type":        "string",
+			"description": "Années d'expérience",
+		},
+		"mobilité": map[string]interface{}{
+			"type":        "string",
+			"description": "Mobilité géographique",
+		},
+		"disponibilité": map[string]interface{}{
+			"type":        "string",
+			"description": "Disponibilité",
+		},
+		"permis_B": map[string]interface{}{
+			"type":        "boolean",
+			"description": "Permis B",
+		},
+		"hobbies": map[string]interface{}{
+			"type": "array",
+			"items": map[string]interface{}{
+				"type": "string",
+			},
+			"description": "Hobbies du candidat",
+		},
+		"languages": map[string]interface{}{
+			"type": "array",
+			"items": map[string]interface{}{
+				"type": "object",
+				"properties": map[string]interface{}{
+					"language": map[string]interface{}{
+						"type": "string",
+					},
+					"level": map[string]interface{}{
+						"type": "string",
+					},
+				},
+				"required":             []string{"language", "level"},
+				"additionalProperties": false,
+			},
+			"description": "Langues parlées",
+		},
+		"certifications": map[string]interface{}{
+			"type": "array",
+			"items": map[string]interface{}{
+				"type": "string",
+			},
+			"description": "Certifications",
+		},
+		"technical_skills": map[string]interface{}{
+			"type": "array",
+			"items": map[string]interface{}{
+				"type": "string",
+			},
+			"description": "Compétences techniques",
+		},
+		"secteurs_activites": map[string]interface{}{
+			"type": "array",
+			"items": map[string]interface{}{
+				"type": "string",
+			},
+			"description": "Secteurs d'activité",
+		},
+		"domaines_expertise": map[string]interface{}{
+			"type": "array",
+			"items": map[string]interface{}{
+				"type": "string",
+			},
+			"description": "Domaines d'expertise",
+		},
+		"formations": map[string]interface{}{
+			"type": "array",
+			"items": map[string]interface{}{
+				"type": "object",
+				"properties": map[string]interface{}{
+					"date_debut": map[string]interface{}{
+						"type": "string",
+					},
+					"date_fin": map[string]interface{}{
+						"type": "string",
+					},
+					"diplome": map[string]interface{}{
+						"type": "string",
+					},
+					"ecole_cursus": map[string]interface{}{
+						"type": "string",
+					},
+				},
+				"required":             []string{"date_debut", "date_fin", "diplome", "ecole_cursus"},
+				"additionalProperties": false,
+			},
+			"description": "Formations",
+		},
+		"expériences": map[string]interface{}{
+			"type": "array",
+			"items": map[string]interface{}{
+				"type": "object",
+				"properties": map[string]interface{}{
+					"date_debut": map[string]interface{}{
+						"type": "string",
+					},
+					"date_fin": map[string]interface{}{
+						"type": "string",
+					},
+					"entreprise": map[string]interface{}{
+						"type": "string",
+					},
+					"detail_entreprise": map[string]interface{}{
+						"type": "string",
+					},
+					"durée": map[string]interface{}{
+						"type": "string",
+					},
+					"poste": map[string]interface{}{
+						"type": "string",
+					},
+					"contexte": map[string]interface{}{
+						"type": "string",
+					},
+					"projet": map[string]interface{}{
+						"type": "string",
+					},
+					"logiciels": map[string]interface{}{
+						"type": "array",
+						"items": map[string]interface{}{
+							"type": "string",
+						},
+					},
+					"réalisations": map[string]interface{}{
+						"type": "array",
+						"items": map[string]interface{}{
+							"type": "string",
+						},
+					},
+					"AI_suggest": map[string]interface{}{
+						"type": "array",
+						"items": map[string]interface{}{
+							"type": "string",
+						},
+					},
+				},
+				"required":             []string{"date_debut", "date_fin", "entreprise", "poste"},
+				"additionalProperties": false,
+			},
+			"description": "Expériences professionnelles",
+		},
+		"logiciels": map[string]interface{}{
+			"type": "array",
+			"items": map[string]interface{}{
+				"type": "object",
+				"properties": map[string]interface{}{
+					"logiciel": map[string]interface{}{
+						"type": "string",
+					},
+					"level": map[string]interface{}{
+						"type": "string",
+					},
+					"temps_utilisation": map[string]interface{}{
+						"type": "string",
+					},
+				},
+				"required":             []string{"logiciel"},
+				"additionalProperties": false,
+			},
+			"description": "Logiciels et outils",
+		},
+	}
 }

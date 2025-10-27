@@ -339,6 +339,23 @@ func (c *Client) ExtractAndEnrichWithFilename(file []byte, filename string, lang
 		},
 	}
 
+	// 🎯 STR structured outputs: Garantit un JSON valide
+	payload["response_format"] = map[string]interface{}{
+		"type": "json_schema",
+		"json_schema": map[string]interface{}{
+			"name": "cv_extraction_result",
+			"schema": map[string]interface{}{
+				"type":       "object",
+				"properties": GetCVExtractionSchema(),
+				"required": []string{
+					"prenom", "nom", "email", "poste", "expériences", "formations",
+					"technical_skills", "certifications", "languages", "hobbies",
+				},
+				"additionalProperties": false,
+			},
+		},
+	}
+
 	// Ajouter les paramètres supportés selon le modèle
 	if config.MaxCompletionTokens > 0 {
 		payload["max_completion_tokens"] = config.MaxCompletionTokens

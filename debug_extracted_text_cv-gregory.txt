@@ -1,0 +1,175 @@
+
+GRÉGORY HISSIGER 
++33 (0)7 69 29 04 08 | 
+gregoryhissiger3@gmail.com
+ | 
+linkedin/ghissiger
+ 
+PROFESSIONAL EXPERIENCE
+ 
+Co-Founder & CTO
+ 
+San Francisco, USA
+ 
+●
+Lucy - AI Academic Advisor
+ 
+July 2023 - June 2025 (2
+ yrs)
+ 
+o
+Architected an AI multi-agent assistant (LangGraph, Mastra, OpenAI) using RAG (ZeroEntropy), custom web search 
+(SerpAPI & Go) & long-term memory via batched context enrichment (Airflow)                                                                                                                  
+o
+Designed & deployed full-stack architecture with FastAPI, React/TS, Zustand, AWS, Docker, Firebase, Vercel 
+o
+Achieved GDPR & SOC 2 Type I compliance (secure CI/CD pipeline, RBAC, audit logs, DRP/BCP, IRP, monitoring)   
+o
+Scaled adoption to 5 000+ monthly active users across Ivy League campuses (Penn, Harvard, Columbia…)                  
+o
+Cut staff email volume by 43 % and slashed response time from 48–72 h to < 1 min 
+o
+Raised $342 k in pre-seed; incubated by Station F & The Wharton School’s VIP-X (Top 3 global business school) 
+Co-Founder & CEO 
+ 
+Paris, France
+ 
+●
+ViteUnProf - On-Demand Tutoring Marketplace
+ 
+J
+an 2021 - July 2023 
+(2.5 yrs)
+ 
+o
+Built the product from MVP to full release, owning roadmap, UX iterations, and user feedback loop            
+o
+Led product strategy and go-to-market: pricing, positioning, acquisition channels, and KPIs                                                                                                     
+o
+Achieved a 1-minute average match time for 400 learners after onboarding 1,000+ tutors through partnerships with 
+top French institutions like Supaero, École Polytechnique, Sciences Po, CentraleSupélec… 
+o
+Secured €160 k pre-seed alongside the co-founder of Marmiton and the former president of Nokia France 
+Business Engineer
+ 
+Paris, France 
+●
+Prime Engineering - Consulting
+ 
+                                                                                    
+Sep 2022 - June 2023 
+(10 mths)
+  
+o
+Built and scaled a new aerospace & energy business unit, generating 
+≃
+ €300 k revenue in year 1                
+ 
+o
+Recruited and managed 8 consultants, sustaining 100 % billable utilization with zero turnover  
+o
+Opened two strategic enterprise accounts to final-proposal stage, positioning the BU to double revenue 
+o
+Steered the full client lifecycle — needs discovery, contract negotiation, project oversight and retention                                      
+Risk Management Intern
+ 
+Redu, Belgium 
+●
+RHEA Group - for the European Space Agency (ESA)
+ 
+May 2021 - Aug 2021 
+(4 mths)
+ 
+o
+Conducted a state-of-the-art analysis of cyber threats targeting ground control systems and space assets (satellites) 
+o
+ 
+Reviewed ESA’s risk management frameworks for space system security 
+o
+ 
+Contributed to internal documentation supporting ESA’s resilience and threat modeling efforts     
+EDUCATION 
+London School of Economics and Political Science (LSE)
+ 
+   
+London, England
+ 
+●
+ Exchange program - Finance
+ 
+May 2022 - Aug 2022
+ 
+o
+Relevant coursework: 
+Entrepreneurial Finance, Business Analysis & Valuation, Financial                                   
+Markets & Portfolio Management 
+ENSEA Graduate School
+ 
+Paris, France
+ 
+●
+Master’s Degree in Engineering
+ 
+Sep 2019 - Aug 2022 
+o
+Specialization: Computer Science & Applied Mathematics 
+o
+Relevant coursework: 
+ML, DL, Signal Processing, Linear Algebra, Probability & Statistics,  
+               Embedded Systems, Data Structures & Algorithms, Python / C / Java 
+Audencia Business School 
+ 
+Nantes, France 
+●
+Master’s Degree – Dual Degree in Engineering & Management
+ 
+Sep 2021 - May 2022 
+o
+Specialization: Corporate Finance (English Track) 
+o
+Relevant coursework: 
+Financial Analysis, Accounting, Valuation Techniques, Financial                                 
+Engineering, Quantitative Finance, Cash Management, Portfolio Management 
+Lycée Édouard Branly 
+ 
+Lyon, France 
+●
+Classes Préparatoires (CPGE)
+ 
+Sep 2018 - Jun 2019 
+o
+Highly selective undergraduate program preparing for competitive entrance to France’s                                                
+top engineering schools 
+o
+Relevant coursework: 
+Mathematics, Physics, Engineering Sciences, French, English
+ 
+LANGUAGES & SKILLS
+ACTIVITIES & INTERESTS
+Languages: 
+French (Native), English (C2), German (Basic)
+ 
+Coding: 
+Python, JS/TS, Go, SQL, Bash, Java, C, VBA 
+AI/ML: 
+LangChain, Mastra, Keras, TensorFlow, Pandas, 
+Scikit-learn, Hugging Face, Numpy, Matplotlib 
+Infra:
+ AWS, GCP, Kubernetes, Terraform, Databricks, 
+Snowflake, Docker, Airflow, REST APIs, MCP, SSE, SSO 
+Tools: 
+Postman, Datadog, Figma,
+ 
+Vanta, Notion, Canva,
+Activities: 
+Reservist, 12th Cuirassiers Regiment for the 
+French Army — President of the ENSEA Student Union     
+(35 members, €120k budget)  
+Sports: 
+Tennis (7 yrs), Running (5 yrs), Swimming, Squash 
+Interests: 
+New Tech, Innovation, Robotics, Photography, 
+Space Exploration, Research Paper, Hackathons 
+Projects: 
+Github profile
+ 
