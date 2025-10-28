@@ -26,10 +26,7 @@ func BuildCandidateAttributesFromCV(cv nuextract.CVExtractionSchema) map[string]
 	if s := strings.TrimSpace(cv.Poste); s != "" {
 		attributes["title"] = s
 	}
-	if s := strings.TrimSpace(cv.Disponibilite); s != "" {
-		// Boond attend une date ISO dans "availability"; si non ISO, on le stocke quand même
-		attributes["availability"] = s
-	}
+	// Ne pas envoyer "availability" pour éviter les erreurs 422 côté Boond
 	if s := strings.TrimSpace(cv.Mobilite); s != "" {
 		// Mobilité - pour l'instant on stocke le texte, plus tard on pourra mapper vers les IDs Boond
 		attributes["mobilityAreas"] = []string{s}

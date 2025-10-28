@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io"
 	"log"
 	"os"
 	"time"
@@ -18,6 +19,17 @@ import (
 func main() {
 	_ = godotenv.Load() // charge .env (facultatif en prod)
 	supabase.MustInit() // client global
+
+	// 🔧 Logger → stdout + fichier server.log
+	logFilePath := "server.log"
+	if f, err := os.OpenFile(logFilePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644); err == nil {
+		mw := io.MultiWriter(os.Stdout, f)
+		log.SetOutput(mw)
+		log.SetFlags(log.LstdFlags | log.Lmicroseconds)
+		log.Printf("📝 Logging initialisé → %s + stdout", logFilePath)
+	} else {
+		log.Printf("⚠️  Impossible d'ouvrir %s: %v (fallback stdout uniquement)", logFilePath, err)
+	}
 
 	r := gin.New()
 	r.Use(gin.Recovery())

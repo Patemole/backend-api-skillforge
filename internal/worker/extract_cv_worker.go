@@ -133,8 +133,34 @@ func processOneExtractJob() error {
 	log.Printf("⚡ [worker extract_cv] Modèle choisi: %s (generationMode=%s)", model, generationMode)
 	client := nuextract.NewWithModel(model)
 
-	// Extraction
+	// Extraction avec retry intelligent si sortie vide/illisible
 	resultBytes, err := client.ExtractAndEnrichWithFilename(fileBytes, filename, language)
+	if err != nil {
+		log.Printf("❌ [worker extract_cv] Échec extraction initiale: %v", err)
+	}
+
+	// Helper pour vérifier vide après nettoyage
+	isEmptyAfterClean := func(b []byte) bool {
+		cleaned := sanitizeJSONResponse(b)
+		return len(strings.TrimSpace(string(cleaned))) == 0
+	}
+
+	if err != nil || isEmptyAfterClean(resultBytes) {
+		log.Printf("🔁 [worker extract_cv] Retry extraction (reason=%s)", func() string {
+			if err != nil {
+				return "error"
+			}
+			return "empty_json"
+		}())
+		time.Sleep(800 * time.Millisecond)
+		resultBytes, err = client.ExtractAndEnrichWithFilename(fileBytes, filename, language)
+		if err != nil {
+			log.Printf("❌ [worker extract_cv] Échec extraction retry: %v", err)
+		} else {
+			log.Printf("✅ [worker extract_cv] Retry extraction réussi (len=%d)", len(resultBytes))
+		}
+	}
+
 	if err != nil {
 		_, _, _ = supabase.Client.
 			From("jobs").
@@ -205,9 +231,9 @@ func processOneExtractJob() error {
 		}
 	}
 
-	// Intégration Boond si un JWT est présent dans le payload
+	// Intégration Boond si un JWT est présent dans le payload (uniquement si parsing ok)
 	boondJWT, _ := job.Payload["boondJwt"].(string)
-	if strings.TrimSpace(boondJWT) != "" {
+	if strings.TrimSpace(boondJWT) != "" && len(result) > 0 {
 		log.Printf("🚀 [worker extract_cv] boondJwt détecté → création candidat Boond")
 		ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 		defer cancel()
