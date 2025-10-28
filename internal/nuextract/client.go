@@ -425,6 +425,11 @@ func (c *Client) ExtractAndEnrichWithFilename(file []byte, filename string, lang
 	openAIDuration := time.Since(openAIStart)
 	totalDuration := time.Since(startTime)
 
+	// Si le contenu renvoyé par OpenAI est vide, considérer comme une erreur
+	if strings.TrimSpace(openAIResp.Choices[0].Message.Content) == "" {
+		return nil, fmt.Errorf("openai returned empty content")
+	}
+
 	finalJSON := []byte(openAIResp.Choices[0].Message.Content)
 	log.Printf("DEBUG: OpenAI terminé en %v", openAIDuration)
 	log.Printf("DEBUG: 🤖 API OpenAI: %v", openAIDuration)

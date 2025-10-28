@@ -1,5 +1,11 @@
 package nuextract
 
+import (
+	"os"
+	"strconv"
+	"strings"
+)
+
 // OpenAIConfig contient la configuration pour les appels OpenAI
 type OpenAIConfig struct {
 	Model               string  `json:"model"`
@@ -11,13 +17,44 @@ type OpenAIConfig struct {
 	PresencePenalty     float64 `json:"presence_penalty"`
 }
 
-// GetOpenAIConfig retourne la configuration optimisée pour la vitesse
+// AnthropicConfig contient la configuration pour Anthropic
+type AnthropicConfig struct {
+	Model     string `json:"model"`
+	MaxTokens int    `json:"max_tokens"`
+}
+
+// GetOpenAIConfig retourne la configuration OpenAI (avec overrides via env)
 func GetOpenAIConfig() OpenAIConfig {
-	return OpenAIConfig{
-		Model:               "gpt-5", // Modèle GPT-5
-		MaxCompletionTokens: 13000,   // Nouveau paramètre pour GPT-5
-		// Temperature et TopP non supportés par GPT-5 (utilise les valeurs par défaut)
-		FrequencyPenalty: 0,
-		PresencePenalty:  0,
+	cfg := OpenAIConfig{
+		Model:               "gpt-5",
+		MaxCompletionTokens: 13000,
+		FrequencyPenalty:    0,
+		PresencePenalty:     0,
 	}
+	if m := strings.TrimSpace(os.Getenv("OPENAI_MODEL")); m != "" {
+		cfg.Model = m
+	}
+	if v := strings.TrimSpace(os.Getenv("OPENAI_MAX_COMPLETION_TOKENS")); v != "" {
+		if n, err := strconv.Atoi(v); err == nil {
+			cfg.MaxCompletionTokens = n
+		}
+	}
+	return cfg
+}
+
+// GetAnthropicConfig retourne la configuration Anthropic (avec overrides via env)
+func GetAnthropicConfig() AnthropicConfig {
+	cfg := AnthropicConfig{
+		Model:     "claude-haiku-4-5",
+		MaxTokens: 13000,
+	}
+	if m := strings.TrimSpace(os.Getenv("ANTHROPIC_MODEL")); m != "" {
+		cfg.Model = m
+	}
+	if v := strings.TrimSpace(os.Getenv("ANTHROPIC_MAX_TOKENS")); v != "" {
+		if n, err := strconv.Atoi(v); err == nil {
+			cfg.MaxTokens = n
+		}
+	}
+	return cfg
 }

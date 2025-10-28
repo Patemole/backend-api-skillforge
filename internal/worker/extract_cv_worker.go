@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"log"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -146,27 +147,38 @@ func processOneExtractJob() error {
 	}
 
 	if err != nil || isEmptyAfterClean(resultBytes) {
-		log.Printf("🔁 [worker extract_cv] Retry extraction (reason=%s)", func() string {
-			if err != nil {
-				return "error"
-			}
-			return "empty_json"
-		}())
-		time.Sleep(800 * time.Millisecond)
-		resultBytes, err = client.ExtractAndEnrichWithFilename(fileBytes, filename, language)
+		reason := "empty_json"
 		if err != nil {
-			log.Printf("❌ [worker extract_cv] Échec extraction retry: %v", err)
-		} else {
-			log.Printf("✅ [worker extract_cv] Retry extraction réussi (len=%d)", len(resultBytes))
+			reason = "error"
+		}
+		log.Printf("🔁 [worker extract_cv] Retry extraction (reason=%s)", reason)
+		time.Sleep(800 * time.Millisecond)
+
+		// 2) Fallback Anthropic direct si ANTHROPIC_API_KEY configuré
+		if strings.TrimSpace(os.Getenv("ANTHROPIC_API_KEY")) != "" {
+			log.Printf("🛟 [worker extract_cv] Fallback Anthropic déclenché (essai 2)")
+			time.Sleep(400 * time.Millisecond)
+			resultBytes, err = nuextract.ExtractAndEnrichWithFilenameAnthropic(fileBytes, filename, language)
+			if err != nil {
+				log.Printf("❌ [worker extract_cv] Échec fallback Anthropic: %v", err)
+			} else {
+				log.Printf("✅ [worker extract_cv] Fallback Anthropic réussi (len=%d)", len(resultBytes))
+			}
 		}
 	}
 
 	if err != nil {
+		// Inclure la langue même en échec, pour cohérence côté front
+		failResult := map[string]any{}
+		if strings.TrimSpace(language) != "" {
+			failResult["DC_language"] = language
+		}
 		_, _, _ = supabase.Client.
 			From("jobs").
 			Update(map[string]any{
 				"status":     "failed",
 				"error":      err.Error(),
+				"result":     failResult,
 				"updated_at": time.Now().UTC().Format(time.RFC3339),
 			}, "representation", "").
 			Eq("id", idStr).
@@ -197,6 +209,7 @@ func processOneExtractJob() error {
 	log.Printf("👀 Aperçu nettoyé (premiers %d chars): %s", previewClean, string(cleanedBytes[:previewClean]))
 
 	var result map[string]any
+	parsedOK := false
 	if err := json.Unmarshal(cleanedBytes, &result); err != nil {
 		// DEBUG: Si non JSON, on log TOUTE la réponse pour comprendre
 		log.Printf("❌ [worker extract_cv] ÉCHEC parsing JSON pour job %s:", idStr)
@@ -217,6 +230,7 @@ func processOneExtractJob() error {
 		}
 	} else {
 		log.Printf("✅ [worker extract_cv] JSON parsé avec succès pour job %s (champs: %d)", idStr, len(result))
+		parsedOK = true
 		// Log les premières clés pour vérifier la structure
 		keys := make([]string, 0, len(result))
 		for k := range result {
@@ -231,35 +245,46 @@ func processOneExtractJob() error {
 		}
 	}
 
-	// Intégration Boond si un JWT est présent dans le payload (uniquement si parsing ok)
+	// Intégration Boond si un JWT est présent dans le payload (uniquement si parsing OK et CV valide)
 	boondJWT, _ := job.Payload["boondJwt"].(string)
-	if strings.TrimSpace(boondJWT) != "" && len(result) > 0 {
-		log.Printf("🚀 [worker extract_cv] boondJwt détecté → création candidat Boond")
-		ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-		defer cancel()
-
-		bClient := boond.New(boondJWT)
-
-		// Construire les attributs Boond à partir du résultat
-		var cv nuextract.CVExtractionSchema
-		if raw, err := json.Marshal(result); err == nil {
-			_ = json.Unmarshal(raw, &cv)
-		}
-		attributes := boond.BuildCandidateAttributesFromCV(cv)
-
-		createdID, _, err := bClient.CreateCandidate(ctx, attributes)
-		if err != nil {
-			log.Printf("❌ [worker extract_cv] Échec de création du candidat Boond: %v", err)
-		} else if strings.TrimSpace(createdID) != "" {
-			log.Printf("🎉 [worker extract_cv] Candidat Boond créé (id=%s)", createdID)
-			// Upload du CV
-			if _, err := bClient.UploadDocument(ctx, createdID, fileBytes, filename); err != nil {
-				log.Printf("❌ [worker extract_cv] Échec upload du CV vers Boond: %v", err)
-			} else {
-				log.Printf("📄 [worker extract_cv] CV uploadé avec succès pour candidat %s", createdID)
+	if strings.TrimSpace(boondJWT) != "" {
+		if !parsedOK {
+			log.Printf("⏭️  [worker extract_cv] Boond ignoré: JSON non parsé (job %s)", idStr)
+		} else {
+			// Construire les attributs Boond à partir du résultat
+			var cv nuextract.CVExtractionSchema
+			if raw, err := json.Marshal(result); err == nil {
+				_ = json.Unmarshal(raw, &cv)
 			}
-			// Enrichir le résultat du job
-			result["boond_candidate_id"] = createdID
+
+			hasIdentity := strings.TrimSpace(cv.Email) != "" ||
+				(strings.TrimSpace(cv.Prenom) != "" && strings.TrimSpace(cv.Nom) != "")
+
+			if !hasIdentity {
+				log.Printf("⏭️  [worker extract_cv] Boond ignoré: identité incomplète (email ou prénom+nom requis) (job %s)", idStr)
+			} else {
+				log.Printf("🚀 [worker extract_cv] boondJwt détecté → création candidat Boond")
+				ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+				defer cancel()
+
+				bClient := boond.New(boondJWT)
+				attributes := boond.BuildCandidateAttributesFromCV(cv)
+
+				createdID, _, err := bClient.CreateCandidate(ctx, attributes)
+				if err != nil {
+					log.Printf("❌ [worker extract_cv] Échec de création du candidat Boond: %v", err)
+				} else if strings.TrimSpace(createdID) != "" {
+					log.Printf("🎉 [worker extract_cv] Candidat Boond créé (id=%s)", createdID)
+					// Upload du CV
+					if _, err := bClient.UploadDocument(ctx, createdID, fileBytes, filename); err != nil {
+						log.Printf("❌ [worker extract_cv] Échec upload du CV vers Boond: %v", err)
+					} else {
+						log.Printf("📄 [worker extract_cv] CV uploadé avec succès pour candidat %s", createdID)
+					}
+					// Enrichir le résultat du job
+					result["boond_candidate_id"] = createdID
+				}
+			}
 		}
 	}
 
