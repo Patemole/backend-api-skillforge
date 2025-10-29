@@ -42,25 +42,29 @@ func GeneratePDF(c *gin.Context) {
 		return
 	}
 
-	// Vérifier que WeasyPrint est installé
-	if _, err := exec.LookPath("weasyprint"); err != nil {
+	// Détecter la commande WeasyPrint (weasyprint ou python3 -m weasyprint)
+	var weasyPrintCmd []string
+	if _, err := exec.LookPath("weasyprint"); err == nil {
+		weasyPrintCmd = []string{"weasyprint", "-", "-"}
+	} else if _, err := exec.LookPath("python3"); err == nil {
+		// Essayer avec python3 -m weasyprint (plus fiable en Docker)
+		weasyPrintCmd = []string{"python3", "-m", "weasyprint", "-", "-"}
+	} else {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error":   "WeasyPrint introuvable sur le serveur",
-			"details": err.Error(),
+			"details": "weasyprint et python3 non trouvés dans PATH",
 			"help":    "Installez WeasyPrint avec: pip install weasyprint",
 		})
 		return
 	}
 
 	// Commande WeasyPrint : lit depuis stdin ("-") et écrit sur stdout ("-")
-	cmd := exec.Command("weasyprint", "-", "-")
+	cmd := exec.Command(weasyPrintCmd[0], weasyPrintCmd[1:]...)
 	cmd.Stdin = bytes.NewReader(htmlBytes)
-	// Passer DYLD_LIBRARY_PATH pour macOS (nécessaire pour trouver les bibliothèques Pango/Cairo)
+
+	// Configurer les variables d'environnement si nécessaire (macOS)
 	if libPath := os.Getenv("DYLD_LIBRARY_PATH"); libPath != "" {
 		cmd.Env = append(os.Environ(), "DYLD_LIBRARY_PATH="+libPath)
-	} else {
-		// Valeur par défaut pour Homebrew sur macOS
-		cmd.Env = append(os.Environ(), "DYLD_LIBRARY_PATH=/opt/homebrew/lib")
 	}
 
 	var stdout bytes.Buffer
