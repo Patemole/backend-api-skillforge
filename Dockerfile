@@ -26,6 +26,11 @@
         libfreetype6 \
         libjpeg62-turbo \
         shared-mime-info \
+        fontconfig \
+        fonts-dejavu-core \
+        fonts-dejavu \
+        fonts-liberation \
+        fonts-noto-core \
         && rm -rf /var/lib/apt/lists/*
     
     # Installer WeasyPrint via pip et s'assurer que le script est dans le PATH

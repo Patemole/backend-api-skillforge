@@ -42,6 +42,9 @@ func GeneratePDF(c *gin.Context) {
 		return
 	}
 
+	// Log complet du HTML/CSS reçu pour debug
+	log.Printf("📄 [PDF] HTML/CSS reçu (taille: %d bytes):\n%s", len(htmlBytes), string(htmlBytes))
+
 	// Détecter la commande WeasyPrint (weasyprint ou python3 -m weasyprint)
 	var weasyPrintCmd []string
 	if _, err := exec.LookPath("weasyprint"); err == nil {
