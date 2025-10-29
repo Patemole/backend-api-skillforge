@@ -20,7 +20,7 @@
         libpango-1.0-0 \
         libpangoft2-1.0-0 \
         libgdk-pixbuf2.0-0 \
-        libffi8 \
+        libffi7 \
         libcairo2 \
         libharfbuzz0b \
         libfreetype6 \
