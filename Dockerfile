@@ -37,6 +37,11 @@
     RUN pip3 install --no-cache-dir weasyprint==66.0 && \
         ln -sf /usr/local/bin/weasyprint /usr/bin/weasyprint 2>/dev/null || true
     
+    # Configurer fontconfig pour garantir un DPI uniforme (96 DPI standard web)
+    # Cela assure un rendu identique entre local et production
+    RUN printf '<?xml version="1.0"?>\n<!DOCTYPE fontconfig SYSTEM "fonts.dtd">\n<fontconfig>\n  <match target="pattern">\n    <edit name="dpi" mode="assign"><double>96</double></edit>\n  </match>\n</fontconfig>\n' > /etc/fonts/local.conf && \
+        fc-cache -fv
+    
     WORKDIR /srv
     COPY --from=builder /srv/main .
     

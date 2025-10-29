@@ -46,12 +46,13 @@ func GeneratePDF(c *gin.Context) {
 	log.Printf("📄 [PDF] HTML/CSS reçu (taille: %d bytes):\n%s", len(htmlBytes), string(htmlBytes))
 
 	// Détecter la commande WeasyPrint (weasyprint ou python3 -m weasyprint)
+	// Utiliser --dpi 96 pour garantir un rendu identique entre local et production
 	var weasyPrintCmd []string
 	if _, err := exec.LookPath("weasyprint"); err == nil {
-		weasyPrintCmd = []string{"weasyprint", "-", "-"}
+		weasyPrintCmd = []string{"weasyprint", "--dpi", "96", "-", "-"}
 	} else if _, err := exec.LookPath("python3"); err == nil {
 		// Essayer avec python3 -m weasyprint (plus fiable en Docker)
-		weasyPrintCmd = []string{"python3", "-m", "weasyprint", "-", "-"}
+		weasyPrintCmd = []string{"python3", "-m", "weasyprint", "--dpi", "96", "-", "-"}
 	} else {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error":   "WeasyPrint introuvable sur le serveur",
