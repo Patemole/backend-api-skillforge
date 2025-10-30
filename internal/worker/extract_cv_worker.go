@@ -126,18 +126,74 @@ func processOneExtractJob() error {
 		return nil
 	}
 
-	// Choix du modèle
-	model := "gpt-5"
-	if generationMode == "fast" {
-		model = "gpt-5-mini"
-	}
-	log.Printf("⚡ [worker extract_cv] Modèle choisi: %s (generationMode=%s)", model, generationMode)
-	client := nuextract.NewWithModel(model)
+	// Sélection moteur selon generationMode
+	var (
+		resultBytes  []byte
+		providerUsed string
+		attempts     []map[string]any
+		totalStart   = time.Now()
+	)
+	if generationMode == "fast" && strings.TrimSpace(os.Getenv("ANTHROPIC_API_KEY")) != "" {
+		// Mode rapide: tenter Anthropic en premier
+		acfg := nuextract.GetAnthropicConfig()
+		log.Printf("⚡ [worker extract_cv] Modèle OpenAI (fallback potentiel): gpt-5-mini (generationMode=%s)", generationMode)
+		log.Printf("🚀 [worker extract_cv] Essai 1: Anthropic (%s)", acfg.Model)
+		callStart := time.Now()
+		resultBytes, err = nuextract.ExtractAndEnrichWithFilenameAnthropic(fileBytes, filename, language)
+		attempts = append(attempts, map[string]any{
+			"provider":    "anthropic",
+			"model":       acfg.Model,
+			"duration_ms": time.Since(callStart).Milliseconds(),
+			"error":       boolToString(err != nil),
+		})
+		if err != nil || len(strings.TrimSpace(string(resultBytes))) == 0 {
+			if err != nil {
+				log.Printf("❌ [worker extract_cv] Anthropic a échoué: %v", err)
+			} else {
+				log.Printf("❌ [worker extract_cv] Anthropic a renvoyé un contenu vide")
+			}
+			// Fallback OpenAI (gpt-5-mini)
+			model := "gpt-5-mini"
+			log.Printf("🛟 [worker extract_cv] Fallback OpenAI (%s)", model)
+			client := nuextract.NewWithModel(model)
+			callStart2 := time.Now()
+			resultBytes, err = client.ExtractAndEnrichWithFilename(fileBytes, filename, language)
+			attempts = append(attempts, map[string]any{
+				"provider":    "openai",
+				"model":       model,
+				"duration_ms": time.Since(callStart2).Milliseconds(),
+				"error":       boolToString(err != nil),
+			})
+			if err != nil {
+				log.Printf("❌ [worker extract_cv] Échec fallback OpenAI: %v", err)
+			}
+			providerUsed = "openai"
+		}
+		if err == nil && len(strings.TrimSpace(string(resultBytes))) > 0 && providerUsed == "" {
+			providerUsed = "anthropic"
+		}
+	} else {
+		// Mode détaillé (ou absence de clé Anthropic): OpenAI d'abord
+		model := "gpt-5"
+		if generationMode == "fast" {
+			model = "gpt-5-mini"
+		}
+		log.Printf("⚡ [worker extract_cv] Modèle choisi: %s (generationMode=%s)", model, generationMode)
+		client := nuextract.NewWithModel(model)
 
-	// Extraction avec retry intelligent si sortie vide/illisible
-	resultBytes, err := client.ExtractAndEnrichWithFilename(fileBytes, filename, language)
-	if err != nil {
-		log.Printf("❌ [worker extract_cv] Échec extraction initiale: %v", err)
+		// Extraction initiale
+		callStart := time.Now()
+		resultBytes, err = client.ExtractAndEnrichWithFilename(fileBytes, filename, language)
+		attempts = append(attempts, map[string]any{
+			"provider":    "openai",
+			"model":       model,
+			"duration_ms": time.Since(callStart).Milliseconds(),
+			"error":       boolToString(err != nil),
+		})
+		if err != nil {
+			log.Printf("❌ [worker extract_cv] Échec extraction initiale: %v", err)
+		}
+		providerUsed = "openai"
 	}
 
 	// Helper pour vérifier vide après nettoyage
@@ -186,8 +242,9 @@ func processOneExtractJob() error {
 		return nil
 	}
 
-	// ANALYSE COMPLÈTE DE LA RÉPONSE D'OPENAI
-	log.Printf("🔍 [worker extract_cv] ANALYSE RÉPONSE OpenAI pour job %s:", idStr)
+	// ANALYSE COMPLÈTE DE LA RÉPONSE DU PROVIDER
+	log.Printf("⏱️  [worker extract_cv] Metrics job %s → provider=%s, total=%v, attempts=%d", idStr, providerUsed, time.Since(totalStart), len(attempts))
+	log.Printf("🔍 [worker extract_cv] ANALYSE RÉPONSE provider pour job %s:", idStr)
 	log.Printf("📏 Taille brute: %d bytes", len(resultBytes))
 
 	// Log des premiers caractères pour debug
@@ -293,6 +350,18 @@ func processOneExtractJob() error {
 		result["DC_language"] = language
 	}
 
+	// Ajouter métriques au résultat
+	metrics := map[string]any{
+		"provider":        providerUsed,
+		"generation_mode": generationMode,
+		"total_s":         time.Since(totalStart).Seconds(),
+		"attempts":        attempts,
+	}
+	if result == nil {
+		result = map[string]any{}
+	}
+	result["_metrics"] = metrics
+
 	// Mettre à jour en done
 	_, _, _ = supabase.Client.
 		From("jobs").
@@ -306,6 +375,14 @@ func processOneExtractJob() error {
 
 	log.Printf("[worker extract_cv] job id=%d done", job.ID)
 	return nil
+}
+
+// boolToString convertit un booléen en chaîne "true"/"false" pour homogénéité JSON
+func boolToString(b bool) string {
+	if b {
+		return "true"
+	}
+	return "false"
 }
 
 // sanitizeJSONResponse retire d'éventuels blocs de code ```json ... ``` et extrait uniquement l'objet JSON

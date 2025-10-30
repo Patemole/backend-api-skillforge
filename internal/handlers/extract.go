@@ -52,17 +52,23 @@ func ExtractCV(c *gin.Context) {
 	}
 	log.Printf("🌍 Langue sélectionnée: %s", language)
 
-	// Sélection du modèle selon generationMode: fast -> gpt-5-mini, detailed -> gpt-5
+	// Sélection du moteur selon generationMode: fast -> Anthropic (Haiku), detailed -> OpenAI (gpt-5)
 	generationMode := strings.TrimSpace(c.PostForm("generationMode"))
-	model := "gpt-5"
-	if generationMode == "fast" {
-		model = "gpt-5-mini"
-	}
-	log.Printf("⚡ Mode de génération: %s, modèle sélectionné: %s", generationMode, model)
-	client := nuextract.NewWithModel(model)
-	log.Printf("DEBUG: Client NuExtract créé, début de l'extraction...")
 
-	result, err := client.ExtractAndEnrichWithFilename(data, header.Filename, language)
+	var result []byte
+	if generationMode == "fast" {
+		// Utiliser Anthropic directement pour le mode rapide
+		aCfg := nuextract.GetAnthropicConfig()
+		log.Printf("⚡ Mode de génération: %s, moteur sélectionné: Anthropic (%s)", generationMode, aCfg.Model)
+		result, err = nuextract.ExtractAndEnrichWithFilenameAnthropic(data, header.Filename, language)
+	} else {
+		// Mode détaillé (par défaut): OpenAI GPT-5
+		model := "gpt-5"
+		log.Printf("⚡ Mode de génération: %s, moteur sélectionné: OpenAI (%s)", generationMode, model)
+		client := nuextract.NewWithModel(model)
+		log.Printf("DEBUG: Client NuExtract créé (OpenAI), début de l'extraction...")
+		result, err = client.ExtractAndEnrichWithFilename(data, header.Filename, language)
+	}
 	if err != nil {
 		log.Printf("ERROR: Erreur extraction NuExtract: %v", err)
 		c.JSON(http.StatusBadGateway, gin.H{"error": err.Error()})
