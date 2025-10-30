@@ -7,6 +7,8 @@ type CandidateInviteRequest struct {
 	CandidateLink  string `json:"candidate_link" binding:"required,url"`
 	DossierID      string `json:"dossier_id" binding:"required"`
 	CandidateID    string `json:"candidate_id" binding:"required"`
+	Instructions   string `json:"instructions,omitempty"`
+	AttachmentURL  string `json:"attachment_url,omitempty"`
 }
 
 // CandidateInviteResponse définit la structure de la réponse de succès
@@ -30,4 +32,6 @@ type CandidateInviteEmailData struct {
 	CandidateLink  string
 	DossierID      string
 	CandidateID    string
+	Instructions   string
+	AttachmentURL  string
 }

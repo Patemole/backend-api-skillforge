@@ -14,8 +14,8 @@ import (
 
 // ResendService gère l'envoi d'emails via l'API Resend
 type ResendService struct {
-	APIKey string
-	BaseURL string
+	APIKey    string
+	BaseURL   string
 	FromEmail string
 }
 
@@ -151,60 +151,74 @@ func (r *ResendService) generateCandidateInviteHTML(data models.CandidateInviteE
     <meta charset="UTF-8">
     <title>Votre dossier de compétences vous attend</title>
 </head>
-<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-    
-    <div style="text-align: center; margin-bottom: 30px;">
-        <h1 style="color: #2563eb; margin-bottom: 10px;">📝 Votre dossier de compétences vous attend</h1>
-        <p style="color: #666; font-size: 16px;">Complétez et vérifiez votre profil professionnel</p>
-    </div>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #111827; max-width: 640px; margin: 0 auto; padding: 24px; background: #f9fafb;">
+    <div style="background: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;">
+        <div style="text-align: center; padding: 24px 24px 0 24px;">
+            <img src="https://gksurcxmvvdvjcrssair.supabase.co/storage/v1/object/public/org-assets/SkillForge_logo.png" alt="SkillForge" style="height: 32px; margin-bottom: 8px;" />
+        </div>
 
-    <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-        <h2 style="color: #1e40af; margin-top: 0;">🎯 Prochaines étapes</h2>
-        <p>Vous avez été invité à compléter votre dossier de compétences sur SkillForge. Ce dossier vous permettra de :</p>
-        <ul style="margin: 10px 0; padding-left: 20px;">
-            <li>Mettre en valeur vos compétences et expériences</li>
-            <li>Créer un profil professionnel attractif</li>
-            <li>Faciliter votre recherche d'opportunités</li>
-            <li>Être visible par les recruteurs</li>
-        </ul>
-    </div>
+        <div style="text-align: center; padding: 8px 24px 24px 24px;">
+            <h1 style="color: #1d4ed8; margin: 0 0 8px 0; font-size: 22px;">📝 Votre dossier de compétences vous attend</h1>
+            <p style="color: #6b7280; font-size: 15px; margin: 0;">Complétez et vérifiez votre profil professionnel</p>
+        </div>
 
-    <div style="background: #ecfdf5; padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #10b981;">
-        <h3 style="color: #059669; margin-top: 0;">✅ Action requise</h3>
-        <p style="margin: 0;">Cliquez sur le bouton ci-dessous pour accéder à votre dossier et commencer à le compléter.</p>
-    </div>
+        <div style="background: #f8fafc; padding: 20px 24px; border-radius: 10px; margin: 0 24px 16px 24px;">
+            <h2 style="color: #1e40af; margin: 0 0 8px 0; font-size: 18px;">🎯 Prochaines étapes</h2>
+            <ol style="margin: 8px 0 0 20px; padding: 0; color: #374151;">
+                <li>Ouvrez votre dossier SkillForge.</li>
+                <li>Renseignez vos expériences, compétences et formations.</li>
+                <li>Vérifiez les informations puis validez.</li>
+            </ol>
+        </div>
 
-    <div style="text-align: center; margin: 30px 0;">
-        <a href="%s" 
-           style="background: #2563eb; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block; font-size: 16px;">
-            🚀 Accéder à mon dossier
-        </a>
-    </div>
+        %s
 
-    <div style="background: #fef3c7; padding: 15px; border-radius: 6px; margin-top: 20px;">
-        <p style="margin: 0; font-size: 14px; color: #92400e;">
-            <strong>💡 Conseil :</strong> Prenez le temps de bien remplir toutes les sections pour maximiser votre visibilité. Vous pourrez modifier votre dossier à tout moment.
-        </p>
-    </div>
+        <div style="text-align: center; margin: 24px 0 8px 0;">
+            <a href="%s" 
+               style="background: #2563eb; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 10px; font-weight: 700; display: inline-block; font-size: 16px;">
+                🚀 Accéder à mon dossier
+            </a>
+        </div>
+        <p style="text-align: center; margin: 0 24px 16px 24px; color: #6b7280; font-size: 12px;">Ce lien est personnel et sécurisé.</p>
 
-    <div style="background: #f3f4f6; padding: 15px; border-radius: 6px; margin-top: 20px;">
-        <p style="margin: 0; font-size: 14px; color: #6b7280;">
-            <strong>📧 Contact :</strong> Si vous avez des questions, n'hésitez pas à répondre à cet email ou contacter %s.
-        </p>
-    </div>
+        <div style="background: #f3f4f6; padding: 16px 24px; border-radius: 10px; margin: 0 24px 24px 24px;">
+            <p style="margin: 0; font-size: 14px; color: #6b7280;">
+                <strong>📧 Besoin d'aide ?</strong> Répondez à cet email ou contactez %s.
+            </p>
+        </div>
 
-    <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
-    
-    <div style="text-align: center; color: #6b7280; font-size: 12px;">
-        <p>Cet email a été envoyé par SkillForge</p>
-        <p>Si vous n'avez pas demandé à recevoir cet email, vous pouvez l'ignorer en toute sécurité.</p>
+        <div style="border-top: 1px solid #e5e7eb; padding: 16px 24px; text-align: center; color: #9ca3af; font-size: 12px;">
+            <p style="margin: 0;">Email envoyé par SkillForge</p>
+            <p style="margin: 4px 0 0 0;">Si vous n'êtes pas à l'origine de cette invitation, ignorez ce message.</p>
+        </div>
     </div>
 
 </body>
 </html>`
 
+	// Bloc combiné Instructions + Pièce jointe
+	combinedBlock := ""
+	if len(data.Instructions) > 0 || len(data.AttachmentURL) > 0 {
+		instructionsPart := ""
+		if len(data.Instructions) > 0 {
+			instructionsPart = fmt.Sprintf(`<p style="margin: 0; color: #374151; white-space: pre-wrap;">%s</p>`, data.Instructions)
+		}
+		attachmentPart := ""
+		if len(data.AttachmentURL) > 0 {
+			attachmentPart = fmt.Sprintf(`<p style="margin: 10px 0 0 0;"><a href="%s" style="color: #1d4ed8; text-decoration: underline; word-break: break-all;">📎 Voir la pièce jointe</a></p>`, data.AttachmentURL)
+		}
+		combinedBlock = fmt.Sprintf(`
+    <div style="background: #eef2ff; padding: 16px 24px; border-radius: 10px; margin: 16px 24px 0 24px; border-left: 4px solid #6366f1;">
+        <h3 style="color: #4338ca; margin: 0 0 6px 0; font-size: 16px;">✍️ Instructions</h3>
+        %s
+        %s
+    </div>
+    `, instructionsPart, attachmentPart)
+	}
+
 	// Remplacer les variables dans le template
 	htmlContent := fmt.Sprintf(htmlTemplate,
+		combinedBlock,
 		data.CandidateLink,
 		data.InviterEmail,
 	)
@@ -268,20 +282,20 @@ func (r *ResendService) sendEmail(emailReq models.ResendEmailRequest) (*models.R
 // ValidateEmailAddress valide une adresse email (validation basique)
 func (r *ResendService) ValidateEmailAddress(email string) bool {
 	// Validation basique - on pourrait utiliser une regex plus complexe
-	return len(email) > 0 && 
-		   len(email) < 254 && 
-		   contains(email, "@") && 
-		   contains(email, ".")
+	return len(email) > 0 &&
+		len(email) < 254 &&
+		contains(email, "@") &&
+		contains(email, ".")
 }
 
 // contains vérifie si une chaîne contient une sous-chaîne
 func contains(s, substr string) bool {
-	return len(s) >= len(substr) && 
-		   (s == substr || 
-		    (len(s) > len(substr) && 
-		     (s[:len(substr)] == substr || 
-		      s[len(s)-len(substr):] == substr || 
-		      containsSubstring(s, substr))))
+	return len(s) >= len(substr) &&
+		(s == substr ||
+			(len(s) > len(substr) &&
+				(s[:len(substr)] == substr ||
+					s[len(s)-len(substr):] == substr ||
+					containsSubstring(s, substr))))
 }
 
 // containsSubstring vérifie si une chaîne contient une sous-chaîne (implémentation simple)

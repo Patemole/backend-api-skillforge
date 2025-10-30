@@ -4,10 +4,11 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"backend-api-skillforge/internal/models"
 	"backend-api-skillforge/internal/services"
+
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 // CandidateInviteHandler gère les invitations de candidats
@@ -25,7 +26,7 @@ func NewCandidateInviteHandler() *CandidateInviteHandler {
 // HandleCandidateInvite traite les requêtes d'invitation de candidats
 func (h *CandidateInviteHandler) HandleCandidateInvite(c *gin.Context) {
 	var req models.CandidateInviteRequest
-	
+
 	// Binding et validation de la requête
 	if err := c.ShouldBindJSON(&req); err != nil {
 		log.Printf("CANDIDATE_INVITE_ERROR: Erreur de validation de la requête: %v", err)
@@ -47,6 +48,8 @@ func (h *CandidateInviteHandler) HandleCandidateInvite(c *gin.Context) {
 		CandidateLink:  req.CandidateLink,
 		DossierID:      req.DossierID,
 		CandidateID:    req.CandidateID,
+		Instructions:   req.Instructions,
+		AttachmentURL:  req.AttachmentURL,
 	}
 
 	// Envoyer l'email d'invitation
@@ -62,7 +65,7 @@ func (h *CandidateInviteHandler) HandleCandidateInvite(c *gin.Context) {
 	}
 
 	// Log de succès
-	log.Printf("CANDIDATE_INVITE_SUCCESS: Email envoyé avec succès (request_id: %s, email_id: %s, inviter: %s, recipient: %s, dossier: %s)", 
+	log.Printf("CANDIDATE_INVITE_SUCCESS: Email envoyé avec succès (request_id: %s, email_id: %s, inviter: %s, recipient: %s, dossier: %s)",
 		requestID, emailResp.ID, req.InviterEmail, req.RecipientEmail, req.DossierID)
 
 	// Réponse de succès
