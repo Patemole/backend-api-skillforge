@@ -13,6 +13,7 @@ import (
 	"backend-api-skillforge/internal/boond"
 	"backend-api-skillforge/internal/models"
 	"backend-api-skillforge/internal/nuextract"
+	"backend-api-skillforge/internal/services"
 	"backend-api-skillforge/internal/supabase"
 )
 
@@ -109,6 +110,7 @@ func processOneExtractJob() error {
 	if language == "" {
 		language = "fr"
 	}
+	linkedinURL, _ := job.Payload["linkedin_url"].(string)
 
 	// Décodage
 	fileBytes, err := base64.StdEncoding.DecodeString(fileB64)
@@ -124,6 +126,29 @@ func processOneExtractJob() error {
 			Eq("id", idStr).
 			Execute()
 		return nil
+	}
+
+	// Démarrer l'appel Apify en parallèle si linkedin_url et config présents
+	var (
+		apifyRes  map[string]any
+		apifyErr  error
+		apifyDone chan struct{}
+	)
+	if strings.TrimSpace(linkedinURL) != "" &&
+		(strings.TrimSpace(os.Getenv("APIFY_TOKEN")) != "" || strings.TrimSpace(os.Getenv("APIFY_API_TOKEN")) != "") &&
+		strings.TrimSpace(os.Getenv("APIFY_ACTOR_ID")) != "" {
+		apifyDone = make(chan struct{})
+		go func(url string) {
+			defer close(apifyDone)
+			ctx, cancel := context.WithTimeout(context.Background(), 8*time.Minute)
+			defer cancel()
+			res, err := services.FetchLinkedInProfile(ctx, url)
+			if err != nil {
+				apifyErr = err
+				return
+			}
+			apifyRes = res
+		}(linkedinURL)
 	}
 
 	// Sélection moteur selon generationMode
@@ -348,6 +373,19 @@ func processOneExtractJob() error {
 	// Ajouter toujours la langue utilisée dans le résultat
 	if strings.TrimSpace(language) != "" {
 		result["DC_language"] = language
+	}
+
+	// Attendre la fin d'Apify (si déclenché) avant mise à jour du job, puis merger
+	if apifyDone != nil {
+		<-apifyDone
+		if result == nil {
+			result = map[string]any{}
+		}
+		if apifyErr != nil {
+			result["_linkedin_error"] = apifyErr.Error()
+		} else if apifyRes != nil {
+			result["linkedin_profile"] = apifyRes
+		}
 	}
 
 	// Ajouter métriques au résultat

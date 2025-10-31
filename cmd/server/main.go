@@ -18,6 +18,33 @@ import (
 
 func main() {
 	_ = godotenv.Load() // charge .env (facultatif en prod)
+
+	// Vérification des variables Apify au démarrage
+	apifyToken := os.Getenv("APIFY_TOKEN")
+	if apifyToken == "" {
+		apifyToken = os.Getenv("APIFY_API_TOKEN")
+	}
+	apifyActorID := os.Getenv("APIFY_ACTOR_ID")
+
+	if apifyToken != "" && apifyActorID != "" {
+		log.Printf("✅ Apify configuré - Actor ID: '%s', Token: %s... (len=%d)",
+			apifyActorID,
+			func() string {
+				if len(apifyToken) > 10 {
+					return apifyToken[:10] + "..."
+				}
+				return "***"
+			}(),
+			len(apifyToken))
+	} else {
+		log.Printf("⚠️  Apify non configuré (APIFY_TOKEN: %t, APIFY_ACTOR_ID: %t)",
+			apifyToken != "",
+			apifyActorID != "")
+		if apifyActorID != "" {
+			log.Printf("   Actor ID trouvé: '%s'", apifyActorID)
+		}
+	}
+
 	supabase.MustInit() // client global
 
 	// 🔧 Logger → stdout + fichier server.log

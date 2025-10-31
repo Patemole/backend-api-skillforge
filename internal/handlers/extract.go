@@ -325,6 +325,8 @@ func ExtractCVAsync(c *gin.Context) {
 	if generationMode == "" {
 		generationMode = "fast"
 	}
+	// URL LinkedIn optionnelle pour enrichissement via Apify
+	linkedinURL := strings.TrimSpace(c.PostForm("linkedin_url"))
 	// JWT Boond optionnel (si fourni → création candidat côté worker)
 	boondJWT := strings.TrimSpace(c.PostForm("boondJwt"))
 	userIDStr := strings.TrimSpace(c.PostForm("user_id"))
@@ -338,8 +340,24 @@ func ExtractCVAsync(c *gin.Context) {
 		return
 	}
 
+	// Limite de taille : 10MB (environ 13MB en base64)
+	const maxFileSize = 10 * 1024 * 1024 // 10MB
+	if len(data) > maxFileSize {
+		log.Printf("ERROR: Fichier trop volumineux: %d bytes (max: %d bytes)", len(data), maxFileSize)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"error":   "Fichier trop volumineux",
+			"detail":  fmt.Sprintf("Taille: %d bytes, maximum: %d bytes (10MB)", len(data), maxFileSize),
+		})
+		return
+	}
+
+	log.Printf("📦 [extract_async] Fichier: %s, Taille: %d bytes (%.2f MB)", header.Filename, len(data), float64(len(data))/(1024*1024))
+
 	// Encodage base64 du fichier (évite d'avoir à gérer Storage de suite; le worker le décodera)
 	encoded := base64.StdEncoding.EncodeToString(data)
+	encodedSize := len(encoded)
+	log.Printf("📦 [extract_async] Taille base64: %d bytes (%.2f MB)", encodedSize, float64(encodedSize)/(1024*1024))
 
 	payload := map[string]any{
 		"filename":       header.Filename,
@@ -347,7 +365,12 @@ func ExtractCVAsync(c *gin.Context) {
 		"language":       language,
 		"generationMode": generationMode,
 		"boondJwt":       boondJWT,
+		"linkedin_url":   linkedinURL,
 	}
+
+	// Log taille payload avant insertion
+	payloadJSON, _ := json.Marshal(payload)
+	log.Printf("📦 [extract_async] Taille payload JSON: %d bytes (%.2f MB)", len(payloadJSON), float64(len(payloadJSON))/(1024*1024))
 
 	now := time.Now().UTC().Format(time.RFC3339)
 	newJob := models.Job{
