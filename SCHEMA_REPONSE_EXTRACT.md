@@ -33,6 +33,7 @@ L'endpoint `/extract` renvoie maintenant le champ `DC_language` dans toutes les 
   ],
   "secteurs_activites": ["Automobile", "Aéronautique"],
   "domaines_expertise": ["Conception Mécanique", "CAO"],
+  "competence_fonctionnelle": ["Gestion de projet", "Planification, coordination", "Analyse fonctionnelle et technique"],
   "formations": [
     {
       "date_debut": "2018",
@@ -51,6 +52,8 @@ L'endpoint `/extract` renvoie maintenant le champ `DC_language` dans toutes les 
       "poste": "Ingénieur Conception",
       "contexte": "Développement de nouveaux véhicules",
       "projet": "Conception et développement de systèmes de freinage...",
+      "projets_name": ["Projet véhicule électrique ZOE", "Projet système de freinage nouvelle génération"],
+      "result": "Mise en production du système de freinage avec réduction de 15% du temps de développement",
       "logiciels": ["SolidWorks", "CATIA", "ANSYS"],
       "réalisations": [
         "Conception de pièces mécaniques",
@@ -99,6 +102,7 @@ L'endpoint `/extract` renvoie maintenant le champ `DC_language` dans toutes les 
   ],
   "secteurs_activites": ["Automobile", "Aéronautique"],
   "domaines_expertise": ["Conception Mécanique", "CAO"],
+  "competence_fonctionnelle": ["Gestion de projet", "Planification, coordination", "Analyse fonctionnelle et technique"],
   "formations": [
     {
       "date_debut": "2018",
@@ -117,6 +121,8 @@ L'endpoint `/extract` renvoie maintenant le champ `DC_language` dans toutes les 
       "poste": "Ingénieur Conception",
       "contexte": "Développement de nouveaux véhicules",
       "projet": "Conception et développement de systèmes de freinage...",
+      "projets_name": ["Projet véhicule électrique ZOE", "Projet système de freinage nouvelle génération"],
+      "result": "Mise en production du système de freinage avec réduction de 15% du temps de développement",
       "logiciels": ["SolidWorks", "CATIA", "ANSYS"],
       "réalisations": [
         "Conception de pièces mécaniques",

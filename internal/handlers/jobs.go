@@ -77,6 +77,120 @@ func CreateJob(c *gin.Context) {
 			} else {
 				log.Printf("   - ⚠️ Aucun champ 'languages' trouvé dans rawDossier")
 			}
+
+			// Log et transformation des compétences fonctionnelles si format objet
+			if competenceFonct, exists := rawDossierMap["competence_fonctionnelle"]; exists {
+				log.Printf("   - competence_fonctionnelle détectée: %+v (type: %T)", competenceFonct, competenceFonct)
+				// Si c'est un objet avec word_list, extraire word_list
+				if compMap, ok := competenceFonct.(map[string]interface{}); ok {
+					if wordList, ok := compMap["word_list"].([]interface{}); ok {
+						log.Printf("   - Format objet détecté, extraction de word_list: %+v", wordList)
+						var wordListStrings []string
+						for _, item := range wordList {
+							if str, ok := item.(string); ok {
+								wordListStrings = append(wordListStrings, str)
+							}
+						}
+						rawDossierMap["competence_fonctionnelle"] = wordListStrings
+						log.Printf("   - competence_fonctionnelle transformée en tableau: %+v", wordListStrings)
+					}
+				}
+			}
+
+			// Log et transformation des technical_skills si format objet
+			if techSkills, exists := rawDossierMap["technical_skills"]; exists {
+				log.Printf("   - technical_skills détectées: %+v (type: %T)", techSkills, techSkills)
+				// Si c'est un objet avec word_list, extraire word_list
+				if techMap, ok := techSkills.(map[string]interface{}); ok {
+					if wordList, ok := techMap["word_list"].([]interface{}); ok {
+						log.Printf("   - Format objet détecté, extraction de word_list: %+v", wordList)
+						var wordListStrings []string
+						for _, item := range wordList {
+							if str, ok := item.(string); ok {
+								wordListStrings = append(wordListStrings, str)
+							}
+						}
+						rawDossierMap["technical_skills"] = wordListStrings
+						log.Printf("   - technical_skills transformées en tableau: %+v", wordListStrings)
+					}
+				}
+			}
+
+			// Log et transformation des logiciels si format objet
+			if logiciels, exists := rawDossierMap["logiciels"]; exists {
+				log.Printf("   - logiciels détectés dans rawDossier: %+v (type: %T)", logiciels, logiciels)
+
+				// Si c'est un tableau, vérifier le contenu de chaque logiciel
+				if logicielsArray, ok := logiciels.([]interface{}); ok {
+					log.Printf("   - Format tableau détecté: %d logiciels", len(logicielsArray))
+					for i, logiciel := range logicielsArray {
+						if logicielMap, ok := logiciel.(map[string]interface{}); ok {
+							logicielName, _ := logicielMap["logiciel"].(string)
+							tempsUtil, _ := logicielMap["temps_utilisation"].(string)
+							log.Printf("   - Logiciel #%d (%s): temps_utilisation = '%s'", i+1, logicielName, tempsUtil)
+						}
+					}
+				}
+
+				// Si c'est un objet avec word_list, extraire word_list
+				if logicMap, ok := logiciels.(map[string]interface{}); ok {
+					if wordList, ok := logicMap["word_list"].([]interface{}); ok {
+						log.Printf("   - Format objet détecté, extraction de word_list: %+v", wordList)
+						// Vérifier chaque logiciel dans word_list pour temps_utilisation
+						for i, logiciel := range wordList {
+							if logicielMap, ok := logiciel.(map[string]interface{}); ok {
+								logicielName, _ := logicielMap["logiciel"].(string)
+								tempsUtil, _ := logicielMap["temps_utilisation"].(string)
+								log.Printf("   - Logiciel word_list #%d (%s): temps_utilisation = '%s'", i+1, logicielName, tempsUtil)
+							}
+						}
+						rawDossierMap["logiciels"] = wordList
+						log.Printf("   - logiciels transformés en tableau: %+v", wordList)
+					}
+				}
+			} else {
+				log.Printf("   - ⚠️ Aucun champ 'logiciels' trouvé dans rawDossier")
+			}
+
+			// Log et transformation des expériences pour projets_name et result
+			if experiences, exists := rawDossierMap["expériences"]; exists {
+				if expList, ok := experiences.([]interface{}); ok {
+					log.Printf("   - %d expériences détectées dans rawDossier", len(expList))
+					for i, exp := range expList {
+						if expMap, ok := exp.(map[string]interface{}); ok {
+							// Lister toutes les clés de l'expérience pour debug
+							var keys []string
+							for k := range expMap {
+								keys = append(keys, k)
+							}
+							log.Printf("   - Expérience %d - Clés disponibles: %v", i, keys)
+
+							// Vérifier projets_name (avec variations possibles)
+							if projetsName, exists := expMap["projets_name"]; exists {
+								log.Printf("   - Expérience %d: projets_name = %+v (type: %T)", i, projetsName, projetsName)
+							} else if projetsName, exists := expMap["projetsName"]; exists {
+								log.Printf("   - Expérience %d: projetsName (camelCase) = %+v (type: %T)", i, projetsName, projetsName)
+								expMap["projets_name"] = projetsName // Normaliser
+							} else if projetsName, exists := expMap["project_name"]; exists {
+								log.Printf("   - Expérience %d: project_name = %+v (type: %T)", i, projetsName, projetsName)
+								expMap["projets_name"] = projetsName // Normaliser
+							} else {
+								log.Printf("   - Expérience %d: ⚠️ projets_name NON TROUVÉ", i)
+							}
+
+							// Vérifier result (avec variations possibles)
+							if result, exists := expMap["result"]; exists {
+								log.Printf("   - Expérience %d: result = '%+v' (type: %T, empty=%t)", i, result, result, result == "" || result == nil)
+							} else if result, exists := expMap["resultat"]; exists {
+								log.Printf("   - Expérience %d: resultat (français) = '%+v' (type: %T)", i, result, result)
+								expMap["result"] = result // Normaliser
+							} else {
+								log.Printf("   - Expérience %d: ⚠️ result NON TROUVÉ", i)
+							}
+						}
+					}
+				}
+			}
 		}
 	}
 
@@ -102,27 +216,28 @@ func CreateJob(c *gin.Context) {
 
 		// Structure intermédiaire pour gérer les langues flexibles
 		var tempDossier struct {
-			Prenom            string              `json:"prenom"`
-			Nom               string              `json:"nom"`
-			Email             string              `json:"email"`
-			Phone             string              `json:"phone"`
-			Summary           string              `json:"summary"`
-			Age               string              `json:"age"`
-			Poste             string              `json:"poste"`
-			Diplome           string              `json:"diplome"`
-			Experience        string              `json:"expérience"`
-			Mobilite          string              `json:"mobilité"`
-			Disponibilite     string              `json:"disponibilité"`
-			PermisB           string              `json:"permis_B"`
-			Hobbies           []string            `json:"hobbies"`
-			Languages         []interface{}       `json:"languages"` // Interface{} pour accepter strings et objets
-			SecteursActivites []string            `json:"secteurs_activites"`
-			DomainesExpertise []string            `json:"domaines_expertise"`
-			Formations        []models.Formation  `json:"formations"`
-			Experiences       []models.Experience `json:"expériences"`
-			Logiciels         []models.Logiciel   `json:"logiciels"`
-			Certifications    []string            `json:"certifications"`
-			TechnicalSkills   []string            `json:"technical_skills"`
+			Prenom                  string              `json:"prenom"`
+			Nom                     string              `json:"nom"`
+			Email                   string              `json:"email"`
+			Phone                   string              `json:"phone"`
+			Summary                 string              `json:"summary"`
+			Age                     string              `json:"age"`
+			Poste                   string              `json:"poste"`
+			Diplome                 string              `json:"diplome"`
+			Experience              string              `json:"expérience"`
+			Mobilite                string              `json:"mobilité"`
+			Disponibilite           string              `json:"disponibilité"`
+			PermisB                 string              `json:"permis_B"`
+			Hobbies                 []string            `json:"hobbies"`
+			Languages               []interface{}       `json:"languages"` // Interface{} pour accepter strings et objets
+			SecteursActivites       []string            `json:"secteurs_activites"`
+			DomainesExpertise       []string            `json:"domaines_expertise"`
+			Formations              []models.Formation  `json:"formations"`
+			Experiences             []models.Experience `json:"expériences"`
+			Logiciels               []models.Logiciel   `json:"logiciels"`
+			Certifications          []string            `json:"certifications"`
+			TechnicalSkills         []string            `json:"technical_skills"`
+			CompetenceFonctionnelle []string            `json:"competence_fonctionnelle"`
 		}
 
 		// Si un champ manque dans les données brutes, il sera laissé à sa valeur
@@ -137,6 +252,22 @@ func CreateJob(c *gin.Context) {
 				"dossier_data":      rawDossier,
 			})
 			return
+		}
+
+		// Log détaillé des expériences après unmarshal pour debug
+		log.Printf("🔍 DEBUG JOBS - Expériences après unmarshal: %d expériences", len(tempDossier.Experiences))
+		for i, exp := range tempDossier.Experiences {
+			log.Printf("   - Expérience #%d (%s @ %s):", i+1, exp.Poste, exp.Entreprise)
+			log.Printf("      * projets_name: %+v (len=%d)", exp.ProjetsName, len(exp.ProjetsName))
+			log.Printf("      * result: '%s' (empty=%t)", exp.Result, exp.Result == "")
+		}
+
+		// Log détaillé des logiciels après unmarshal pour vérifier temps_utilisation
+		log.Printf("🔍 DEBUG JOBS - Logiciels après unmarshal: %d logiciels", len(tempDossier.Logiciels))
+		for i, logiciel := range tempDossier.Logiciels {
+			log.Printf("   - Logiciel #%d: %s", i+1, logiciel.Logiciel)
+			log.Printf("      * level: '%s'", logiciel.Level)
+			log.Printf("      * temps_utilisation: '%s' (empty=%t)", logiciel.TempsUtilisation, logiciel.TempsUtilisation == "")
 		}
 
 		// Convertir les langues du format flexible vers []string
@@ -160,33 +291,43 @@ func CreateJob(c *gin.Context) {
 
 		// Mapper vers la structure finale
 		dossier = models.CompetenceDossier{
-			Prenom:            tempDossier.Prenom,
-			Nom:               tempDossier.Nom,
-			Email:             tempDossier.Email,
-			Phone:             tempDossier.Phone,
-			Summary:           tempDossier.Summary,
-			Age:               tempDossier.Age,
-			Poste:             tempDossier.Poste,
-			Diplome:           tempDossier.Diplome,
-			Experience:        tempDossier.Experience,
-			Mobilite:          tempDossier.Mobilite,
-			Disponibilite:     tempDossier.Disponibilite,
-			PermisB:           tempDossier.PermisB,
-			Hobbies:           tempDossier.Hobbies,
-			Languages:         languages,
-			SecteursActivites: tempDossier.SecteursActivites,
-			DomainesExpertise: tempDossier.DomainesExpertise,
-			Formations:        tempDossier.Formations,
-			Experiences:       tempDossier.Experiences,
-			Logiciels:         tempDossier.Logiciels,
-			Certifications:    tempDossier.Certifications,
-			TechnicalSkills:   tempDossier.TechnicalSkills,
+			Prenom:                  tempDossier.Prenom,
+			Nom:                     tempDossier.Nom,
+			Email:                   tempDossier.Email,
+			Phone:                   tempDossier.Phone,
+			Summary:                 tempDossier.Summary,
+			Age:                     tempDossier.Age,
+			Poste:                   tempDossier.Poste,
+			Diplome:                 tempDossier.Diplome,
+			Experience:              tempDossier.Experience,
+			Mobilite:                tempDossier.Mobilite,
+			Disponibilite:           tempDossier.Disponibilite,
+			PermisB:                 tempDossier.PermisB,
+			Hobbies:                 tempDossier.Hobbies,
+			Languages:               languages,
+			SecteursActivites:       tempDossier.SecteursActivites,
+			DomainesExpertise:       tempDossier.DomainesExpertise,
+			Formations:              tempDossier.Formations,
+			Experiences:             tempDossier.Experiences,
+			Logiciels:               tempDossier.Logiciels,
+			Certifications:          tempDossier.Certifications,
+			TechnicalSkills:         tempDossier.TechnicalSkills,
+			CompetenceFonctionnelle: tempDossier.CompetenceFonctionnelle,
 		}
 
 		// Log du dossier après transformation
 		log.Printf("🔄 DEBUG JOBS - Dossier après transformation:")
+		log.Printf("   - CompetenceFonctionnelle: %+v (len=%d)", dossier.CompetenceFonctionnelle, len(dossier.CompetenceFonctionnelle))
+		log.Printf("   - Nombre d'expériences: %d", len(dossier.Experiences))
+		for i, exp := range dossier.Experiences {
+			log.Printf("   - Expérience #%d - projets_name: %+v, result: '%s'", i+1, exp.ProjetsName, exp.Result)
+		}
+		log.Printf("   - Nombre de logiciels: %d", len(dossier.Logiciels))
+		for i, logiciel := range dossier.Logiciels {
+			log.Printf("   - Logiciel #%d (%s): level='%s', temps_utilisation='%s'", i+1, logiciel.Logiciel, logiciel.Level, logiciel.TempsUtilisation)
+		}
 		dossierJSON, _ := json.MarshalIndent(dossier, "   ", "  ")
-		log.Printf("   - Dossier structuré:\n%s", string(dossierJSON))
+		log.Printf("   - Dossier structuré (JSON complet):\n%s", string(dossierJSON))
 
 		// Log spécifique des langues après transformation
 		log.Printf("   - Languages après transformation: %+v (type: %T)", dossier.Languages, dossier.Languages)

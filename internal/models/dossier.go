@@ -19,6 +19,8 @@ type Experience struct {
 	Contexte         string   `json:"contexte"`
 	Projet           string   `json:"projet"`
 	ProjetSummary    string   `json:"projet_summary"`
+	ProjetsName      []string `json:"projets_name"`
+	Result           string   `json:"result"`
 	Logiciels        []string `json:"logiciels"`
 	Realisations     []string `json:"réalisations"`
 	AISuggest        []string `json:"AI_suggest"`
@@ -51,9 +53,10 @@ type CompetenceDossier struct {
 	DomainesExpertise []string     `json:"domaines_expertise"`
 	Formations        []Formation  `json:"formations"`
 	Experiences       []Experience `json:"expériences"`
-	Logiciels         []Logiciel   `json:"logiciels"`
-	Certifications    []string     `json:"certifications"`
-	TechnicalSkills   []string     `json:"technical_skills"`
+	Logiciels              []Logiciel   `json:"logiciels"`
+	Certifications         []string     `json:"certifications"`
+	TechnicalSkills        []string     `json:"technical_skills"`
+	CompetenceFonctionnelle []string     `json:"competence_fonctionnelle"`
 }
 
 // ChangelogEntry représente une modification dans le changelog

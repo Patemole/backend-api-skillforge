@@ -2,27 +2,28 @@ package nuextract
 
 // CVExtractionSchema représente la structure d'un CV extrait
 type CVExtractionSchema struct {
-	Prenom            string         `json:"prenom"`
-	Nom               string         `json:"nom"`
-	Email             string         `json:"email"`
-	Phone             string         `json:"phone"`
-	Age               string         `json:"age"`
-	Summary           string         `json:"summary"`
-	Poste             string         `json:"poste"`
-	Diplome           string         `json:"diplome"`
-	Experience        string         `json:"expérience"`
-	Mobilite          string         `json:"mobilité"`
-	Disponibilite     string         `json:"disponibilité"`
-	PermisB           bool           `json:"permis_B"`
-	Hobbies           []string       `json:"hobbies"`
-	Languages         []LanguageInfo `json:"languages"`
-	Certifications    []string       `json:"certifications"`
-	TechnicalSkills   []string       `json:"technical_skills"`
-	SecteursActivites []string       `json:"secteurs_activites"`
-	DomainesExpertise []string       `json:"domaines_expertise"`
-	Formations        []Formation    `json:"formations"`
-	Experiences       []Experience   `json:"expériences"`
-	Logiciels         []LogicielInfo `json:"logiciels"`
+	Prenom                  string         `json:"prenom"`
+	Nom                     string         `json:"nom"`
+	Email                   string         `json:"email"`
+	Phone                   string         `json:"phone"`
+	Age                     string         `json:"age"`
+	Summary                 string         `json:"summary"`
+	Poste                   string         `json:"poste"`
+	Diplome                 string         `json:"diplome"`
+	Experience              string         `json:"expérience"`
+	Mobilite                string         `json:"mobilité"`
+	Disponibilite           string         `json:"disponibilité"`
+	PermisB                 bool           `json:"permis_B"`
+	Hobbies                 []string       `json:"hobbies"`
+	Languages               []LanguageInfo `json:"languages"`
+	Certifications          []string       `json:"certifications"`
+	TechnicalSkills         []string       `json:"technical_skills"`
+	CompetenceFonctionnelle []string       `json:"competence_fonctionnelle"`
+	SecteursActivites       []string       `json:"secteurs_activites"`
+	DomainesExpertise       []string       `json:"domaines_expertise"`
+	Formations              []Formation    `json:"formations"`
+	Experiences             []Experience   `json:"expériences"`
+	Logiciels               []LogicielInfo `json:"logiciels"`
 }
 
 // LanguageInfo représente une langue parlée
@@ -49,6 +50,8 @@ type Experience struct {
 	Poste            string   `json:"poste"`
 	Contexte         string   `json:"contexte"`
 	Projet           string   `json:"projet"`
+	ProjetsName      []string `json:"projets_name"`
+	Result           string   `json:"result"`
 	Logiciels        []string `json:"logiciels"`
 	Realisations     []string `json:"réalisations"`
 	AISuggest        []string `json:"AI_suggest"`
@@ -150,6 +153,13 @@ func GetCVExtractionSchema() map[string]interface{} {
 			},
 			"description": "Compétences techniques",
 		},
+		"competence_fonctionnelle": map[string]interface{}{
+			"type": "array",
+			"items": map[string]interface{}{
+				"type": "string",
+			},
+			"description": "Compétences fonctionnelles",
+		},
 		"secteurs_activites": map[string]interface{}{
 			"type": "array",
 			"items": map[string]interface{}{
@@ -215,6 +225,17 @@ func GetCVExtractionSchema() map[string]interface{} {
 					},
 					"projet": map[string]interface{}{
 						"type": "string",
+					},
+					"projets_name": map[string]interface{}{
+						"type": "array",
+						"items": map[string]interface{}{
+							"type": "string",
+						},
+						"description": "Noms des projets mentionnés pour cette expérience",
+					},
+					"result": map[string]interface{}{
+						"type":        "string",
+						"description": "Phrase courte expliquant le résultat de l'expérience",
 					},
 					"logiciels": map[string]interface{}{
 						"type": "array",
