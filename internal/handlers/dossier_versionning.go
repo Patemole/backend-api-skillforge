@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 
 	"backend-api-skillforge/internal/models"
 	"backend-api-skillforge/internal/openai"
@@ -18,6 +19,7 @@ type DossierVersionningRequest struct {
 	Need              *string                  `json:"need,omitempty"`
 	CandidateID       string                   `json:"candidate_id" binding:"required"`
 	CompetenceDossier models.CompetenceDossier `json:"competence_dossier" binding:"required"`
+	Language          string                   `json:"language,omitempty"` // "fr" ou "en", défaut: "fr"
 }
 
 // DossierVersionningResponse représente la réponse
@@ -25,6 +27,7 @@ type DossierVersionningResponse struct {
 	CandidateID       string                   `json:"candidate_id"`
 	CompetenceDossier models.CompetenceDossier `json:"competence_dossier"`
 	Changelog         []models.ChangelogEntry  `json:"changelog"`
+	Language          string                   `json:"language"` // "fr" ou "en"
 }
 
 // CreateDossierVersion gère la création d'une nouvelle version de dossier de compétences.
@@ -53,19 +56,29 @@ func CreateDossierVersion(c *gin.Context) {
 		return
 	}
 
+	// Normaliser la langue (fr par défaut, seulement fr ou en supportés)
+	language := strings.TrimSpace(req.Language)
+	if language == "" {
+		language = "fr"
+	}
+	if language != "en" && language != "fr" {
+		language = "fr" // Fallback sur fr si langue non supportée
+	}
+
 	log.Printf("✅ DOSSIER VERSIONNING - Payload validé:")
 	log.Printf("   - Candidate ID: %s", req.CandidateID)
 	log.Printf("   - New Title: %s", req.NewTitle)
 	log.Printf("   - Need: %v", req.Need)
+	log.Printf("   - Language: %s", language)
 	log.Printf("   - Dossier source reçu: %d expériences, %d formations",
 		len(req.CompetenceDossier.Experiences), len(req.CompetenceDossier.Formations))
 
-	service := openai.NewDossierVersionningService()
-	log.Printf("🤖 DOSSIER VERSIONNING - Appel OpenAI en cours...")
+	service := openai.NewDossierVersionningServiceAnthropic()
+	log.Printf("🤖 DOSSIER VERSIONNING - Appel Anthropic en cours...")
 
-	newDossier, err := service.GenerateVersionnedDossier(req.CandidateID, req.CompetenceDossier, req.Need)
+	newDossier, err := service.GenerateVersionnedDossier(req.CandidateID, req.CompetenceDossier, req.Need, language)
 	if err != nil {
-		log.Printf("❌ DOSSIER VERSIONNING - Erreur OpenAI: %v", err)
+		log.Printf("❌ DOSSIER VERSIONNING - Erreur Anthropic: %v", err)
 		c.JSON(http.StatusBadGateway, gin.H{"error": err.Error()})
 		return
 	}
@@ -100,7 +113,7 @@ func CreateDossierVersion(c *gin.Context) {
 		}
 	}
 
-	log.Printf("✅ DOSSIER VERSIONNING - Réponse OpenAI reçue:")
+	log.Printf("✅ DOSSIER VERSIONNING - Réponse Anthropic reçue:")
 	log.Printf("   - Dossier versionné: %d expériences, %d formations",
 		len(newDossier.Experiences), len(newDossier.Formations))
 	log.Printf("   - Poste: %s", newDossier.Poste)
@@ -144,6 +157,7 @@ func CreateDossierVersion(c *gin.Context) {
 		CandidateID:       req.CandidateID,
 		CompetenceDossier: *newDossier,
 		Changelog:         changelog,
+		Language:          language,
 	}
 
 	// Afficher le payload JSON complet envoyé au frontend

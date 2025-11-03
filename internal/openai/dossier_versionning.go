@@ -26,8 +26,10 @@ func min(a, b int) int {
 // DossierVersionningService gère l'adaptation d'un dossier de compétences
 // en fonction d'un besoin client, sans inventer d'informations.
 type DossierVersionningService struct {
-	apiKey string
-	config nuextract.OpenAIConfig
+	apiKey          string
+	config          nuextract.OpenAIConfig
+	anthropicConfig nuextract.AnthropicConfig
+	useAnthropic    bool
 }
 
 // NewDossierVersionningService crée une nouvelle instance du service.
@@ -37,13 +39,31 @@ func NewDossierVersionningService() *DossierVersionningService {
 		panic("OPENAI_API_KEY not set")
 	}
 	cfg := nuextract.GetOpenAIConfig()
-	return &DossierVersionningService{apiKey: apiKey, config: cfg}
+	return &DossierVersionningService{apiKey: apiKey, config: cfg, useAnthropic: false}
 }
 
-// GenerateVersionnedDossier appelle OpenAI pour produire un nouveau dossier de compétences
+// NewDossierVersionningServiceAnthropic crée une nouvelle instance du service utilisant Anthropic.
+func NewDossierVersionningServiceAnthropic() *DossierVersionningService {
+	apiKey := os.Getenv("ANTHROPIC_API_KEY")
+	if apiKey == "" {
+		panic("ANTHROPIC_API_KEY not set")
+	}
+	aCfg := nuextract.GetAnthropicConfig()
+	return &DossierVersionningService{apiKey: apiKey, anthropicConfig: aCfg, useAnthropic: true}
+}
+
+// GenerateVersionnedDossier appelle OpenAI ou Anthropic pour produire un nouveau dossier de compétences
 // en conservant strictement le même schéma que models.CompetenceDossier.
-func (s *DossierVersionningService) GenerateVersionnedDossier(candidateID string, competenceDossier models.CompetenceDossier, need *string) (*models.CompetenceDossier, error) {
-	log.Printf("🤖 OPENAI VERSIONNING - Début de la génération")
+func (s *DossierVersionningService) GenerateVersionnedDossier(candidateID string, competenceDossier models.CompetenceDossier, need *string, language string) (*models.CompetenceDossier, error) {
+	if s.useAnthropic {
+		return s.generateVersionnedDossierAnthropic(candidateID, competenceDossier, need, language)
+	}
+	return s.generateVersionnedDossierOpenAI(candidateID, competenceDossier, need, language)
+}
+
+// generateVersionnedDossierOpenAI appelle OpenAI pour produire un nouveau dossier de compétences
+func (s *DossierVersionningService) generateVersionnedDossierOpenAI(candidateID string, competenceDossier models.CompetenceDossier, need *string, language string) (*models.CompetenceDossier, error) {
+	log.Printf("🤖 OPENAI VERSIONNING - Début de la génération (langue: %s)", language)
 
 	// Sérialiser le dossier source pour le mettre dans le prompt
 	sourceJSON, err := json.MarshalIndent(competenceDossier, "", "  ")
@@ -53,7 +73,7 @@ func (s *DossierVersionningService) GenerateVersionnedDossier(candidateID string
 	}
 
 	log.Printf("📝 OPENAI VERSIONNING - Prompt construit (taille: %d chars)", len(sourceJSON))
-	prompt := s.buildVersionningPrompt(string(sourceJSON), need)
+	prompt := s.buildVersionningPrompt(string(sourceJSON), need, language)
 
 	payload := map[string]any{
 		"model": s.config.Model, // Utilise la même config que /extract
@@ -63,12 +83,18 @@ func (s *DossierVersionningService) GenerateVersionnedDossier(candidateID string
 				"content": prompt,
 			},
 		},
-		"max_tokens":        s.config.MaxTokens,
 		"temperature":       s.config.Temperature, // Utilise la même température que /extract (0.1)
 		"top_p":             s.config.TopP,
 		"frequency_penalty": s.config.FrequencyPenalty,
 		"presence_penalty":  s.config.PresencePenalty,
 		// Pas de response_format: json_object - on utilise le prompt strict comme /extract
+	}
+
+	// Ajouter les paramètres de tokens selon le modèle
+	if s.config.MaxCompletionTokens > 0 {
+		payload["max_completion_tokens"] = s.config.MaxCompletionTokens
+	} else if s.config.MaxTokens > 0 {
+		payload["max_tokens"] = s.config.MaxTokens
 	}
 
 	bodyBytes, err := json.Marshal(payload)
@@ -174,6 +200,125 @@ func (s *DossierVersionningService) GenerateVersionnedDossier(candidateID string
 	return &newDossier, nil
 }
 
+// generateVersionnedDossierAnthropic appelle Anthropic pour produire un nouveau dossier de compétences
+func (s *DossierVersionningService) generateVersionnedDossierAnthropic(candidateID string, competenceDossier models.CompetenceDossier, need *string, language string) (*models.CompetenceDossier, error) {
+	log.Printf("🤖 ANTHROPIC VERSIONNING - Début de la génération (langue: %s)", language)
+
+	// Sérialiser le dossier source pour le mettre dans le prompt
+	sourceJSON, err := json.MarshalIndent(competenceDossier, "", "  ")
+	if err != nil {
+		log.Printf("❌ ANTHROPIC VERSIONNING - Erreur sérialisation: %v", err)
+		return nil, fmt.Errorf("échec de la sérialisation du dossier source: %v", err)
+	}
+
+	log.Printf("📝 ANTHROPIC VERSIONNING - Prompt construit (taille: %d chars)", len(sourceJSON))
+	prompt := s.buildVersionningPrompt(string(sourceJSON), need, language)
+
+	// Appel Anthropic Messages API
+	payload := map[string]any{
+		"model":      s.anthropicConfig.Model,
+		"max_tokens": s.anthropicConfig.MaxTokens,
+		"messages": []map[string]string{
+			{"role": "user", "content": prompt},
+		},
+	}
+
+	bodyBytes, err := json.Marshal(payload)
+	if err != nil {
+		log.Printf("❌ ANTHROPIC VERSIONNING - Erreur sérialisation payload: %v", err)
+		return nil, fmt.Errorf("erreur lors de la sérialisation de la requête: %v", err)
+	}
+
+	log.Printf("🚀 ANTHROPIC VERSIONNING - Envoi requête à Anthropic (taille: %d bytes)", len(bodyBytes))
+	httpReq, err := http.NewRequest(http.MethodPost, "https://api.anthropic.com/v1/messages", bytes.NewReader(bodyBytes))
+	if err != nil {
+		log.Printf("❌ ANTHROPIC VERSIONNING - Erreur création requête: %v", err)
+		return nil, fmt.Errorf("erreur lors de la création de la requête: %v", err)
+	}
+	httpReq.Header.Set("x-api-key", s.apiKey)
+	httpReq.Header.Set("anthropic-version", "2023-06-01")
+	httpReq.Header.Set("content-type", "application/json")
+
+	client := &http.Client{Timeout: 180 * time.Second}
+	resp, err := client.Do(httpReq)
+	if err != nil {
+		log.Printf("❌ ANTHROPIC VERSIONNING - Erreur envoi requête: %v", err)
+		return nil, fmt.Errorf("erreur lors de l'envoi de la requête: %v", err)
+	}
+	defer resp.Body.Close()
+
+	log.Printf("📡 ANTHROPIC VERSIONNING - Réponse reçue (status: %d)", resp.StatusCode)
+
+	respBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("❌ ANTHROPIC VERSIONNING - Erreur lecture réponse: %v", err)
+		return nil, fmt.Errorf("erreur lors de la lecture de la réponse: %v", err)
+	}
+	if resp.StatusCode >= 400 {
+		log.Printf("❌ ANTHROPIC VERSIONNING - Erreur API Anthropic %d: %s", resp.StatusCode, string(respBytes))
+		return nil, fmt.Errorf("anthropic error %d: %s", resp.StatusCode, string(respBytes))
+	}
+
+	log.Printf("✅ ANTHROPIC VERSIONNING - Réponse lue (taille: %d bytes)", len(respBytes))
+
+	// Parse basique du format Messages (content[0].text)
+	var aResp struct {
+		Content []struct {
+			Text string `json:"text"`
+			Type string `json:"type"`
+		} `json:"content"`
+	}
+	if err := json.Unmarshal(respBytes, &aResp); err != nil {
+		log.Printf("❌ ANTHROPIC VERSIONNING - Erreur parsing réponse: %v", err)
+		return nil, fmt.Errorf("erreur lors du parsing de la réponse: %v", err)
+	}
+	if len(aResp.Content) == 0 || strings.TrimSpace(aResp.Content[0].Text) == "" {
+		log.Printf("❌ ANTHROPIC VERSIONNING - Contenu vide")
+		return nil, fmt.Errorf("anthropic returned empty content")
+	}
+
+	content := strings.TrimSpace(aResp.Content[0].Text)
+	log.Printf("📄 ANTHROPIC VERSIONNING - Contenu brut reçu (taille: %d chars)", len(content))
+
+	// Dé-fencer au cas où
+	if strings.HasPrefix(content, "```") {
+		content = strings.TrimPrefix(content, "```json")
+		content = strings.TrimPrefix(content, "```")
+		content = strings.TrimSuffix(content, "```")
+		content = strings.TrimSpace(content)
+		log.Printf("🔧 ANTHROPIC VERSIONNING - Contenu nettoyé (taille: %d chars)", len(content))
+	}
+
+	// Nettoyer les caractères d'échappement problématiques
+	content = strings.ReplaceAll(content, "\\\"", "\"")
+	content = strings.ReplaceAll(content, "\\n", "\n")
+	content = strings.ReplaceAll(content, "\\t", "\t")
+	log.Printf("🧹 ANTHROPIC VERSIONNING - Contenu nettoyé des échappements (taille: %d chars)", len(content))
+
+	// Normaliser le JSON pour corriger les types de données
+	normalizedContent, err := s.normalizeJSONTypes(content)
+	if err != nil {
+		log.Printf("❌ ANTHROPIC VERSIONNING - Erreur normalisation JSON: %v", err)
+		return nil, fmt.Errorf("erreur lors de la normalisation du JSON: %v", err)
+	}
+	log.Printf("🔧 ANTHROPIC VERSIONNING - JSON normalisé (taille: %d chars)", len(normalizedContent))
+
+	var newDossier models.CompetenceDossier
+	if err := json.Unmarshal([]byte(normalizedContent), &newDossier); err != nil {
+		log.Printf("❌ ANTHROPIC VERSIONNING - Erreur parsing JSON final: %v", err)
+		log.Printf("❌ ANTHROPIC VERSIONNING - Contenu problématique (premiers 500 chars): %s", normalizedContent[:min(500, len(normalizedContent))])
+		return nil, fmt.Errorf("réponse Anthropic invalide (JSON): %v; contenu: %s", err, normalizedContent)
+	}
+
+	log.Printf("✅ ANTHROPIC VERSIONNING - Dossier versionné parsé avec succès:")
+	log.Printf("   - Nom: %s %s", newDossier.Prenom, newDossier.Nom)
+	log.Printf("   - Poste: %s", newDossier.Poste)
+	log.Printf("   - Expériences: %d", len(newDossier.Experiences))
+	log.Printf("   - Formations: %d", len(newDossier.Formations))
+
+	return &newDossier, nil
+}
+
 // normalizeJSONTypes corrige les types de données dans le JSON pour éviter les erreurs de parsing
 func (s *DossierVersionningService) normalizeJSONTypes(jsonContent string) (string, error) {
 	// Parser le JSON en interface{} pour pouvoir le manipuler
@@ -246,13 +391,21 @@ func (s *DossierVersionningService) ensureArray(value interface{}) interface{} {
 
 // buildVersionningPrompt construit le prompt de transformation en insistant sur
 // la conservation stricte du schéma de sortie, comme dans /extract.
-func (s *DossierVersionningService) buildVersionningPrompt(sourceDossierJSON string, need *string) string {
+func (s *DossierVersionningService) buildVersionningPrompt(sourceDossierJSON string, need *string, language string) string {
 	needText := ""
 	if need != nil {
 		needText = *need
 	}
 
-	// Prompt optimisé pour éviter les timeouts
+	// Adapter le prompt selon la langue
+	if language == "en" {
+		return s.buildVersionningPromptEnglish(sourceDossierJSON, needText)
+	}
+	return s.buildVersionningPromptFrench(sourceDossierJSON, needText)
+}
+
+// buildVersionningPromptFrench construit le prompt en français
+func (s *DossierVersionningService) buildVersionningPromptFrench(sourceDossierJSON string, needText string) string {
 	return fmt.Sprintf(`Adapte ce dossier de compétences selon le besoin client. RÈGLES CRITIQUES:
 
 1. CONSERVE TOUT: prenom, nom, email, phone, age, diplome, expérience, mobilité, disponibilité, permis_B
@@ -266,4 +419,21 @@ DOSSIER:
 %s
 
 Réponds UNIQUEMENT avec le JSON, sans texte avant/après.`, needText, sourceDossierJSON)
+}
+
+// buildVersionningPromptEnglish construit le prompt en anglais
+func (s *DossierVersionningService) buildVersionningPromptEnglish(sourceDossierJSON string, needText string) string {
+	return fmt.Sprintf(`Adapt this competence portfolio according to the client's need. CRITICAL RULES:
+
+1. PRESERVE EVERYTHING: prenom, nom, email, phone, age, diplome, expérience, mobilité, disponibilité, permis_B
+2. RETURN ALL achievements (even if you don't modify them)
+3. MODIFY ONLY: contexte, projet, réalisations, summary, poste
+4. REORGANIZE by relevance if needed
+
+NEED: %s
+
+PORTFOLIO:
+%s
+
+Respond ONLY with the JSON, without text before/after.`, needText, sourceDossierJSON)
 }
