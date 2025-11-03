@@ -1,0 +1,241 @@
+Omar DAGDOUG
+
+Suresnes, 92150, Île-de-France – 07 45 55 72 12
+omar.dagdoug@outlook.com
+linkedin.com/in/omar-dagdoug/
+
+Consultant Décisionnel | Data Analyst & BI
+
+Consultant décisionnel avec plus de 4 ans d’expérience en Business Intelligence et analyse de données,
+spécialisé dans la conception de dashboards stratégiques et la fiabilisation des indicateurs. Mon parcours
+auprès de grands groupes (Renault, EY, ODDO BHF) m’a permis de conduire des projets de reporting de
+bout en bout, du recueil du besoin métier à la mise en production.
+
+FORMATION
+
+2016 - 2020
+
+CYCLE D'INGENIEUR EN GENIE LOGICIEL SPECIALITE : ERP-BI
+
+Ecole Supérieure Privée d'Ingénierie et des Technologie (ESPRIT) – Tunisie
+
+2013 - 2016
+
+CYCLE PREPARATOIRE
+
+Institut préparatoire aux études d’ingénieurs d’El Manar (IPEIEM) – Tunisie
+Parcours : Sciences Techniques et Physiques
+
+LANGUE
+
+•
+•
+• Français
+Anglais
+Arabe
+
+CERTIFICATION
+
+2022
+
+Professional Scrum Product Owner | PSPO I
+
+Udemy, 2020
+
+Modern Web Scraping with Python using Scrapy Spalsh Selenium
+
+NVIDIA Deep Learning Institute, 2019
+
+Fundamentals of Deep Learning For Computer Vision
+
+COMPETENCES
+
+• Reporting
+
+-
+-
+-
+-
+
+•
+
+Looker
+Spotfire
+PowerBI
+SSRS
+
+ETL
+
+-
+-
+- SSIS
+Alteryx
+Talend
+
+• Base de données
+
+-
+-
+-
+
+•
+
+Oracle
+SQL Server
+PostgreSQL
+Langage de
+
+programmation
+
+-
+-
+-
+- Python
+SQL
+C#
+HTML, CSS, JS
+
+•
+
+-
+- Java
+UML
+Système d’exploitation
+
+-
+- Windows
+Linux
+
+
+EXPERIENCE
+
+Mars.2023 – AUJOURD’HUI
+
+DATA ANALYST (JEMS), RENAULT
+
+Tâches Réalisées :
+
+•
+
+•
+
+•
+
+•
+
+Conception d’un dashboard interactif Spotfire centralisant des données multisources pour la Direction Qualité & Industrie.
+Migration réussie vers Looker, menée de bout en bout (auto-formation,
+développement, tests, mise en production).
+Pilotage d’un projet transverse pour développer un second dashboard Looker
+dédié au Pôle Qualité Fournisseur, intégrant et harmonisant les KPIs multiéquipes.
+Contribution à la gouvernance des données et à la fiabilisation des indicateurs
+utilisés dans les décisions stratégiques.
+
+Equipe : 4 personnes.
+ENVIRONNEMENT TECHNIQUE Looker, Spotfire, GCP, Excel, Python, JS, SQL, LookML
+
+SEP.2022 – FEV.2023
+
+FORMATEUR DATA SCIENCE (GOMYCODE),
+
+Tâches Réalisées :
+
+•
+
+•
+
+Formation et accompagnement de +10 étudiants en Python, SQL, statistiques,
+Machine Learning et Deep Learning.
+Supervision de projets appliqués : visualisation de données, modélisation
+prédictive, introduction au Big Data.
+
+Environnement technique Python, R, SQL.
+
+2
+
+
+NOV.2021 – AOUT. 2022
+
+DATA ANALYST (EY), Renault
+
+Mission : Conception d’un dashboard interactif sur Spotfire pour le bureau exécutif
+Tâches Réalisées :
+• Préparation et nettoyage des données avec Alteryx et conception des flux
+
+•
+
+•
+
+•
+
+d’alimentation
+Paramétrage des filtres et alignement des indicateurs avec les tableaux de
+données
+Développement de scripts JavaScript pour assurer la cohérence entre
+visualisations
+Organisation des campagnes de tests unitaires et non régression avant mise en
+production
+
+Equipe : 4 personnes.
+Environnement technique : Spotfire, Alteryx, Python, SQL, HTML, CSS, JavaScript
+
+DEC.2020 – OCT. 2021
+
+DATA ANALYST |AMOA (EY), PETRONEOIS
+
+Mission : Maintenance évolutive et déploiement d’une application de gestion des lignes sur
+environnement Azure.
+Tâches Réalisées :
+• Conception et ajout de pages de restitution pour couvrir spécifications et états d’avancement.
+• Mise en place d’une connexion multi utilisateurs avec rôles et droits spécifiques.
+• Automatisation de scripts Shell pour fiabiliser tâches récurrentes.
+• Rédaction des spécifications techniques et préparation du cahier de recette.
+• Organisation et exécution des tests unitaires et des tests de non-régression.
+• Formation et transmission des bonnes pratiques aux utilisateurs métier.
+
+Equipe : 2 personnes
+Environnement technique : Python, Flask, Jinja2, JavaScript, SqlAlchemy, Azure, Linux
+
+JAN.2020 – JUL.2020
+
+CONSULTANT BI (Stage), EY
+
+Mission : Mise en place d’un modèle d’estimation des prix des voitures d’occasions
+Tâches Réalisées :
+• Formation et transmission des bonnes pratiques aux utilisateurs métier.
+• Compréhension du besoin métier.
+• Web-scraping des données sur les annonces de vente en Tunisie.
+• Préparation et nettoyage des données.
+• Modélisation de l’algorithme de prédiction en Python.
+• Évaluation et déploiement via une Web APP.
+
+Environnement technique : Python (Scrapy, Pandas, Numpy, Sklearn, Matplotlib)
+
+3
+
+
+JAN.2019 – MAI.2019
+
+CONSULTANT BI (Stage), ODDO BHF
+
+Mission : Participation à la mise en place d’une plateforme Big Data pour l’identification de
+clients potentiels (institutionnels et privés).
+Tâches Réalisées :
+• Conception et développement des flux ETL avec Talend pour alimenter l’entrepôt de
+
+•
+
+•
+
+données.
+Modélisation de l’entrepôt et création de cubes multidimensionnels pour structurer
+et fiabiliser l’analyse.
+Développement de dashboards Power BI permettant au management d’optimiser le
+ciblage commercial.
+
+Equipe : 4 personnes
+Environnement technique : Talend, Power BI, SQL Server 2016, Python, SQL
+
+4
+
+

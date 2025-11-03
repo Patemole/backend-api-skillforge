@@ -48,6 +48,7 @@ type Experience struct {
 	DetailEntreprise string   `json:"detail_entreprise"`
 	Duree            string   `json:"durée"`
 	Poste            string   `json:"poste"`
+	Secteur          string   `json:"secteur"`
 	Contexte         string   `json:"contexte"`
 	Projet           string   `json:"projet"`
 	ProjetsName      []string `json:"projets_name"`
@@ -219,6 +220,10 @@ func GetCVExtractionSchema() map[string]interface{} {
 					},
 					"poste": map[string]interface{}{
 						"type": "string",
+					},
+					"secteur": map[string]interface{}{
+						"type":        "string",
+						"description": "Secteur d'activité de l'expérience (1-2 mots, ex: Agroalimentaire, Automobile, Banque, Bâtiments, Biomédical, Chimie, Conseil, Défense, Énergie, Environnement, Ferroviaire, Grande distribution, Infrastructure, Logistique, Métallurgie / Sidérurgie, Naval, Nucléaire, Oil & Gas, Pétrochimie, Pharmaceutique, Santé, Secteur public, Télécommunications, IRVE, Photovoltaïque, Traitement des eaux, Revalorisation énergétique, Hydroélectricité, ENR (Énergies renouvelables), Énergie éolienne, Biogaz, Education, Ressources Humaines)",
 					},
 					"contexte": map[string]interface{}{
 						"type": "string",
