@@ -15,11 +15,84 @@ import (
 
 // DossierVersionningRequest représente la requête pour créer une nouvelle version
 type DossierVersionningRequest struct {
-	NewTitle          string                   `json:"new_title"`
-	Need              *string                  `json:"need,omitempty"`
-	CandidateID       string                   `json:"candidate_id" binding:"required"`
-	CompetenceDossier models.CompetenceDossier `json:"competence_dossier" binding:"required"`
-	Language          string                   `json:"language,omitempty"` // "fr" ou "en", défaut: "fr"
+	NewTitle          string                        `json:"new_title"`
+	Need              *string                       `json:"need,omitempty"`
+	CandidateID       string                        `json:"candidate_id" binding:"required"`
+	CompetenceDossier CompetenceDossierIntermediate `json:"competence_dossier" binding:"required"`
+	Language          string                        `json:"language,omitempty"` // "fr" ou "en", défaut: "fr"
+}
+
+// CompetenceDossierIntermediate est une structure intermédiaire pour accepter les langues au format objet ou string
+type CompetenceDossierIntermediate struct {
+	Prenom                  string              `json:"prenom"`
+	Nom                     string              `json:"nom"`
+	Email                   string              `json:"email"`
+	Phone                   string              `json:"phone"`
+	Summary                 string              `json:"summary"`
+	Age                     string              `json:"age"`
+	Poste                   string              `json:"poste"`
+	Diplome                 string              `json:"diplome"`
+	Experience              string              `json:"expérience"`
+	Mobilite                string              `json:"mobilité"`
+	Disponibilite           string              `json:"disponibilité"`
+	PermisB                 string              `json:"permis_B"`
+	Hobbies                 []string            `json:"hobbies"`
+	Languages               []interface{}       `json:"languages"` // Interface{} pour accepter strings et objets
+	SecteursActivites       []string            `json:"secteurs_activites"`
+	DomainesExpertise       []string            `json:"domaines_expertise"`
+	Formations              []models.Formation  `json:"formations"`
+	Experiences             []models.Experience `json:"expériences"`
+	Logiciels               []models.Logiciel   `json:"logiciels"`
+	Certifications          []string            `json:"certifications"`
+	TechnicalSkills         []string            `json:"technical_skills"`
+	CompetenceFonctionnelle []string            `json:"competence_fonctionnelle"`
+}
+
+// ToCompetenceDossier convertit la structure intermédiaire vers CompetenceDossier
+func (c *CompetenceDossierIntermediate) ToCompetenceDossier() models.CompetenceDossier {
+	// Convertir les langues
+	var languages []string
+	for _, lang := range c.Languages {
+		switch v := lang.(type) {
+		case string:
+			// Langue simple (ex: "Français")
+			languages = append(languages, v)
+		case map[string]interface{}:
+			// Langue avec niveau (ex: {"language": "Chinois", "level": "Intermediaire"})
+			if langName, ok := v["language"].(string); ok {
+				if level, ok := v["level"].(string); ok && level != "" {
+					languages = append(languages, langName+" ("+level+")")
+				} else {
+					languages = append(languages, langName)
+				}
+			}
+		}
+	}
+
+	return models.CompetenceDossier{
+		Prenom:                  c.Prenom,
+		Nom:                     c.Nom,
+		Email:                   c.Email,
+		Phone:                   c.Phone,
+		Summary:                 c.Summary,
+		Age:                     c.Age,
+		Poste:                   c.Poste,
+		Diplome:                 c.Diplome,
+		Experience:              c.Experience,
+		Mobilite:                c.Mobilite,
+		Disponibilite:           c.Disponibilite,
+		PermisB:                 c.PermisB,
+		Hobbies:                 c.Hobbies,
+		Languages:               languages,
+		SecteursActivites:       c.SecteursActivites,
+		DomainesExpertise:       c.DomainesExpertise,
+		Formations:              c.Formations,
+		Experiences:             c.Experiences,
+		Logiciels:               c.Logiciels,
+		Certifications:          c.Certifications,
+		TechnicalSkills:         c.TechnicalSkills,
+		CompetenceFonctionnelle: c.CompetenceFonctionnelle,
+	}
 }
 
 // DossierVersionningResponse représente la réponse
@@ -65,18 +138,21 @@ func CreateDossierVersion(c *gin.Context) {
 		language = "fr" // Fallback sur fr si langue non supportée
 	}
 
+	// Convertir la structure intermédiaire vers CompetenceDossier
+	competenceDossier := req.CompetenceDossier.ToCompetenceDossier()
+
 	log.Printf("✅ DOSSIER VERSIONNING - Payload validé:")
 	log.Printf("   - Candidate ID: %s", req.CandidateID)
 	log.Printf("   - New Title: %s", req.NewTitle)
 	log.Printf("   - Need: %v", req.Need)
 	log.Printf("   - Language: %s", language)
 	log.Printf("   - Dossier source reçu: %d expériences, %d formations",
-		len(req.CompetenceDossier.Experiences), len(req.CompetenceDossier.Formations))
+		len(competenceDossier.Experiences), len(competenceDossier.Formations))
 
 	service := openai.NewDossierVersionningServiceAnthropic()
 	log.Printf("🤖 DOSSIER VERSIONNING - Appel Anthropic en cours...")
 
-	newDossier, err := service.GenerateVersionnedDossier(req.CandidateID, req.CompetenceDossier, req.Need, language)
+	newDossier, err := service.GenerateVersionnedDossier(req.CandidateID, competenceDossier, req.Need, language)
 	if err != nil {
 		log.Printf("❌ DOSSIER VERSIONNING - Erreur Anthropic: %v", err)
 		c.JSON(http.StatusBadGateway, gin.H{"error": err.Error()})
@@ -97,19 +173,19 @@ func CreateDossierVersion(c *gin.Context) {
 		}
 
 		// Log des réalisations source pour debug
-		if i < len(req.CompetenceDossier.Experiences) {
-			log.Printf("🔍 DOSSIER VERSIONNING - Expérience[%d] source: %d réalisations", i, len(req.CompetenceDossier.Experiences[i].Realisations))
-			if len(req.CompetenceDossier.Experiences[i].Realisations) > 0 {
-				for j, real := range req.CompetenceDossier.Experiences[i].Realisations {
+		if i < len(competenceDossier.Experiences) {
+			log.Printf("🔍 DOSSIER VERSIONNING - Expérience[%d] source: %d réalisations", i, len(competenceDossier.Experiences[i].Realisations))
+			if len(competenceDossier.Experiences[i].Realisations) > 0 {
+				for j, real := range competenceDossier.Experiences[i].Realisations {
 					log.Printf("   - Réalisation[%d]: %s", j, real)
 				}
 			}
 		}
 
 		// Si réalisations vides alors que le dossier source en avait, restaurer à l'identique
-		if len(newDossier.Experiences[i].Realisations) == 0 && i < len(req.CompetenceDossier.Experiences) && len(req.CompetenceDossier.Experiences[i].Realisations) > 0 {
-			log.Printf("⚠️ DOSSIER VERSIONNING - Réalisations manquantes pour expérience[%d], restauration des réalisations source (%d items)", i, len(req.CompetenceDossier.Experiences[i].Realisations))
-			newDossier.Experiences[i].Realisations = append([]string{}, req.CompetenceDossier.Experiences[i].Realisations...)
+		if len(newDossier.Experiences[i].Realisations) == 0 && i < len(competenceDossier.Experiences) && len(competenceDossier.Experiences[i].Realisations) > 0 {
+			log.Printf("⚠️ DOSSIER VERSIONNING - Réalisations manquantes pour expérience[%d], restauration des réalisations source (%d items)", i, len(competenceDossier.Experiences[i].Realisations))
+			newDossier.Experiences[i].Realisations = append([]string{}, competenceDossier.Experiences[i].Realisations...)
 		}
 	}
 
@@ -121,7 +197,7 @@ func CreateDossierVersion(c *gin.Context) {
 		len(newDossier.Experiences)+len(newDossier.Logiciels))
 
 	// Générer le changelog des modifications
-	changelog := generateChangelog(req.CompetenceDossier, *newDossier, req.Need)
+	changelog := generateChangelog(competenceDossier, *newDossier, req.Need)
 	log.Printf("📝 DOSSIER VERSIONNING - Changelog généré: %d modifications détectées", len(changelog))
 
 	// S'assurer que le changelog n'est jamais null

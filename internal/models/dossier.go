@@ -16,6 +16,7 @@ type Experience struct {
 	DetailEntreprise string   `json:"detail_entreprise"`
 	Duree            string   `json:"durée"`
 	Poste            string   `json:"poste"`
+	Secteur          string   `json:"secteur"`
 	Contexte         string   `json:"contexte"`
 	Projet           string   `json:"projet"`
 	ProjetSummary    string   `json:"projet_summary"`
