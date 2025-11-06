@@ -414,6 +414,110 @@ func ExtractCVAsync(c *gin.Context) {
 	})
 }
 
+// PdfToHtmlAsync handles PDF upload and creates a "pdf_to_html" job for conversion
+func PdfToHtmlAsync(c *gin.Context) {
+	log.Printf("ASYNC: Début de la création de job pdf_to_html")
+
+	// Récupération du fichier depuis le multipart/form-data
+	file, header, err := c.Request.FormFile("file")
+	if err != nil {
+		log.Printf("ERROR: Erreur récupération fichier: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "file not provided"})
+		return
+	}
+	defer file.Close()
+
+	data, err := io.ReadAll(file)
+	if err != nil {
+		log.Printf("ERROR: Erreur lecture fichier: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "cannot read file"})
+		return
+	}
+
+	// Récupération de l'organization_id (optionnel mais recommandé)
+	organizationID := strings.TrimSpace(c.PostForm("organization_id"))
+	userIDStr := strings.TrimSpace(c.PostForm("user_id"))
+	if userIDStr == "" {
+		// fallback soft si non fourni: UUID nul (0000..)
+		userIDStr = "00000000-0000-0000-0000-000000000000"
+	}
+	userID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "invalid user_id"})
+		return
+	}
+
+	// Limite de taille : 10MB (environ 13MB en base64)
+	const maxFileSize = 10 * 1024 * 1024 // 10MB
+	if len(data) > maxFileSize {
+		log.Printf("ERROR: Fichier trop volumineux: %d bytes (max: %d bytes)", len(data), maxFileSize)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"error":   "Fichier trop volumineux",
+			"detail":  fmt.Sprintf("Taille: %d bytes, maximum: %d bytes (10MB)", len(data), maxFileSize),
+		})
+		return
+	}
+
+	log.Printf("📦 [pdf_to_html_async] Fichier: %s, Taille: %d bytes (%.2f MB)", header.Filename, len(data), float64(len(data))/(1024*1024))
+
+	// Encodage base64 du fichier
+	encoded := base64.StdEncoding.EncodeToString(data)
+	encodedSize := len(encoded)
+	log.Printf("📦 [pdf_to_html_async] Taille base64: %d bytes (%.2f MB)", encodedSize, float64(encodedSize)/(1024*1024))
+
+	payload := map[string]any{
+		"filename":       header.Filename,
+		"file_base64":    encoded,
+		"organization_id": organizationID,
+	}
+
+	// Log taille payload avant insertion
+	payloadJSON, _ := json.Marshal(payload)
+	log.Printf("📦 [pdf_to_html_async] Taille payload JSON: %d bytes (%.2f MB)", len(payloadJSON), float64(len(payloadJSON))/(1024*1024))
+
+	now := time.Now().UTC().Format(time.RFC3339)
+	newJob := models.Job{
+		Type:      "pdf_to_html",
+		UserID:    userID,
+		Payload:   payload,
+		Status:    "pending", // Les jobs pdf_to_html seront traités par un worker
+		CreatedAt: now,
+		UpdatedAt: now,
+	}
+
+	// Insert job et récupérer l'id via representation
+	dataJSON, _, err := supabase.Client.From("jobs").Insert(newJob, false, "representation", "", "").Execute()
+	if err != nil {
+		log.Printf("ERROR: Échec de la création du job pdf_to_html: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success":           false,
+			"error":             "Échec de la création du job",
+			"error_code":        "JOB_CREATION_FAILED",
+			"technical_details": err.Error(),
+		})
+		return
+	}
+
+	var inserted []models.Job
+	if err := json.Unmarshal(dataJSON, &inserted); err != nil || len(inserted) == 0 {
+		log.Printf("ERROR: Parsing résultat insert job: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success":    false,
+			"error":      "Échec du parsing du résultat de création du job",
+			"error_code": "JOB_PARSING_FAILED",
+		})
+		return
+	}
+
+	c.JSON(http.StatusAccepted, gin.H{
+		"success": true,
+		"job_id":  inserted[0].ID,
+		"status":  "pending",
+		"type":    "pdf_to_html",
+	})
+}
+
 // sanitizeJSONResult retire d'éventuels blocs de code ```json ... ``` et extrait uniquement l'objet JSON
 func sanitizeJSONResult(b []byte) []byte {
 	s := strings.TrimSpace(string(b))
