@@ -436,6 +436,7 @@ func PdfToHtmlAsync(c *gin.Context) {
 
 	// Récupération de l'organization_id (optionnel mais recommandé)
 	organizationID := strings.TrimSpace(c.PostForm("organization_id"))
+	variableDelimiter := strings.TrimSpace(c.PostForm("variable_delimiter"))
 	userIDStr := strings.TrimSpace(c.PostForm("user_id"))
 	if userIDStr == "" {
 		// fallback soft si non fourni: UUID nul (0000..)
@@ -467,9 +468,10 @@ func PdfToHtmlAsync(c *gin.Context) {
 	log.Printf("📦 [pdf_to_html_async] Taille base64: %d bytes (%.2f MB)", encodedSize, float64(encodedSize)/(1024*1024))
 
 	payload := map[string]any{
-		"filename":       header.Filename,
-		"file_base64":    encoded,
-		"organization_id": organizationID,
+		"filename":           header.Filename,
+		"file_base64":        encoded,
+		"organization_id":    organizationID,
+		"variable_delimiter": variableDelimiter,
 	}
 
 	// Log taille payload avant insertion

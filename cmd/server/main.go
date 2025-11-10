@@ -132,6 +132,9 @@ func main() {
 	r.OPTIONS("/generate-pdf", func(c *gin.Context) {
 		c.Status(200)
 	})
+	r.OPTIONS("/pdf-to-html", func(c *gin.Context) {
+		c.Status(200)
+	})
 
 	// ✅ Initialiser les handlers
 	candidateValidationHandler := handlers.NewCandidateValidationHandler()
@@ -157,6 +160,8 @@ func main() {
 	r.POST("/boond/resources", handlers.GetBoondResources)
 	r.POST("/boond/orgchart", handlers.BuildBoondOrgChart)
 	r.POST("/generate-pdf", handlers.GeneratePDF)
+	r.POST("/pdf-to-html", handlers.PdfToHtmlAsync)
+	r.POST("/api/template/fill", handlers.FillTemplateWithAnthropic)
 
 	port := os.Getenv("PORT")
 	if port == "" {
