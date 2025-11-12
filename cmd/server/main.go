@@ -132,6 +132,12 @@ func main() {
 	r.OPTIONS("/generate-pdf", func(c *gin.Context) {
 		c.Status(200)
 	})
+	r.OPTIONS("/billing/checkout-session", func(c *gin.Context) {
+		c.Status(200)
+	})
+	r.OPTIONS("/billing/webhook", func(c *gin.Context) {
+		c.Status(200)
+	})
 
 	// ✅ Initialiser les handlers
 	candidateValidationHandler := handlers.NewCandidateValidationHandler()
@@ -157,6 +163,8 @@ func main() {
 	r.POST("/boond/resources", handlers.GetBoondResources)
 	r.POST("/boond/orgchart", handlers.BuildBoondOrgChart)
 	r.POST("/generate-pdf", handlers.GeneratePDF)
+	r.POST("/billing/checkout-session", handlers.CreateCheckoutSessionHandler)
+	r.POST("/billing/webhook", handlers.StripeWebhook)
 
 	port := os.Getenv("PORT")
 	if port == "" {
