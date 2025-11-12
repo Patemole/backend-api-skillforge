@@ -46,17 +46,39 @@ func NewTemplateFillService() (*TemplateFillService, error) {
 func (s *TemplateFillService) FillTemplate(ctx context.Context, sanitizedHTML string, variableDelimiter string, candidateData map[string]any) (string, error) {
 	_ = ctx
 	prefix, suffix := parseDelimiter(variableDelimiter)
-	log.Printf("[TemplateFill] Starting fill (deterministic): html_len=%d delimiter=%s prefix=%q suffix=%q candidate_keys=%v", len(sanitizedHTML), variableDelimiter, prefix, suffix, keysFromMap(candidateData))
+	log.Printf("[TemplateFill] Starting fill (deterministic): html_len=%d delimiter=%q prefix=%q suffix=%q candidate_keys=%v", len(sanitizedHTML), variableDelimiter, prefix, suffix, keysFromMap(candidateData))
 
 	decodedHTML := html.UnescapeString(sanitizedHTML)
 	log.Printf("[TemplateFill] HTML decoded? contains '&#36;': %v", strings.Contains(sanitizedHTML, "&#36;"))
 
+	// Build regex pattern based on the user's delimiter
 	placeholderRe := buildPlaceholderRegex(prefix, suffix)
+	log.Printf("[TemplateFill] Built regex pattern: %s", placeholderRe.String())
+	
+	// Search for placeholders matching the user's delimiter pattern in the template
 	rawPlaceholders := placeholderRe.FindAllString(decodedHTML, -1)
+	log.Printf("[TemplateFill] Found %d placeholder(s) matching delimiter pattern %q (prefix=%q suffix=%q)", len(rawPlaceholders), variableDelimiter, prefix, suffix)
+	
+	// If no placeholders found with the specified delimiter, exit early and return original HTML
+	// IMPORTANT: Return the original sanitizedHTML to ensure no modifications are made
 	if len(rawPlaceholders) == 0 {
-		log.Printf("[TemplateFill] No placeholders detected in template; returning original HTML")
+		log.Printf("[TemplateFill] ❌ No placeholders found in template matching delimiter %q (prefix=%q suffix=%q). Template may use a different delimiter.", variableDelimiter, prefix, suffix)
+		log.Printf("[TemplateFill] Returning original HTML unchanged (original_len=%d). No replacements will be made.", len(sanitizedHTML))
+		// Double-check: verify the template doesn't contain the delimiter pattern at all
+		hasPrefix := strings.Contains(decodedHTML, prefix)
+		hasSuffix := strings.Contains(decodedHTML, suffix)
+		log.Printf("[TemplateFill] Template contains prefix %q: %v, suffix %q: %v", prefix, hasPrefix, suffix, hasSuffix)
+		if !hasPrefix || !hasSuffix {
+			log.Printf("[TemplateFill] ✅ Confirmed: Template does not contain delimiter characters. Safe to return original HTML unchanged.")
+		}
 		return sanitizedHTML, nil
 	}
+	// Log first 10 placeholders
+	placeholderPreview := rawPlaceholders
+	if len(placeholderPreview) > 10 {
+		placeholderPreview = placeholderPreview[:10]
+	}
+	log.Printf("[TemplateFill] Placeholders found: %v", placeholderPreview)
 
 	uniquePlaceholders := dedupeStrings(rawPlaceholders)
 	flatData := flattenData(candidateData)
@@ -66,18 +88,26 @@ func (s *TemplateFillService) FillTemplate(ctx context.Context, sanitizedHTML st
 		token := stripPlaceholder(placeholder, prefix, suffix)
 		values := collectValuesForToken(token, flatData)
 		if len(values) == 0 {
-			log.Printf("[TemplateFill] No values found for token=%s", token)
+			log.Printf("[TemplateFill] ⚠️ No values found for token=%s (placeholder=%q), will leave placeholder as-is", token, placeholder)
+			// Don't replace if no values found - leave the placeholder in the template
+			replacements[placeholder] = placeholder
 		} else {
-			log.Printf("[TemplateFill] Values found for token=%s -> %v", token, values)
+			log.Printf("[TemplateFill] ✅ Values found for token=%s -> %v", token, values)
+			formatted := formatValues(values)
+			replacements[placeholder] = formatted
+			log.Printf("[TemplateFill] Replacement mapping: %s -> %q", placeholder, formatted)
 		}
-		formatted := formatValues(values)
-		replacements[placeholder] = formatted
-		log.Printf("[TemplateFill] Replacement mapping: %s -> %q", placeholder, formatted)
 	}
 
 	filled := decodedHTML
 	for placeholder, value := range replacements {
-		filled = strings.ReplaceAll(filled, placeholder, value)
+		// Skip replacement if value equals placeholder (meaning we're leaving it as-is)
+		if value == placeholder {
+			log.Printf("[TemplateFill] Skipping replacement for %q (no values found, leaving as-is)", placeholder)
+			continue
+		}
+		// Preserve font-weight styling from the placeholder's context
+		filled = replacePlaceholderPreservingStyle(filled, placeholder, value)
 	}
 
 	return filled, nil
@@ -300,4 +330,123 @@ func parseDelimiter(delimiter string) (string, string) {
 	}
 	// Treat as same prefix/suffix
 	return delimiter, delimiter
+}
+
+// replacePlaceholderPreservingStyle replaces a placeholder while preserving font-weight styling
+// from the surrounding HTML context. This is critical because pdf2htmlEX splits text into
+// many small spans, and we need to preserve the original styling when replacing placeholders.
+func replacePlaceholderPreservingStyle(htmlContent, placeholder, value string) string {
+	log.Printf("[TemplateFill] replacePlaceholderPreservingStyle: placeholder=%q value=%q (len=%d)", placeholder, value, len(value))
+	
+	if value == "" {
+		log.Printf("[TemplateFill] Empty value, removing placeholder %q", placeholder)
+		return strings.ReplaceAll(htmlContent, placeholder, "")
+	}
+
+	// Find the placeholder position
+	placeholderIdx := strings.Index(htmlContent, placeholder)
+	if placeholderIdx == -1 {
+		log.Printf("[TemplateFill] Placeholder %q not found in HTML", placeholder)
+		return htmlContent
+	}
+	log.Printf("[TemplateFill] Placeholder %q found at position %d", placeholder, placeholderIdx)
+
+	// Look backwards for bold spans
+	before := htmlContent[:placeholderIdx]
+	contextSnippet := before
+	if len(contextSnippet) > 500 {
+		contextSnippet = contextSnippet[len(contextSnippet)-500:]
+	}
+	log.Printf("[TemplateFill] Context before placeholder (last 500 chars): %q", contextSnippet)
+
+	// Find last <span with font-weight: bold (case-insensitive, handles both quotes)
+	// Matches: bold, 700, 800, 900, bolder
+	boldSpanPattern := regexp.MustCompile(`(?i)<span[^>]*style=["'][^"']*font-weight:\s*(bold|700|800|900|bolder)[^"']*["'][^>]*>`)
+
+	// Find all bold spans before the placeholder
+	boldSpans := boldSpanPattern.FindAllStringIndex(before, -1)
+	log.Printf("[TemplateFill] Found %d bold span(s) before placeholder", len(boldSpans))
+
+	if len(boldSpans) > 0 {
+		// Get the position after the last bold span tag
+		lastBoldSpanEnd := boldSpans[len(boldSpans)-1][1]
+		lastBoldSpanStart := boldSpans[len(boldSpans)-1][0]
+		lastBoldSpanTag := before[lastBoldSpanStart:lastBoldSpanEnd]
+		log.Printf("[TemplateFill] Last bold span tag: %q (start=%d, end=%d)", lastBoldSpanTag, lastBoldSpanStart, lastBoldSpanEnd)
+		
+		betweenSpanAndPlaceholder := htmlContent[lastBoldSpanEnd:placeholderIdx]
+		log.Printf("[TemplateFill] Text between bold span and placeholder (len=%d): %q", len(betweenSpanAndPlaceholder), truncateString(betweenSpanAndPlaceholder, 200))
+
+		// More accurate span counting: only count complete span tags
+		openSpanRe := regexp.MustCompile(`<span[^>]*>`)
+		closeSpanRe := regexp.MustCompile(`</span>`)
+
+		openSpans := openSpanRe.FindAllString(betweenSpanAndPlaceholder, -1)
+		closeSpans := closeSpanRe.FindAllString(betweenSpanAndPlaceholder, -1)
+		openCount := len(openSpans)
+		closeCount := len(closeSpans)
+		
+		log.Printf("[TemplateFill] Span counting: open=%d, close=%d", openCount, closeCount)
+		if openCount > 0 {
+			log.Printf("[TemplateFill] Open spans found: %v", openSpans)
+		}
+		if closeCount > 0 {
+			log.Printf("[TemplateFill] Close spans found: %v", closeSpans)
+		}
+
+		// If we haven't closed the bold span yet, we're inside it
+		if openCount >= closeCount {
+			log.Printf("[TemplateFill] ✅ Placeholder %s is INSIDE a bold span (open=%d >= close=%d)", placeholder, openCount, closeCount)
+
+			// Wrap the replacement value in bold
+			if strings.Contains(value, "<") {
+				wrappedValue := fmt.Sprintf(`<span style="font-weight: bold;">%s</span>`, value)
+				log.Printf("[TemplateFill] Wrapping HTML value in bold span: %q", truncateString(wrappedValue, 100))
+				return strings.ReplaceAll(htmlContent, placeholder, wrappedValue)
+			} else {
+				wrappedValue := fmt.Sprintf(`<span style="font-weight: bold;">%s</span>`, html.EscapeString(value))
+				log.Printf("[TemplateFill] Wrapping plain text value in bold span: %q", truncateString(wrappedValue, 100))
+				return strings.ReplaceAll(htmlContent, placeholder, wrappedValue)
+			}
+		} else {
+			log.Printf("[TemplateFill] ❌ Placeholder %s is NOT inside a bold span (open=%d < close=%d)", placeholder, openCount, closeCount)
+		}
+	} else {
+		log.Printf("[TemplateFill] ❌ No bold spans found before placeholder %q", placeholder)
+	}
+
+	// Default: no bold styling found
+	log.Printf("[TemplateFill] Using default replacement (no bold styling)")
+	if strings.Contains(value, "<") {
+		log.Printf("[TemplateFill] Value contains HTML, using as-is")
+		return strings.ReplaceAll(htmlContent, placeholder, value)
+	}
+	// Plain text, escape it
+	log.Printf("[TemplateFill] Escaping plain text value")
+	return strings.ReplaceAll(htmlContent, placeholder, html.EscapeString(value))
+}
+
+// truncateString truncates a string to maxLen characters, adding "..." if truncated
+func truncateString(s string, maxLen int) string {
+	if len(s) <= maxLen {
+		return s
+	}
+	return s[:maxLen] + "..."
+}
+
+// normalizeFontWeight normalizes font-weight values to standard CSS values
+func normalizeFontWeight(fw string) string {
+	if fw == "" {
+		return "normal"
+	}
+	fw = strings.ToLower(strings.TrimSpace(fw))
+	switch fw {
+	case "bold", "700", "bolder", "800", "900":
+		return "bold"
+	case "normal", "400", "lighter", "300", "200", "100":
+		return "normal"
+	default:
+		// Return as-is if it's already a valid CSS value
+		return fw
+	}
 }

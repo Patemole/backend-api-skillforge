@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -14,9 +15,10 @@ import (
 )
 
 type FillTemplateRequest struct {
-	OrganizationID string         `json:"organization_id" binding:"required"`
-	CandidateID    string         `json:"candidate_id"`
-	CandidateData  map[string]any `json:"candidate_data"`
+	OrganizationID   string         `json:"organization_id" binding:"required"`
+	CandidateID      string         `json:"candidate_id"`
+	CandidateData    map[string]any `json:"candidate_data"`
+	VariableDelimiter string        `json:"variable_delimiter"`
 }
 
 type organizationTemplate struct {
@@ -54,16 +56,32 @@ func FillTemplateWithAnthropic(c *gin.Context) {
 		return
 	}
 
-	sanitizedHtml, _ := templateBasique["customTemplateHtml"].(string)
+	// Use originalTemplateHtml if available (unfilled template from PDF upload)
+	// This ensures we always fill from the original template, not from a previously filled version
+	// Fallback to customTemplateHtml for backward compatibility with old templates
+	sanitizedHtml, _ := templateBasique["originalTemplateHtml"].(string)
+	if strings.TrimSpace(sanitizedHtml) == "" {
+		// Fallback to customTemplateHtml if originalTemplateHtml doesn't exist (for backward compatibility)
+		sanitizedHtml, _ = templateBasique["customTemplateHtml"].(string)
+	}
 	if strings.TrimSpace(sanitizedHtml) == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "custom template HTML is empty"})
 		return
 	}
 
-	variableDelimiter, _ := templateBasique["variableDelimiter"].(string)
-	if strings.TrimSpace(variableDelimiter) == "" {
-		variableDelimiter = "$var$"
+	// Use variable_delimiter from request if provided, otherwise from database, otherwise default
+	variableDelimiter := strings.TrimSpace(req.VariableDelimiter)
+	log.Printf("[TemplateFill] Request variable_delimiter: %q", req.VariableDelimiter)
+	if variableDelimiter == "" {
+		variableDelimiter, _ = templateBasique["variableDelimiter"].(string)
+		variableDelimiter = strings.TrimSpace(variableDelimiter)
+		log.Printf("[TemplateFill] Using delimiter from database: %q", variableDelimiter)
 	}
+	if variableDelimiter == "" {
+		variableDelimiter = "$var$" // Only default if nothing else is available
+		log.Printf("[TemplateFill] Using default delimiter: %q", variableDelimiter)
+	}
+	log.Printf("[TemplateFill] Final delimiter to use: %q", variableDelimiter)
 
 	// Load candidate data if not provided inline
 	candidateData := req.CandidateData
@@ -87,6 +105,21 @@ func FillTemplateWithAnthropic(c *gin.Context) {
 		return
 	}
 
+	// Check if the HTML was actually modified (placeholders were replaced)
+	// If no placeholders matched, filledHTML will be the same as sanitizedHtml
+	htmlWasModified := filledHTML != sanitizedHtml
+	
+	if !htmlWasModified {
+		log.Printf("[TemplateFill] No placeholders matched - HTML unchanged. Skipping database update to preserve layout.")
+		c.JSON(http.StatusOK, gin.H{
+			"success": true,
+			"html":    filledHTML,
+			"unchanged": true, // Signal to frontend that nothing changed
+		})
+		return
+	}
+
+	// Only update database if HTML was actually modified
 	templateBasique["customTemplateHtml"] = filledHTML
 	templateBasique["updatedAt"] = time.Now().UTC().Format(time.RFC3339)
 
@@ -105,6 +138,7 @@ func FillTemplateWithAnthropic(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"html":    filledHTML,
+		"unchanged": false,
 	})
 }
 
