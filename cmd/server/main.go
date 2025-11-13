@@ -12,6 +12,7 @@ import (
 
 	"backend-api-skillforge/internal/handlers"
 	"backend-api-skillforge/internal/middleware"
+	"backend-api-skillforge/internal/services/stripe"
 	"backend-api-skillforge/internal/supabase"
 	"backend-api-skillforge/internal/worker"
 )
@@ -163,8 +164,8 @@ func main() {
 	r.POST("/boond/resources", handlers.GetBoondResources)
 	r.POST("/boond/orgchart", handlers.BuildBoondOrgChart)
 	r.POST("/generate-pdf", handlers.GeneratePDF)
-	r.POST("/billing/checkout-session", handlers.CreateCheckoutSessionHandler)
-	r.POST("/billing/webhook", handlers.StripeWebhook)
+	r.POST("/billing/checkout-session", stripe.CreateCheckoutSessionHandler)
+	r.POST("/billing/webhook", stripe.StripeWebhook)
 
 	port := os.Getenv("PORT")
 	if port == "" {

@@ -9,7 +9,7 @@ type GenerateEmailRequest struct {
 // CandidateData contient toutes les données du candidat depuis le store editorData
 type CandidateData struct {
 	Title             string       `json:"title"`
-	ExperienceYears   int          `json:"experience_years"`
+	ExperienceYears   float64      `json:"experience_years"`
 	Prenom            string       `json:"prenom"`
 	Nom               string       `json:"nom"`
 	Age               int          `json:"age"`

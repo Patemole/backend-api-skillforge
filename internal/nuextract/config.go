@@ -28,6 +28,8 @@ func GetOpenAIConfig() OpenAIConfig {
 	cfg := OpenAIConfig{
 		Model:               "gpt-5",
 		MaxCompletionTokens: 13000,
+		Temperature:         1,
+		TopP:                1,
 		FrequencyPenalty:    0,
 		PresencePenalty:     0,
 	}
@@ -37,6 +39,16 @@ func GetOpenAIConfig() OpenAIConfig {
 	if v := strings.TrimSpace(os.Getenv("OPENAI_MAX_COMPLETION_TOKENS")); v != "" {
 		if n, err := strconv.Atoi(v); err == nil {
 			cfg.MaxCompletionTokens = n
+		}
+	}
+	if v := strings.TrimSpace(os.Getenv("OPENAI_TEMPERATURE")); v != "" {
+		if f, err := strconv.ParseFloat(v, 64); err == nil {
+			cfg.Temperature = f
+		}
+	}
+	if v := strings.TrimSpace(os.Getenv("OPENAI_TOP_P")); v != "" {
+		if f, err := strconv.ParseFloat(v, 64); err == nil {
+			cfg.TopP = f
 		}
 	}
 	return cfg

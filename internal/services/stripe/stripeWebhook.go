@@ -1,4 +1,4 @@
-package handlers
+package stripe
 
 import (
 	"encoding/json"
@@ -6,9 +6,13 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/stripe/stripe-go/v78"
+	stripeapi "github.com/stripe/stripe-go/v78"
+	"github.com/stripe/stripe-go/v78/webhook"
+
+	"backend-api-skillforge/internal/supabase"
 )
 
 func StripeWebhook(c *gin.Context) {
@@ -28,24 +32,57 @@ func StripeWebhook(c *gin.Context) {
 		return
 	}
 
-	event, err := stripe.WebhookConstructEvent(payload, signature, secret)
+	event, err := webhook.ConstructEvent(payload, signature, secret)
 	if err != nil {
 		log.Printf("stripe webhook signature verification failed: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid signature"})
 		return
 	}
 
+	ctx := c.Request.Context()
+
 	switch event.Type {
+
 	case "checkout.session.completed":
-		var session stripe.CheckoutSession
-		if err := json.Unmarshal(event.Data.Raw, &session); err != nil {
+		var sess stripeapi.CheckoutSession
+		if err := json.Unmarshal(event.Data.Raw, &sess); err != nil {
 			log.Printf("unmarshal session: %v", err)
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid session"})
 			return
 		}
+
+		userID := strings.TrimSpace(sess.ClientReferenceID)
+		if userID == "" && sess.Metadata != nil {
+			userID = strings.TrimSpace(sess.Metadata["user_id"])
+		}
+		if strings.TrimSpace(userID) == "" {
+			log.Printf("checkout.session.completed missing user reference (session %s)", sess.ID)
+			c.Status(http.StatusOK)
+			return
+		}
+
+		plan := ""
+		if sess.Metadata != nil {
+			plan = sess.Metadata["plan"]
+		}
+
+		rec := supabase.ProfileStripeFields{
+			UserID:               userID,
+			StripeCustomerID:     stringFromCheckoutCustomer(sess.Customer),
+			StripeSubscriptionID: stringFromCheckoutSubscription(sess.Subscription),
+			StripePlan:           plan,
+			StripeLastEventID:    event.ID,
+		}
+
+		if err := supabase.UpsertProfileStripeFields(ctx, rec); err != nil {
+			log.Printf("supabase upsert (checkout.session.completed) failed: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to persist billing state"})
+			return
+		}
+
 		// TODO: handle session, update customer/subscription in Supabase
 	case "customer.subscription.updated", "customer.subscription.deleted":
-		var sub stripe.Subscription
+		var sub stripeapi.Subscription
 		if err := json.Unmarshal(event.Data.Raw, &sub); err != nil {
 			log.Printf("unmarshal subscription: %v", err)
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid subscription"})
@@ -53,8 +90,8 @@ func StripeWebhook(c *gin.Context) {
 		}
 		// TODO: update status in Supabase
 	case "invoice.paid", "invoice.payment_failed":
-		var invoice stripe.Invoice
-		if err := json.Unmarshal(event.Data.Raw, &invoice); err != nil {
+		var inv stripeapi.Invoice
+		if err := json.Unmarshal(event.Data.Raw, &inv); err != nil {
 			log.Printf("unmarshal invoice: %v", err)
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid invoice"})
 			return
@@ -65,4 +102,18 @@ func StripeWebhook(c *gin.Context) {
 	}
 
 	c.Status(http.StatusOK)
+}
+
+func stringFromCheckoutCustomer(c *stripeapi.Customer) string {
+	if c == nil {
+		return ""
+	}
+	return c.ID
+}
+
+func stringFromCheckoutSubscription(s *stripeapi.Subscription) string {
+	if s == nil {
+		return ""
+	}
+	return s.ID
 }

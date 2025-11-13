@@ -30,7 +30,7 @@ func UpsertProfileStripeFields(ctx context.Context, p ProfileStripeFields) error
 
 	_, _, err := Client.
 		From("profiles").
-		Upsert(p, false, "", "", "").
+		Upsert(p, "", "", "").
 		Eq("user_id", p.UserID).
 		Execute()
 	return err

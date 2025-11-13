@@ -81,11 +81,16 @@ func generateEmailWithOpenAI(candidateData, need string) (string, error) {
 				"content": prompt,
 			},
 		},
-		"max_tokens":        config.MaxTokens,
 		"temperature":       config.Temperature,
 		"top_p":             config.TopP,
 		"frequency_penalty": config.FrequencyPenalty,
 		"presence_penalty":  config.PresencePenalty,
+	}
+
+	if config.MaxCompletionTokens > 0 {
+		payload["max_completion_tokens"] = config.MaxCompletionTokens
+	} else if config.MaxTokens > 0 {
+		payload["max_tokens"] = config.MaxTokens
 	}
 
 	bodyBytes, err := json.Marshal(payload)

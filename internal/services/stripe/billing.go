@@ -1,83 +1,80 @@
-package handlers
+package stripe
 
 import (
+	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/gin-gonic/gin"
-	supabaseSvc "backend-api-skillforge/internal/supabase"
-	stripeSvc "backend-api-skillforge/internal/services/stripe"
+
+	"backend-api-skillforge/internal/supabase"
 )
 
 type createCheckoutRequest struct {
 	Plan       string            `json:"plan" binding:"required"`
-	CustomerID string            `json:"customer_id"` // optional, pass if you already created one
-	Metadata   map[string]string `json:"metadata"`    // optional extra tags
+	CustomerID string            `json:"customer_id"`
+	Metadata   map[string]string `json:"metadata"`
 }
 
-// map plan names to their Stripe price IDs (could live in env or Supabase)
 var planPriceMap = map[string]string{
 	"pro":      os.Getenv("STRIPE_PRO_PRICE"),
 	"business": os.Getenv("STRIPE_BUSINESS_PRICE"),
 }
 
-// CreateCheckoutSessionHandler starts a Stripe Checkout session for a subscription.
 func CreateCheckoutSessionHandler(c *gin.Context) {
 	var req createCheckoutRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid payload: " + err.Error()})
 		return
 	}
-	// Get user ID first (before using it)
-	userID := c.GetString("user_id")
+
+	userID := strings.TrimSpace(c.GetString("user_id"))
 	if userID == "" {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "missing user context"})
 		return
 	}
 
-	ctx := c.Request.Context()
-	
-	// Try to fetch existing Stripe customer ID from Supabase
-	profileStripe, err := supabase.GetProfileStripeFields(ctx, userID)
-	customerID := ""
-	if err != nil {
-		// If error is "not found" (PGRST116), that's okay - user might not have a Stripe customer yet
-		// For other errors, log but continue (we'll create a new customer if needed)
-		if !strings.Contains(err.Error(), "PGRST116") {
-			// Log non-404 errors but don't fail - we can still create checkout
-			log.Printf("Error fetching Stripe customer: %v", err)
-		}
-	} else if profileStripe != nil && profileStripe.StripeCustomerID != "" {
-		customerID = profileStripe.StripeCustomerID
-	}
-	
-	priceID, ok := planPriceMap[req.Plan]
-	if !ok || priceID == "" {
+	priceID := strings.TrimSpace(planPriceMap[req.Plan])
+	if priceID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "unknown plan"})
 		return
 	}
 
-	// Build metadata - include plan and merge any additional metadata from request
-	metadata := make(map[string]string)
-	if req.Metadata != nil {
-		for k, v := range req.Metadata {
-			metadata[k] = v
+	ctx := c.Request.Context()
+
+	customerID := strings.TrimSpace(req.CustomerID)
+	if customerID == "" {
+		// Try to fetch existing Stripe customer ID from profile, but don't fail if it doesn't exist
+		// PGRST116 means "not found" which is fine for new users
+		if profileStripe, err := supabase.GetProfileStripeFields(ctx, userID); err == nil {
+			customerID = profileStripe.StripeCustomerID
+		} else if err != nil && !strings.Contains(err.Error(), "PGRST116") {
+			// Log non-critical errors but continue - Stripe can create a new customer
+			log.Printf("⚠️ [Billing] Failed to fetch billing profile for user %s: %v (continuing anyway)", userID, err)
 		}
+		// If error is PGRST116 (not found), that's fine - Stripe will create a new customer
+		// If it's any other error, we log it but continue - Stripe can still create a customer
+	}
+
+	metadata := make(map[string]string, len(req.Metadata)+1)
+	for k, v := range req.Metadata {
+		metadata[k] = v
 	}
 	metadata["plan"] = req.Plan
 
-	cfg := stripeSvc.CheckoutConfig{
+	cfg := CheckoutConfig{
 		PriceID:         priceID,
-		CustomerID:      req.CustomerID,
+		CustomerID:      customerID,
 		UserID:          userID,
 		SuccessURL:      os.Getenv("STRIPE_CHECKOUT_SUCCESS_URL"),
 		CancelURL:       os.Getenv("STRIPE_CHECKOUT_CANCEL_URL"),
 		AllowPromoCodes: true,
 		TrialFromPlan:   true,
-		Metadata:        req.Metadata,
+		Metadata:        metadata,
 	}
 
-	session, err := stripeSvc.CreateCheckoutSession(cfg)
+	session, err := CreateCheckoutSession(cfg)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create checkout session"})
 		return
