@@ -71,14 +71,32 @@ func main() {
 	}
 	log.Printf("✅ Tous les workers ont démarré (%d workers extract_cv en parallèle)", workerCount)
 
-	// ✅ Configuration CORS robuste - fonctionne toujours
+	// ✅ Configuration CORS robuste - compatible avec fetch(credentials: 'include')
+	allowedOrigins := []string{
+		"http://localhost:8080",
+		"https://staging.getskillforge.app",
+		"https://getskillforge.app",
+	}
+	if customOrigin := os.Getenv("FRONTEND_URL"); customOrigin != "" {
+		allowedOrigins = append(allowedOrigins, customOrigin)
+	}
+
+	allowedHeaders := []string{
+		"Origin",
+		"Content-Type",
+		"Accept",
+		"Authorization",
+		"X-Requested-With",
+		"X-CSRF-Token",
+	}
+
 	r.Use(cors.New(cors.Config{
-		AllowAllOrigins:  true, // Accepte toutes les origines
+		AllowOrigins:     allowedOrigins,
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"},
-		AllowHeaders:     []string{"*"},  // Accepte tous les headers
-		ExposeHeaders:    []string{"*"},  // Expose tous les headers
-		AllowCredentials: false,          // Pas de credentials = plus simple
-		MaxAge:           24 * time.Hour, // Cache plus long
+		AllowHeaders:     allowedHeaders,
+		ExposeHeaders:    []string{"Content-Length", "Content-Type"},
+		AllowCredentials: true,
+		MaxAge:           24 * time.Hour,
 	}))
 
 	// ✅ Gère les requêtes OPTIONS (nécessaire pour le preflight)

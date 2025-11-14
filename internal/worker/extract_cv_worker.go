@@ -37,7 +37,7 @@ func processOneExtractJob() error {
 	// Essayez de "réserver" un job pending via un CAS (compare-and-swap):
 	// 1) Lire un pending
 	// 2) Tenter Update où status = 'pending' (si 0 ligne, quelqu'un d'autre l'a pris → recommencer)
-	log.Printf("🔍 [worker extract_cv] Tentative de récupération d'un job pending...")
+	// log.Printf("🔍 [worker extract_cv] Tentative de récupération d'un job pending...")
 
 	var (
 		job        models.Job
@@ -65,7 +65,7 @@ func processOneExtractJob() error {
 		}
 		if len(jobs) == 0 {
 			// Rien à traiter pour le moment
-			log.Printf("⏸️  [worker extract_cv] Aucun job pending trouvé (tentative %d/5)", tryCounter+1)
+			// log.Printf("⏸️  [worker extract_cv] Aucun job pending trouvé (tentative %d/5)", tryCounter+1)
 			return nil
 		}
 
