@@ -14,25 +14,12 @@ import (
 type createCheckoutRequest struct {
 	Plan       string            `json:"plan" binding:"required"`
 	CustomerID string            `json:"customer_id"`
-	UserID     string            `json:"user_id"`
 	Metadata   map[string]string `json:"metadata"`
 }
 
-func priceIDFromPlan(plan string) string {
-	var envVar, priceID string
-	switch plan {
-	case "pro":
-		envVar = "STRIPE_PRO_PRICE"
-	case "business":
-		envVar = "STRIPE_BUSINESS_PRICE"
-	default:
-		return ""
-	}
-	priceID = strings.TrimSpace(os.Getenv(envVar))
-	if priceID == "" {
-		log.Printf("⚠️ [Billing] Missing price ID for plan=%s (env %s)", plan, envVar)
-	}
-	return priceID
+var planPriceMap = map[string]string{
+	"pro":      os.Getenv("STRIPE_PRO_PRICE"),
+	"business": os.Getenv("STRIPE_BUSINESS_PRICE"),
 }
 
 func CreateCheckoutSessionHandler(c *gin.Context) {
@@ -44,14 +31,11 @@ func CreateCheckoutSessionHandler(c *gin.Context) {
 
 	userID := strings.TrimSpace(c.GetString("user_id"))
 	if userID == "" {
-		userID = strings.TrimSpace(req.UserID)
-	}
-	if userID == "" {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "missing user context"})
 		return
 	}
 
-	priceID := priceIDFromPlan(req.Plan)
+	priceID := strings.TrimSpace(planPriceMap[req.Plan])
 	if priceID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "unknown plan"})
 		return
