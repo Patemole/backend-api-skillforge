@@ -57,7 +57,7 @@ func GetOpenAIConfig() OpenAIConfig {
 // GetAnthropicConfig retourne la configuration Anthropic (avec overrides via env)
 func GetAnthropicConfig() AnthropicConfig {
 	cfg := AnthropicConfig{
-		Model:     "claude-haiku-4-5",
+		Model:     "claude-sonnet-4-5",
 		MaxTokens: 13000,
 	}
 	if m := strings.TrimSpace(os.Getenv("ANTHROPIC_MODEL")); m != "" {
