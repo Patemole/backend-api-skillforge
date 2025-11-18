@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"bytes"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -11,6 +12,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/ledongthuc/pdf"
 
 	"backend-api-skillforge/internal/boond"
 	"backend-api-skillforge/internal/models"
@@ -55,12 +58,32 @@ func ExtractCV(c *gin.Context) {
 	// Sélection du moteur selon generationMode: fast -> Anthropic (Haiku), detailed -> OpenAI (gpt-5)
 	generationMode := strings.TrimSpace(c.PostForm("generationMode"))
 
+	// Vérifier le nombre de pages pour les PDFs et sélectionner le modèle approprié
+	// Par défaut, utiliser Sonnet. Si le PDF a moins de 10 pages, utiliser Haiku.
+	needHaiku := false
+	if strings.HasSuffix(strings.ToLower(header.Filename), ".pdf") {
+		reader := bytes.NewReader(data)
+		pdfReader, pdfErr := pdf.NewReader(reader, int64(len(data)))
+		if pdfErr == nil {
+			numPages := pdfReader.NumPage()
+			log.Printf("📄 [extract] PDF détecté: %d pages (fichier: %s)", numPages, header.Filename)
+			if numPages < 10 {
+				needHaiku = true
+				log.Printf("ℹ️  [extract] Fichier petit (%d pages < 10) → utilisation de Haiku", numPages)
+			} else {
+				log.Printf("✅ [extract] Fichier volumineux (%d pages >= 10) → utilisation de claude-sonnet-4-5-20250929", numPages)
+			}
+		} else {
+			log.Printf("⚠️  [extract] Erreur lecture PDF: %v, utilisation de Sonnet par défaut", pdfErr)
+		}
+	} else {
+		log.Printf("ℹ️  [extract] Fichier non-PDF détecté → utilisation de Sonnet par défaut")
+	}
+
 	var result []byte
 	if generationMode == "fast" {
 		// Utiliser Anthropic directement pour le mode rapide
-		aCfg := nuextract.GetAnthropicConfig()
-		log.Printf("⚡ Mode de génération: %s, moteur sélectionné: Anthropic (%s)", generationMode, aCfg.Model)
-		result, err = nuextract.ExtractAndEnrichWithFilenameAnthropic(data, header.Filename, language)
+		result, err = nuextract.ExtractAndEnrichWithFilenameAnthropic(data, header.Filename, language, needHaiku)
 	} else {
 		// Mode détaillé (par défaut): OpenAI GPT-5
 		model := "gpt-5"

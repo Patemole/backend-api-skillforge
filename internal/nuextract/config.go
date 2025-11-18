@@ -55,10 +55,14 @@ func GetOpenAIConfig() OpenAIConfig {
 }
 
 // GetAnthropicConfig retourne la configuration Anthropic (avec overrides via env)
-func GetAnthropicConfig() AnthropicConfig {
+// Par défaut, utilise Sonnet. Si needSonnet=false, utilise Haiku.
+func GetAnthropicConfig(needSonnet bool) AnthropicConfig {
 	cfg := AnthropicConfig{
-		Model:     "claude-sonnet-4-5",
-		MaxTokens: 13000,
+		Model:     "claude-sonnet-4-5-20250929", // Par défaut: Sonnet
+		MaxTokens: 20000,                        // Augmenté pour gérer les grands CVs (était 13000)
+	}
+	if !needSonnet {
+		cfg.Model = "claude-haiku-4-5-20251001" // Utiliser Haiku si needSonnet=false
 	}
 	if m := strings.TrimSpace(os.Getenv("ANTHROPIC_MODEL")); m != "" {
 		cfg.Model = m

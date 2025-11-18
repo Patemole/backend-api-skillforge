@@ -12,14 +12,54 @@ import (
 )
 
 type createCheckoutRequest struct {
-	Plan       string            `json:"plan" binding:"required"`
-	CustomerID string            `json:"customer_id"`
-	Metadata   map[string]string `json:"metadata"`
+	Plan          string            `json:"plan" binding:"required"`
+	UserID        string            `json:"user_id" binding:"required"`
+	CustomerID    string            `json:"customer_id"`
+	BillingPeriod string            `json:"billing_period"` // "monthly" or "annual"
+	Metadata      map[string]string `json:"metadata"`
 }
 
-var planPriceMap = map[string]string{
-	"pro":      os.Getenv("STRIPE_PRO_PRICE"),
-	"business": os.Getenv("STRIPE_BUSINESS_PRICE"),
+var planPriceMap = map[string]map[string]string{
+	"pro": {
+		"monthly": os.Getenv("STRIPE_PRO_PRICE_MONTHLY"),
+		"annual":  os.Getenv("STRIPE_PRO_PRICE_ANNUAL"),
+	},
+	"business": {
+		"monthly": os.Getenv("STRIPE_BUSINESS_PRICE_MONTHLY"),
+		"annual":  os.Getenv("STRIPE_BUSINESS_PRICE_ANNUAL"),
+	},
+}
+
+// Legacy support: fallback to old env vars if new ones are not set
+func getPriceID(plan, billingPeriod string) string {
+	// Default to monthly if not specified
+	if billingPeriod == "" {
+		billingPeriod = "monthly"
+	}
+	
+	// Normalize billing period
+	if billingPeriod != "monthly" && billingPeriod != "annual" {
+		billingPeriod = "monthly"
+	}
+	
+	// Try new format first
+	if priceMap, ok := planPriceMap[plan]; ok {
+		if priceID := priceMap[billingPeriod]; priceID != "" {
+			return priceID
+		}
+	}
+	
+	// Fallback to legacy env vars for backward compatibility
+	if billingPeriod == "monthly" {
+		switch plan {
+		case "pro":
+			return os.Getenv("STRIPE_PRO_PRICE")
+		case "business":
+			return os.Getenv("STRIPE_BUSINESS_PRICE")
+		}
+	}
+	
+	return ""
 }
 
 func CreateCheckoutSessionHandler(c *gin.Context) {
@@ -29,15 +69,21 @@ func CreateCheckoutSessionHandler(c *gin.Context) {
 		return
 	}
 
-	userID := strings.TrimSpace(c.GetString("user_id"))
+	// Get user_id from request body (required field)
+	userID := strings.TrimSpace(req.UserID)
 	if userID == "" {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "missing user context"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "missing user_id"})
 		return
 	}
 
-	priceID := strings.TrimSpace(planPriceMap[req.Plan])
+	billingPeriod := strings.TrimSpace(req.BillingPeriod)
+	if billingPeriod == "" {
+		billingPeriod = "monthly" // Default to monthly
+	}
+	
+	priceID := strings.TrimSpace(getPriceID(req.Plan, billingPeriod))
 	if priceID == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "unknown plan"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "unknown plan or billing period"})
 		return
 	}
 
@@ -49,7 +95,7 @@ func CreateCheckoutSessionHandler(c *gin.Context) {
 		// PGRST116 means "not found" which is fine for new users
 		if profileStripe, err := supabase.GetProfileStripeFields(ctx, userID); err == nil {
 			customerID = profileStripe.StripeCustomerID
-		} else if err != nil && !strings.Contains(err.Error(), "PGRST116") {
+		} else if !strings.Contains(err.Error(), "PGRST116") {
 			// Log non-critical errors but continue - Stripe can create a new customer
 			log.Printf("⚠️ [Billing] Failed to fetch billing profile for user %s: %v (continuing anyway)", userID, err)
 		}
@@ -63,12 +109,26 @@ func CreateCheckoutSessionHandler(c *gin.Context) {
 	}
 	metadata["plan"] = req.Plan
 
+	successURL := os.Getenv("STRIPE_CHECKOUT_SUCCESS_URL")
+	cancelURL := os.Getenv("STRIPE_CHECKOUT_CANCEL_URL")
+
+	log.Printf("🔗 [Billing] Environment variables - SuccessURL: %s, CancelURL: %s", successURL, cancelURL)
+
+	if successURL == "" {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "STRIPE_CHECKOUT_SUCCESS_URL not configured"})
+		return
+	}
+	if cancelURL == "" {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "STRIPE_CHECKOUT_CANCEL_URL not configured"})
+		return
+	}
+
 	cfg := CheckoutConfig{
 		PriceID:         priceID,
 		CustomerID:      customerID,
 		UserID:          userID,
-		SuccessURL:      os.Getenv("STRIPE_CHECKOUT_SUCCESS_URL"),
-		CancelURL:       os.Getenv("STRIPE_CHECKOUT_CANCEL_URL"),
+		SuccessURL:      successURL,
+		CancelURL:       cancelURL,
 		AllowPromoCodes: true,
 		TrialFromPlan:   true,
 		Metadata:        metadata,
@@ -83,5 +143,38 @@ func CreateCheckoutSessionHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"id":  session.ID,
 		"url": session.URL,
+	})
+}
+
+type initializeTrialRequest struct {
+	UserID string `json:"user_id" binding:"required"`
+}
+
+// InitializeTrialHandler initializes a 14-day free trial for a user if they don't already have one.
+func InitializeTrialHandler(c *gin.Context) {
+	var req initializeTrialRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid payload: " + err.Error()})
+		return
+	}
+
+	userID := strings.TrimSpace(req.UserID)
+	if userID == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "missing user_id"})
+		return
+	}
+
+	ctx := c.Request.Context()
+
+	initialized, err := supabase.InitializeTrial(ctx, userID)
+	if err != nil {
+		log.Printf("❌ [Billing] Failed to initialize trial for user %s: %v", userID, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to initialize trial"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"initialized": initialized,
+		"message":     map[bool]string{true: "Trial initialized", false: "Trial already exists"}[initialized],
 	})
 }

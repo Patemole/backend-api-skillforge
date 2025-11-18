@@ -1,6 +1,7 @@
 package worker
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
 	"encoding/json"
@@ -9,6 +10,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/ledongthuc/pdf"
 
 	"backend-api-skillforge/internal/boond"
 	"backend-api-skillforge/internal/models"
@@ -37,7 +40,7 @@ func processOneExtractJob() error {
 	// Essayez de "réserver" un job pending via un CAS (compare-and-swap):
 	// 1) Lire un pending
 	// 2) Tenter Update où status = 'pending' (si 0 ligne, quelqu'un d'autre l'a pris → recommencer)
-	log.Printf("🔍 [worker extract_cv] Tentative de récupération d'un job pending...")
+	//log.Printf("🔍 [worker extract_cv] Tentative de récupération d'un job pending...")
 
 	var (
 		job        models.Job
@@ -65,7 +68,7 @@ func processOneExtractJob() error {
 		}
 		if len(jobs) == 0 {
 			// Rien à traiter pour le moment
-			log.Printf("⏸️  [worker extract_cv] Aucun job pending trouvé (tentative %d/5)", tryCounter+1)
+			//log.Printf("⏸️  [worker extract_cv] Aucun job pending trouvé (tentative %d/5)", tryCounter+1)
 			return nil
 		}
 
@@ -128,6 +131,19 @@ func processOneExtractJob() error {
 		return nil
 	}
 
+	var numPages int
+	reader := bytes.NewReader(fileBytes)
+	pdfReader, err := pdf.NewReader(reader, int64(len(fileBytes)))
+	if err == nil {
+		numPages = pdfReader.NumPage()
+		log.Printf("📄 [worker extract_cv] PDF détecté: %d pages (fichier: %s)", numPages, filename)
+		log.Printf("🔍 [worker extract_cv] Condition numPages > 10: %v (numPages=%d > 10=%v)", numPages > 10, numPages, numPages > 10)
+	} else {
+		log.Printf("❌ [worker extract_cv] Erreur lecture PDF: %v (fichier: %s)", err, filename)
+		numPages = 0
+		log.Printf("⚠️  [worker extract_cv] numPages défini à 0 à cause de l'erreur, needHaiku sera false (Sonnet par défaut)")
+	}
+
 	// Démarrer l'appel Apify en parallèle si linkedin_url et config présents
 	var (
 		apifyRes  map[string]any
@@ -160,11 +176,20 @@ func processOneExtractJob() error {
 	)
 	if generationMode == "fast" && strings.TrimSpace(os.Getenv("ANTHROPIC_API_KEY")) != "" {
 		// Mode rapide: tenter Anthropic en premier
-		acfg := nuextract.GetAnthropicConfig()
+		// Par défaut, utiliser Sonnet. Si le PDF a moins de 10 pages, utiliser Haiku.
+		needHaiku := false
+		if numPages < 10 {
+			needHaiku = true
+			log.Printf("ℹ️  [worker extract_cv] Fichier petit (%d pages < 10) → needHaiku = true → utilisation de Haiku", numPages)
+		} else {
+			log.Printf("✅ [worker extract_cv] Fichier volumineux (%d pages >= 10) → needHaiku = false → utilisation de claude-sonnet-4-5-20250929", numPages)
+		}
+		acfg := nuextract.GetAnthropicConfig(!needHaiku)
 		log.Printf("⚡ [worker extract_cv] Modèle OpenAI (fallback potentiel): gpt-5-mini (generationMode=%s)", generationMode)
-		log.Printf("🚀 [worker extract_cv] Essai 1: Anthropic (%s)", acfg.Model)
+		log.Printf("🚀 [worker extract_cv] Essai 1: Anthropic (modèle sélectionné: %s)", acfg.Model)
+		log.Printf("🔧 [worker extract_cv] Appel Anthropic avec paramètres: needHaiku=%v, numPages=%d, filename=%s", needHaiku, numPages, filename)
 		callStart := time.Now()
-		resultBytes, err = nuextract.ExtractAndEnrichWithFilenameAnthropic(fileBytes, filename, language)
+		resultBytes, err = nuextract.ExtractAndEnrichWithFilenameAnthropic(fileBytes, filename, language, needHaiku)
 		attempts = append(attempts, map[string]any{
 			"provider":    "anthropic",
 			"model":       acfg.Model,
@@ -239,7 +264,15 @@ func processOneExtractJob() error {
 		if strings.TrimSpace(os.Getenv("ANTHROPIC_API_KEY")) != "" {
 			log.Printf("🛟 [worker extract_cv] Fallback Anthropic déclenché (essai 2)")
 			time.Sleep(400 * time.Millisecond)
-			resultBytes, err = nuextract.ExtractAndEnrichWithFilenameAnthropic(fileBytes, filename, language)
+			needHaikuFallback := false
+			if numPages < 10 {
+				needHaikuFallback = true
+				log.Printf("ℹ️  [worker extract_cv] [FALLBACK] Fichier petit (%d pages < 10) → needHaiku = true → utilisation de Haiku", numPages)
+			} else {
+				log.Printf("✅ [worker extract_cv] [FALLBACK] Fichier volumineux (%d pages >= 10) → needHaiku = false → utilisation de claude-sonnet-4-5-20250929", numPages)
+			}
+			log.Printf("🔧 [worker extract_cv] [FALLBACK] Appel Anthropic avec paramètres: needHaiku=%v, numPages=%d, filename=%s", needHaikuFallback, numPages, filename)
+			resultBytes, err = nuextract.ExtractAndEnrichWithFilenameAnthropic(fileBytes, filename, language, needHaikuFallback)
 			if err != nil {
 				log.Printf("❌ [worker extract_cv] Échec fallback Anthropic: %v", err)
 			} else {

@@ -48,7 +48,7 @@ func NewDossierVersionningServiceAnthropic() *DossierVersionningService {
 	if apiKey == "" {
 		panic("ANTHROPIC_API_KEY not set")
 	}
-	aCfg := nuextract.GetAnthropicConfig()
+	aCfg := nuextract.GetAnthropicConfig(false)
 	return &DossierVersionningService{apiKey: apiKey, anthropicConfig: aCfg, useAnthropic: true}
 }
 

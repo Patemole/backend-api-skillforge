@@ -4,6 +4,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -71,14 +72,25 @@ func main() {
 	}
 	log.Printf("✅ Tous les workers ont démarré (%d workers extract_cv en parallèle)", workerCount)
 
-	// ✅ Configuration CORS robuste - fonctionne toujours
+	// ✅ Configuration CORS robuste
+	// Get allowed origins from environment variable, default to localhost for development
+	allowedOrigins := os.Getenv("ALLOWED_ORIGINS")
+	if allowedOrigins == "" {
+		allowedOrigins = "http://localhost:8080,http://localhost:3000"
+	}
+	originsList := strings.Split(allowedOrigins, ",")
+	// Trim whitespace from each origin
+	for i := range originsList {
+		originsList[i] = strings.TrimSpace(originsList[i])
+	}
+
 	r.Use(cors.New(cors.Config{
-		AllowAllOrigins:  true, // Accepte toutes les origines
+		AllowOrigins:     originsList, // Specific origins (required when using credentials)
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"},
-		AllowHeaders:     []string{"*"},  // Accepte tous les headers
-		ExposeHeaders:    []string{"*"},  // Expose tous les headers
-		AllowCredentials: false,          // Pas de credentials = plus simple
-		MaxAge:           24 * time.Hour, // Cache plus long
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization", "X-Requested-With"},
+		ExposeHeaders:    []string{"Content-Length", "Content-Type"},
+		AllowCredentials: true, // Allow credentials for authenticated requests
+		MaxAge:           24 * time.Hour,
 	}))
 
 	// ✅ Gère les requêtes OPTIONS (nécessaire pour le preflight)
@@ -139,6 +151,9 @@ func main() {
 	r.OPTIONS("/billing/webhook", func(c *gin.Context) {
 		c.Status(200)
 	})
+	r.OPTIONS("/billing/initialize-trial", func(c *gin.Context) {
+		c.Status(200)
+	})
 
 	// ✅ Initialiser les handlers
 	candidateValidationHandler := handlers.NewCandidateValidationHandler()
@@ -166,6 +181,7 @@ func main() {
 	r.POST("/generate-pdf", handlers.GeneratePDF)
 	r.POST("/billing/checkout-session", stripe.CreateCheckoutSessionHandler)
 	r.POST("/billing/webhook", stripe.StripeWebhook)
+	r.POST("/billing/initialize-trial", stripe.InitializeTrialHandler)
 
 	port := os.Getenv("PORT")
 	if port == "" {
