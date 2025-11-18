@@ -11,12 +11,31 @@ import (
 	"backend-api-skillforge/internal/supabase"
 )
 
+type billingAddress struct {
+	Line1      string `json:"line1"`
+	City       string `json:"city"`
+	PostalCode string `json:"postal_code"`
+	State      string `json:"state"`
+	Country    string `json:"country"`
+}
+
+type billingDetails struct {
+	Name    string         `json:"name"`
+	Email   string         `json:"email"`
+	Phone   string         `json:"phone"`
+	Address billingAddress `json:"address"`
+}
+
 type createCheckoutRequest struct {
-	Plan          string            `json:"plan" binding:"required"`
-	UserID        string            `json:"user_id" binding:"required"`
-	CustomerID    string            `json:"customer_id"`
-	BillingPeriod string            `json:"billing_period"` // "monthly" or "annual"
-	Metadata      map[string]string `json:"metadata"`
+	Plan           string            `json:"plan" binding:"required"`
+	UserID         string            `json:"user_id" binding:"required"`
+	CustomerID     string            `json:"customer_id"`
+	BillingPeriod  string            `json:"billing_period"` // "monthly" or "annual"
+	CustomerEmail  string            `json:"customer_email"`
+	BillingDetails *billingDetails   `json:"billing_details"`
+	CompanyName    string            `json:"company_name"`
+	VATNumber      string            `json:"vat_number"`
+	Metadata       map[string]string `json:"metadata"`
 }
 
 var planPriceMap = map[string]map[string]string{
@@ -123,6 +142,36 @@ func CreateCheckoutSessionHandler(c *gin.Context) {
 		return
 	}
 
+	// Add company and VAT to metadata if provided
+	if req.CompanyName != "" {
+		metadata["company_name"] = req.CompanyName
+	}
+	if req.VATNumber != "" {
+		metadata["vat_number"] = req.VATNumber
+	}
+
+	// Convert billing details to the format expected by CheckoutConfig
+	// Types BillingDetails and BillingAddress are defined in createCheckout.go (same package)
+	var checkoutBillingDetails *BillingDetails
+	if req.BillingDetails != nil {
+		var addr *BillingAddress
+		if req.BillingDetails.Address.Line1 != "" || req.BillingDetails.Address.City != "" {
+			addr = &BillingAddress{
+				Line1:      req.BillingDetails.Address.Line1,
+				City:       req.BillingDetails.Address.City,
+				PostalCode: req.BillingDetails.Address.PostalCode,
+				State:      req.BillingDetails.Address.State,
+				Country:    req.BillingDetails.Address.Country,
+			}
+		}
+		checkoutBillingDetails = &BillingDetails{
+			Name:    req.BillingDetails.Name,
+			Email:   req.BillingDetails.Email,
+			Phone:   req.BillingDetails.Phone,
+			Address: addr,
+		}
+	}
+
 	cfg := CheckoutConfig{
 		PriceID:         priceID,
 		CustomerID:      customerID,
@@ -132,12 +181,60 @@ func CreateCheckoutSessionHandler(c *gin.Context) {
 		AllowPromoCodes: true,
 		TrialFromPlan:   true,
 		Metadata:        metadata,
+		CustomerEmail:   strings.TrimSpace(req.CustomerEmail),
+		BillingDetails:  checkoutBillingDetails,
+		CompanyName:     strings.TrimSpace(req.CompanyName),
+		VATNumber:       strings.TrimSpace(req.VATNumber),
 	}
 
 	session, err := CreateCheckoutSession(cfg)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create checkout session"})
 		return
+	}
+
+	// Update user and organization profiles with the selected plan information
+	// Status is set to "pending" since payment hasn't been completed yet
+	// The webhook will update with actual customer_id, subscription_id, and status later
+	log.Printf("📝 [Billing] Updating profiles for user %s with plan %s (pending checkout)", userID, req.Plan)
+
+	// Update user profile
+	userProfileFields := supabase.ProfileStripeFields{
+		UserID:     userID,
+		StripePlan: req.Plan,
+		StripeStatus: "pending", // Payment is pending until checkout completes
+	}
+	if customerID != "" {
+		userProfileFields.StripeCustomerID = customerID
+	}
+	if err := supabase.UpsertProfileStripeFields(ctx, userProfileFields); err != nil {
+		log.Printf("⚠️ [Billing] Failed to update user profile for %s: %v (non-critical, continuing)", userID, err)
+		// Don't fail the request if profile update fails - checkout session was created successfully
+	} else {
+		log.Printf("✅ [Billing] Updated user profile for %s with plan %s", userID, req.Plan)
+	}
+
+	// Update organization profile
+	organizationID, err := supabase.GetOrganizationIDFromUserID(ctx, userID)
+	if err != nil {
+		log.Printf("⚠️ [Billing] Failed to get organization_id for user %s: %v (non-critical, continuing)", userID, err)
+	} else if organizationID != "" {
+		orgStripeFields := supabase.OrganizationStripeFields{
+			OrganizationID: organizationID,
+			StripePlan:     req.Plan,
+			StripeStatus:   "pending", // Payment is pending until checkout completes
+		}
+		if customerID != "" {
+			orgStripeFields.StripeCustomerID = customerID
+		}
+		if err := supabase.UpsertOrganizationStripeFields(ctx, orgStripeFields); err != nil {
+			log.Printf("⚠️ [Billing] Failed to update organization profile for %s: %v (non-critical, continuing)", organizationID, err)
+			// Don't fail the request if org update fails - checkout session was created successfully
+		} else {
+			log.Printf("✅ [Billing] Updated organization profile for %s with plan %s", organizationID, req.Plan)
+		}
+	} else {
+		log.Printf("⚠️ [Billing] No organization_id found for user %s (user may not be associated with an organization)", userID)
 	}
 
 	c.JSON(http.StatusOK, gin.H{

@@ -102,7 +102,10 @@ func ExtractCV(c *gin.Context) {
 
 	// Lecture optionnelle du JWT pour Boond
 	boondJWT := strings.TrimSpace(c.PostForm("boondJwt"))
+	// ID de l'inviteur (manager) pour utiliser ses tokens Boond
+	invitedBy := strings.TrimSpace(c.PostForm("invited_by"))
 	log.Printf("🔐 BOOND JWT reçu ? %t", boondJWT != "")
+	log.Printf("👤 invited_by reçu ? %t (value: %s)", invitedBy != "", invitedBy)
 	if boondJWT != "" {
 		// ATTENTION: log du JWT complet uniquement pour debug local. À retirer en prod.
 		log.Printf("🔐 BOOND JWT (DEV - à retirer en prod) : %s", boondJWT)
@@ -223,9 +226,49 @@ func ExtractCV(c *gin.Context) {
 	// 	}
 	// }
 
+	// Si invited_by est présent, utiliser les tokens du manager
+	finalJWT := boondJWT
+	if strings.TrimSpace(invitedBy) != "" {
+		log.Printf("🔎 [extract] invited_by détecté → tentative récupération tokens manager (user_id=%s)", invitedBy)
+
+		// Récupérer l'organization_id depuis le user_id (si disponible dans le FormData)
+		userIDStr := strings.TrimSpace(c.PostForm("user_id"))
+		if userIDStr != "" {
+			// Récupérer l'organization_id depuis le profil de l'utilisateur
+			userProfileData, _, err := supabase.Client.
+				From("profiles").
+				Select("organization_id", "exact", false).
+				Eq("user_id", userIDStr).
+				Limit(1, "").
+				Execute()
+			if err == nil {
+				var profiles []map[string]any
+				if err := json.Unmarshal(userProfileData, &profiles); err == nil && len(profiles) > 0 {
+					if orgIDRaw, ok := profiles[0]["organization_id"].(string); ok {
+						orgID := orgIDRaw
+						integration, err := boond.GetIntegrationForUserOrOrganization(invitedBy, orgID)
+						if err == nil && integration != nil {
+							generatedJWT, err := boond.GenerateJWT(integration)
+							if err == nil && strings.TrimSpace(generatedJWT) != "" {
+								finalJWT = generatedJWT
+								log.Printf("✅ [extract] JWT généré depuis tokens manager (invited_by=%s)", invitedBy)
+							} else {
+								log.Printf("⚠️  [extract] Échec génération JWT depuis tokens manager, utilisation JWT frontend")
+							}
+						} else {
+							log.Printf("⚠️  [extract] Aucun token manager trouvé pour invited_by=%s, utilisation JWT frontend", invitedBy)
+						}
+					}
+				}
+			}
+		} else {
+			log.Printf("⚠️  [extract] user_id non fourni, impossible de récupérer organization_id, utilisation JWT frontend")
+		}
+	}
+
 	// Création directe du candidat (déduplication désactivée temporairement)
 	ctx := c.Request.Context()
-	bClient := boond.New(boondJWT)
+	bClient := boond.New(finalJWT)
 
 	log.Printf("📡 Création candidat Boond → POST /api/candidates …")
 	createdID, raw, err := bClient.CreateCandidate(ctx, attributes)
@@ -352,6 +395,8 @@ func ExtractCVAsync(c *gin.Context) {
 	linkedinURL := strings.TrimSpace(c.PostForm("linkedin_url"))
 	// JWT Boond optionnel (si fourni → création candidat côté worker)
 	boondJWT := strings.TrimSpace(c.PostForm("boondJwt"))
+	// ID de l'inviteur (manager) pour utiliser ses tokens Boond
+	invitedBy := strings.TrimSpace(c.PostForm("invited_by"))
 	userIDStr := strings.TrimSpace(c.PostForm("user_id"))
 	if userIDStr == "" {
 		// fallback soft si non fourni: UUID nul (0000..)
@@ -389,6 +434,7 @@ func ExtractCVAsync(c *gin.Context) {
 		"generationMode": generationMode,
 		"boondJwt":       boondJWT,
 		"linkedin_url":   linkedinURL,
+		"invited_by":     invitedBy,
 	}
 
 	// Log taille payload avant insertion

@@ -362,7 +362,8 @@ func processOneExtractJob() error {
 
 	// Intégration Boond si un JWT est présent dans le payload (uniquement si parsing OK et CV valide)
 	boondJWT, _ := job.Payload["boondJwt"].(string)
-	if strings.TrimSpace(boondJWT) != "" {
+	invitedBy, _ := job.Payload["invited_by"].(string)
+	if strings.TrimSpace(boondJWT) != "" || strings.TrimSpace(invitedBy) != "" {
 		if !parsedOK {
 			log.Printf("⏭️  [worker extract_cv] Boond ignoré: JSON non parsé (job %s)", idStr)
 		} else {
@@ -378,26 +379,70 @@ func processOneExtractJob() error {
 			if !hasIdentity {
 				log.Printf("⏭️  [worker extract_cv] Boond ignoré: identité incomplète (email ou prénom+nom requis) (job %s)", idStr)
 			} else {
-				log.Printf("🚀 [worker extract_cv] boondJwt détecté → création candidat Boond")
-				ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-				defer cancel()
+				// Si invited_by est présent, utiliser les tokens du manager
+				finalJWT := boondJWT
+				if strings.TrimSpace(invitedBy) != "" {
+					log.Printf("🔎 [worker extract_cv] invited_by détecté → tentative récupération tokens manager (user_id=%s)", invitedBy)
 
-				bClient := boond.New(boondJWT)
-				attributes := boond.BuildCandidateAttributesFromCV(cv)
-
-				createdID, _, err := bClient.CreateCandidate(ctx, attributes)
-				if err != nil {
-					log.Printf("❌ [worker extract_cv] Échec de création du candidat Boond: %v", err)
-				} else if strings.TrimSpace(createdID) != "" {
-					log.Printf("🎉 [worker extract_cv] Candidat Boond créé (id=%s)", createdID)
-					// Upload du CV
-					if _, err := bClient.UploadDocument(ctx, createdID, fileBytes, filename); err != nil {
-						log.Printf("❌ [worker extract_cv] Échec upload du CV vers Boond: %v", err)
-					} else {
-						log.Printf("📄 [worker extract_cv] CV uploadé avec succès pour candidat %s", createdID)
+					// Récupérer l'organization_id depuis le profil de l'utilisateur
+					orgID := ""
+					userProfileData, _, err := supabase.Client.
+						From("profiles").
+						Select("organization_id", "exact", false).
+						Eq("user_id", job.UserID.String()).
+						Limit(1, "").
+						Execute()
+					if err == nil {
+						var profiles []map[string]any
+						if err := json.Unmarshal(userProfileData, &profiles); err == nil && len(profiles) > 0 {
+							if orgIDRaw, ok := profiles[0]["organization_id"].(string); ok {
+								orgID = orgIDRaw
+							}
+						}
 					}
-					// Enrichir le résultat du job
-					result["boond_candidate_id"] = createdID
+
+					if orgID != "" {
+						integration, err := boond.GetIntegrationForUserOrOrganization(invitedBy, orgID)
+						if err == nil && integration != nil {
+							generatedJWT, err := boond.GenerateJWT(integration)
+							if err == nil && strings.TrimSpace(generatedJWT) != "" {
+								finalJWT = generatedJWT
+								log.Printf("✅ [worker extract_cv] JWT généré depuis tokens manager (invited_by=%s)", invitedBy)
+							} else {
+								log.Printf("⚠️  [worker extract_cv] Échec génération JWT depuis tokens manager, utilisation JWT frontend")
+							}
+						} else {
+							log.Printf("⚠️  [worker extract_cv] Aucun token manager trouvé pour invited_by=%s, utilisation JWT frontend", invitedBy)
+						}
+					} else {
+						log.Printf("⚠️  [worker extract_cv] Impossible de récupérer organization_id, utilisation JWT frontend")
+					}
+				}
+
+				if strings.TrimSpace(finalJWT) == "" {
+					log.Printf("⏭️  [worker extract_cv] Aucun JWT disponible (ni frontend ni manager), Boond ignoré")
+				} else {
+					log.Printf("🚀 [worker extract_cv] boondJwt détecté → création candidat Boond")
+					ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+					defer cancel()
+
+					bClient := boond.New(finalJWT)
+					attributes := boond.BuildCandidateAttributesFromCV(cv)
+
+					createdID, _, err := bClient.CreateCandidate(ctx, attributes)
+					if err != nil {
+						log.Printf("❌ [worker extract_cv] Échec de création du candidat Boond: %v", err)
+					} else if strings.TrimSpace(createdID) != "" {
+						log.Printf("🎉 [worker extract_cv] Candidat Boond créé (id=%s)", createdID)
+						// Upload du CV
+						if _, err := bClient.UploadDocument(ctx, createdID, fileBytes, filename); err != nil {
+							log.Printf("❌ [worker extract_cv] Échec upload du CV vers Boond: %v", err)
+						} else {
+							log.Printf("📄 [worker extract_cv] CV uploadé avec succès pour candidat %s", createdID)
+						}
+						// Enrichir le résultat du job
+						result["boond_candidate_id"] = createdID
+					}
 				}
 			}
 		}

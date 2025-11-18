@@ -9,6 +9,21 @@ import (
 	"github.com/stripe/stripe-go/v78/checkout/session"
 )
 
+type BillingAddress struct {
+	Line1      string
+	City       string
+	PostalCode string
+	State      string
+	Country    string
+}
+
+type BillingDetails struct {
+	Name    string
+	Email   string
+	Phone   string
+	Address *BillingAddress
+}
+
 type CheckoutConfig struct {
 	PriceID         string
 	CustomerID      string // optional – if omitted, Checkout creates one
@@ -16,8 +31,12 @@ type CheckoutConfig struct {
 	SuccessURL      string
 	CancelURL       string
 	AllowPromoCodes bool
-	TrialFromPlan   bool // true → use price’s trial; false → skip
+	TrialFromPlan   bool // true → use price's trial; false → skip
 	Metadata        map[string]string
+	CustomerEmail   string
+	BillingDetails  *BillingDetails
+	CompanyName     string
+	VATNumber       string
 }
 
 func CreateCheckoutSession(cfg CheckoutConfig) (*stripe.CheckoutSession, error) {
@@ -49,6 +68,16 @@ func CreateCheckoutSession(cfg CheckoutConfig) (*stripe.CheckoutSession, error) 
 	if cfg.CustomerID != "" {
 		params.Customer = stripe.String(cfg.CustomerID)
 	}
+
+	// Pre-fill customer email if provided
+	if cfg.CustomerEmail != "" {
+		params.CustomerEmail = stripe.String(cfg.CustomerEmail)
+	}
+
+	// Note: Billing details (address, name, phone) cannot be pre-filled in Stripe Checkout v78 SDK
+	// They will be collected by Stripe during the checkout process.
+	// If pre-filling is required, you would need to create/update the customer first with billing details,
+	// then use that customer ID in the checkout session.
 
 	if !cfg.TrialFromPlan {
 		params.SubscriptionData.TrialSettings = nil

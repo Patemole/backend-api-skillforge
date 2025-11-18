@@ -40,7 +40,11 @@ func StripeWebhook(c *gin.Context) {
 		return
 	}
 
-	event, err := webhook.ConstructEvent(payload, signature, secret)
+	// Use ConstructEventWithOptions to handle API version mismatch
+	// The webhook may use a newer API version than the SDK expects
+	event, err := webhook.ConstructEventWithOptions(payload, signature, secret, webhook.ConstructEventOptions{
+		IgnoreAPIVersionMismatch: true,
+	})
 	if err != nil {
 		log.Printf("❌ Stripe webhook signature verification failed: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid signature"})
@@ -152,17 +156,46 @@ func StripeWebhook(c *gin.Context) {
 			subscriptionID = sess.Subscription.ID
 		}
 
+		// Fetch subscription details to get full status and trial info
+		status := "active" // Default to active for new subscriptions
+		var trialEnd *time.Time
+		var currentPeriodEnd *time.Time
+		if subscriptionID != "" {
+			sub, err := subscription.Get(subscriptionID, nil)
+			if err == nil {
+				status = string(sub.Status)
+				if sub.TrialEnd > 0 {
+					t := time.Unix(sub.TrialEnd, 0).UTC()
+					trialEnd = &t
+				}
+				if sub.CurrentPeriodEnd > 0 {
+					p := time.Unix(sub.CurrentPeriodEnd, 0).UTC()
+					currentPeriodEnd = &p
+				}
+				// Extract plan from subscription metadata if not already set
+				if plan == "" && sub.Metadata != nil {
+					plan = sub.Metadata["plan"]
+				}
+			}
+		}
+
 		rec := supabase.ProfileStripeFields{
-			UserID:               userID,
-			StripeCustomerID:     customerID,
-			StripeSubscriptionID: subscriptionID,
-			StripePlan:           plan,
-			StripeLastEventID:    event.ID,
+			UserID:                  userID,
+			StripeCustomerID:        customerID,
+			StripeSubscriptionID:    subscriptionID,
+			StripePlan:              plan,
+			StripeStatus:            status,
+			StripeTrialEnd:          trialEnd,
+			StripeCurrentPeriodEnd:  currentPeriodEnd,
+			StripeCancelAtPeriodEnd: false, // Will be updated by subscription.updated webhook if needed
+			StripeLastEventID:       event.ID,
 		}
 
 		if err := supabase.UpsertProfileStripeFields(ctx, rec); err != nil {
-			log.Printf("supabase upsert profile (checkout.session.completed) failed: %v", err)
+			log.Printf("❌ supabase upsert profile (checkout.session.completed) failed: %v", err)
 			// Don't fail the request if user update fails, org update succeeded
+		} else {
+			log.Printf("✅ Successfully updated user profile for %s with plan %s, status %s", userID, plan, status)
 		}
 
 	case "customer.subscription.updated", "customer.subscription.deleted":
@@ -187,41 +220,66 @@ func StripeWebhook(c *gin.Context) {
 			}
 		}
 		if userID != "" {
+			// Extract plan and customer ID from subscription
+			plan := ""
+			if sub.Metadata != nil {
+				plan = sub.Metadata["plan"]
+			}
+			customerID := ""
+			if sub.Customer != nil {
+				customerID = sub.Customer.ID
+			}
+
+			// Prepare time fields
+			var trialEnd *time.Time
+			var currentPeriodEnd *time.Time
+			if sub.TrialEnd > 0 {
+				t := time.Unix(sub.TrialEnd, 0).UTC()
+				trialEnd = &t
+			}
+			if sub.CurrentPeriodEnd > 0 {
+				p := time.Unix(sub.CurrentPeriodEnd, 0).UTC()
+				currentPeriodEnd = &p
+			}
+
+			// Update organization profile
 			organizationID, err := supabase.GetOrganizationIDFromUserID(ctx, userID)
 			if err == nil && organizationID != "" {
-				// Extract plan from subscription metadata
-				plan := ""
-				if sub.Metadata != nil {
-					plan = sub.Metadata["plan"]
-				}
-
-				customerID := ""
-				if sub.Customer != nil {
-					customerID = sub.Customer.ID
-				}
 				orgStripeFields := supabase.OrganizationStripeFields{
 					OrganizationID:          organizationID,
 					StripeCustomerID:        customerID,
 					StripeSubscriptionID:    sub.ID,
 					StripePlan:              plan,
 					StripeStatus:            string(sub.Status),
+					StripeTrialEnd:          trialEnd,
+					StripeCurrentPeriodEnd:  currentPeriodEnd,
 					StripeCancelAtPeriodEnd: sub.CancelAtPeriodEnd,
 					StripeLastEventID:       event.ID,
 				}
-				// Handle time fields
-				if sub.TrialEnd > 0 {
-					trialEnd := time.Unix(sub.TrialEnd, 0).UTC()
-					orgStripeFields.StripeTrialEnd = &trialEnd
-				}
-				if sub.CurrentPeriodEnd > 0 {
-					periodEnd := time.Unix(sub.CurrentPeriodEnd, 0).UTC()
-					orgStripeFields.StripeCurrentPeriodEnd = &periodEnd
-				}
 				if err := supabase.UpsertOrganizationStripeFields(ctx, orgStripeFields); err != nil {
-					log.Printf("supabase upsert organization (subscription.updated) failed: %v", err)
+					log.Printf("❌ supabase upsert organization (subscription.updated) failed: %v", err)
 				} else {
 					log.Printf("✅ Updated organization %s subscription status to %s", organizationID, sub.Status)
 				}
+			}
+
+			// Also update user profile
+			userProfileFields := supabase.ProfileStripeFields{
+				UserID:                  userID,
+				StripeCustomerID:        customerID,
+				StripeSubscriptionID:    sub.ID,
+				StripePlan:              plan,
+				StripeStatus:            string(sub.Status),
+				StripeTrialEnd:          trialEnd,
+				StripeCurrentPeriodEnd:  currentPeriodEnd,
+				StripeCancelAtPeriodEnd: sub.CancelAtPeriodEnd,
+				StripeLastEventID:       event.ID,
+			}
+
+			if err := supabase.UpsertProfileStripeFields(ctx, userProfileFields); err != nil {
+				log.Printf("❌ supabase upsert profile (subscription.updated) failed: %v", err)
+			} else {
+				log.Printf("✅ Updated user profile %s subscription status to %s", userID, sub.Status)
 			}
 		}
 	case "invoice.paid", "invoice.payment_failed":

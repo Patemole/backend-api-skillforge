@@ -27,13 +27,45 @@ type ProfileStripeFields struct {
 // UpsertProfileStripeFields writes the latest billing snapshot for a user into Supabase.
 // It keeps the record keyed by user_id, ensuring webhook retries remain idempotent.
 func UpsertProfileStripeFields(ctx context.Context, p ProfileStripeFields) error {
-	p.UpdatedAt = time.Now().UTC()
+	updateData := map[string]interface{}{
+		"stripe_customer_id":          p.StripeCustomerID,
+		"stripe_subscription_id":      p.StripeSubscriptionID,
+		"stripe_plan":                 p.StripePlan,
+		"stripe_status":               p.StripeStatus,
+		"stripe_cancel_at_period_end": p.StripeCancelAtPeriodEnd,
+		"stripe_last_invoice_status":  p.StripeLastInvoiceStatus,
+		"stripe_last_event_id":        p.StripeLastEventID,
+		"updated_at":                  time.Now().UTC().Format(time.RFC3339),
+	}
+
+	// Handle time fields
+	if p.StripeTrialEnd != nil {
+		updateData["stripe_trial_end"] = p.StripeTrialEnd.Format(time.RFC3339)
+	} else {
+		updateData["stripe_trial_end"] = nil
+	}
+
+	if p.StripeCurrentPeriodEnd != nil {
+		updateData["stripe_current_period_end"] = p.StripeCurrentPeriodEnd.Format(time.RFC3339)
+	} else {
+		updateData["stripe_current_period_end"] = nil
+	}
+
+	log.Printf("📤 Updating profile for user %s with data: customer_id=%s, subscription_id=%s, plan=%s, status=%s",
+		p.UserID, p.StripeCustomerID, p.StripeSubscriptionID, p.StripePlan, p.StripeStatus)
 
 	_, _, err := Client.
 		From("profiles").
-		Upsert(p, "", "", "").
+		Update(updateData, "", "").
 		Eq("user_id", p.UserID).
 		Execute()
+
+	if err != nil {
+		log.Printf("❌ Error updating profile for user %s: %v", p.UserID, err)
+	} else {
+		log.Printf("✅ Successfully updated profile for user %s in database", p.UserID)
+	}
+
 	return err
 }
 
