@@ -178,6 +178,7 @@ func main() {
 	r.POST("/boond/agencies", handlers.GetBoondAgencies)
 	r.POST("/boond/resources", handlers.GetBoondResources)
 	r.POST("/boond/orgchart", handlers.BuildBoondOrgChart)
+	r.POST("/boond/sync-manager", handlers.SyncBoondManagerID)
 	r.POST("/generate-pdf", handlers.GeneratePDF)
 	r.POST("/billing/checkout-session", stripe.CreateCheckoutSessionHandler)
 	r.POST("/billing/webhook", stripe.StripeWebhook)

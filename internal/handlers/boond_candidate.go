@@ -1,8 +1,10 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"regexp"
 	"strings"
@@ -12,6 +14,7 @@ import (
 	"backend-api-skillforge/internal/boond"
 	"backend-api-skillforge/internal/models"
 	"backend-api-skillforge/internal/orgchart"
+	"backend-api-skillforge/internal/supabase"
 )
 
 // DeleteBoondCandidate gère la suppression d'un candidat Boond
@@ -641,6 +644,157 @@ func GetBoondResources(c *gin.Context) {
 			"resources":         resources,
 			"count":             len(resources),
 			"filteredResources": filteredResources,
+		},
+	})
+}
+
+// SyncBoondManagerID synchronise le manager ID d'un utilisateur depuis les ressources tester Boond
+// Cette fonction:
+// 1. Récupère les ressources "tester" depuis Boond
+// 2. Trouve la ressource correspondant à l'email de l'utilisateur
+// 3. Extrait le manager ID de cette ressource
+// 4. Stocke le manager ID dans le profil utilisateur (boond_manager.boondManagerId)
+func SyncBoondManagerID(c *gin.Context) {
+	var req models.BoondSyncManagerRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, models.BoondCandidateResponse{
+			Success: false,
+			Message: "Données de requête invalides: " + err.Error(),
+		})
+		return
+	}
+
+	// Validation des champs requis
+	if strings.TrimSpace(req.BoondJwt) == "" {
+		c.JSON(http.StatusBadRequest, models.BoondCandidateResponse{
+			Success: false,
+			Message: "Le JWT Boond est requis",
+		})
+		return
+	}
+
+	if strings.TrimSpace(req.UserEmail) == "" {
+		c.JSON(http.StatusBadRequest, models.BoondCandidateResponse{
+			Success: false,
+			Message: "L'email utilisateur est requis",
+		})
+		return
+	}
+
+	if strings.TrimSpace(req.UserID) == "" {
+		c.JSON(http.StatusBadRequest, models.BoondCandidateResponse{
+			Success: false,
+			Message: "L'ID utilisateur est requis",
+		})
+		return
+	}
+
+	// Créer le client Boond
+	client := boond.New(req.BoondJwt)
+
+	// Trouver la ressource tester par email et extraire le manager ID
+	managerID, err := client.FindTesterResourceByEmail(c.Request.Context(), req.UserEmail)
+	if err != nil {
+		log.Printf("❌ [SyncBoondManagerID] Erreur lors de la recherche de la ressource tester: %v", err)
+		c.JSON(http.StatusInternalServerError, models.BoondCandidateResponse{
+			Success:          false,
+			Message:          "Échec de la recherche de la ressource tester",
+			ErrorCode:        "FIND_TESTER_RESOURCE_FAILED",
+			Details:          "Une erreur s'est produite lors de la recherche de la ressource tester dans Boond Manager",
+			TechnicalDetails: err.Error(),
+		})
+		return
+	}
+
+	if managerID == "" {
+		log.Printf("⚠️  [SyncBoondManagerID] Aucune ressource tester trouvée pour l'email: %s", req.UserEmail)
+		c.JSON(http.StatusOK, models.BoondCandidateResponse{
+			Success: true,
+			Message: "Aucune ressource tester trouvée pour cet email",
+			Data: map[string]any{
+				"managerId": nil,
+				"found":     false,
+			},
+		})
+		return
+	}
+
+	log.Printf("✅ [SyncBoondManagerID] Manager ID trouvé: %s pour l'email: %s", managerID, req.UserEmail)
+
+	// Récupérer le profil actuel pour préserver les autres champs de boond_manager
+	profileData, _, err := supabase.Client.
+		From("profiles").
+		Select("boond_manager", "exact", false).
+		Eq("user_id", req.UserID).
+		Single().
+		Execute()
+
+	var boondManagerData map[string]any
+	if err == nil && len(profileData) > 0 {
+		// Parser le JSON existant
+		var profile struct {
+			BoondManager json.RawMessage `json:"boond_manager"`
+		}
+		if err := json.Unmarshal(profileData, &profile); err == nil && len(profile.BoondManager) > 0 {
+			if err := json.Unmarshal(profile.BoondManager, &boondManagerData); err != nil {
+				log.Printf("⚠️  [SyncBoondManagerID] Erreur parsing boond_manager existant: %v", err)
+				boondManagerData = make(map[string]any)
+			}
+		} else {
+			boondManagerData = make(map[string]any)
+		}
+	} else {
+		boondManagerData = make(map[string]any)
+	}
+
+	// Mettre à jour le manager ID
+	boondManagerData["boondManagerId"] = managerID
+
+	// Convertir en JSON pour l'update
+	boondManagerJSON, err := json.Marshal(boondManagerData)
+	if err != nil {
+		log.Printf("❌ [SyncBoondManagerID] Erreur marshalling boond_manager: %v", err)
+		c.JSON(http.StatusInternalServerError, models.BoondCandidateResponse{
+			Success:          false,
+			Message:          "Échec de la préparation des données",
+			ErrorCode:        "MARSHAL_ERROR",
+			TechnicalDetails: err.Error(),
+		})
+		return
+	}
+
+	// Mettre à jour le profil dans Supabase
+	updateData := map[string]interface{}{
+		"boond_manager": string(boondManagerJSON),
+	}
+
+	_, _, err = supabase.Client.
+		From("profiles").
+		Update(updateData, "", "").
+		Eq("user_id", req.UserID).
+		Execute()
+
+	if err != nil {
+		log.Printf("❌ [SyncBoondManagerID] Erreur lors de la mise à jour du profil: %v", err)
+		c.JSON(http.StatusInternalServerError, models.BoondCandidateResponse{
+			Success:          false,
+			Message:          "Échec de la mise à jour du profil",
+			ErrorCode:        "UPDATE_PROFILE_FAILED",
+			Details:          "Une erreur s'est produite lors de la mise à jour du profil utilisateur",
+			TechnicalDetails: err.Error(),
+		})
+		return
+	}
+
+	log.Printf("✅ [SyncBoondManagerID] Profil mis à jour avec succès pour user_id: %s, manager_id: %s", req.UserID, managerID)
+
+	c.JSON(http.StatusOK, models.BoondCandidateResponse{
+		Success: true,
+		Message: "Manager ID synchronisé avec succès",
+		Data: map[string]any{
+			"managerId": managerID,
+			"found":     true,
+			"userId":    req.UserID,
 		},
 	})
 }

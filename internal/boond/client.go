@@ -195,16 +195,40 @@ func (c *Client) SearchCandidateByName(ctx context.Context, firstName, lastName 
 
 // CreateCandidate crée un candidat Boond avec les attributs fournis.
 // Retourne l'ID créé et le payload brut de la réponse.
-func (c *Client) CreateCandidate(ctx context.Context, attributes map[string]any) (string, json.RawMessage, error) {
+// Le paramètre managerID est optionnel pour lier le candidat à un manager spécifique.
+func (c *Client) CreateCandidate(ctx context.Context, attributes map[string]any, managerID ...string) (string, json.RawMessage, error) {
+	data := map[string]any{
+		"type":       "candidate",
+		"attributes": attributes,
+	}
+
+	// Ajouter la relation mainManager si un manager ID est fourni
+	if len(managerID) > 0 && strings.TrimSpace(managerID[0]) != "" {
+		data["relationships"] = map[string]any{
+			"mainManager": map[string]any{
+				"data": map[string]any{
+					"type": "resource",
+					"id":   managerID[0],
+				},
+			},
+		}
+		fmt.Printf("👤 [Boond] Liaison candidat au manager: %s\n", managerID[0])
+	}
+
 	payload := map[string]any{
-		"data": map[string]any{
-			"type":       "candidate",
-			"attributes": attributes,
-		},
+		"data": data,
 	}
 	buf, err := json.Marshal(payload)
 	if err != nil {
 		return "", nil, err
+	}
+
+	// Log du payload complet pour debug (uniquement les 1000 premiers caractères)
+	payloadStr := string(buf)
+	if len(payloadStr) > 1000 {
+		fmt.Printf("📋 [Boond] Payload (preview): %s...\n", payloadStr[:1000])
+	} else {
+		fmt.Printf("📋 [Boond] Payload complet: %s\n", payloadStr)
 	}
 
 	ep := fmt.Sprintf("%s/api/candidates", c.BaseURL)
@@ -748,157 +772,93 @@ func shouldIncludeResource(resource map[string]any, typeOfFilter []int, isVisibl
 	return true
 }
 
-// GetCandidateByID vérifie si un candidat existe dans Boond par son ID
-func (c *Client) GetCandidateByID(ctx context.Context, candidateID string) (bool, error) {
-	if strings.TrimSpace(candidateID) == "" {
-		return false, nil
+// FindTesterResourceByEmail trouve une ressource par email (mêmes filtres que "Tester Ressources")
+// puis retourne l'ID du manager Boond rattaché à cette ressource.
+func (c *Client) FindTesterResourceByEmail(ctx context.Context, userEmail string) (string, error) {
+	if strings.TrimSpace(userEmail) == "" {
+		return "", fmt.Errorf("user email cannot be empty")
 	}
 
-	ep := fmt.Sprintf("%s/api/candidates/%s", c.BaseURL, candidateID)
-	fmt.Printf("🔍 [Boond] GET %s\n", ep)
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, ep, nil)
+	// Reproduire les filtres utilisés par le bouton "Tester Ressources":
+	// typeOf = [2,4,5] (managers, direction, RH) et isVisible = true.
+	typeFilters := []int{2, 4, 5}
+	isVisible := true
+	resources, err := c.GetAllResources(ctx, 500, typeFilters, &isVisible)
 	if err != nil {
-		return false, err
-	}
-	addStdHeaders(req, c.JWT)
-
-	resp, err := c.HTTP.Do(req)
-	if err != nil {
-		fmt.Printf("❌ [Boond] GET candidate by ID error: %v\n", err)
-		return false, err
-	}
-	defer resp.Body.Close()
-
-	fmt.Printf("📥 [Boond] GET candidate by ID status=%d\n", resp.StatusCode)
-
-	// 200 = exists, 404 = doesn't exist, anything else = error
-	if resp.StatusCode == 200 {
-		return true, nil
-	}
-	if resp.StatusCode == 404 {
-		return false, nil
+		return "", fmt.Errorf("failed to get resources: %w", err)
 	}
 
-	// Other status codes are errors
-	body, _ := io.ReadAll(resp.Body)
-	return false, fmt.Errorf("boond get candidate failed: status=%d body=%s", resp.StatusCode, string(body))
-}
+	userEmailLower := strings.ToLower(strings.TrimSpace(userEmail))
+	fmt.Printf("🔍 [Boond] Recherche ressource pour email: %s (total: %d ressources)\n", userEmail, len(resources))
 
-// SearchCandidateByEmailStrict recherche un candidat par email avec matching strict
-// Vérifie tous les candidats retournés et ne retourne que si l'email correspond exactement
-func (c *Client) SearchCandidateByEmailStrict(ctx context.Context, email string) (string, error) {
-	if strings.TrimSpace(email) == "" {
-		return "", nil
-	}
-
-	email = strings.TrimSpace(strings.ToLower(email))
-
-	// Essayer plusieurs endpoints de recherche
-	endpoints := []string{
-		fmt.Sprintf("%s/api/candidates?email=%s", c.BaseURL, url.QueryEscape(email)),
-		fmt.Sprintf("%s/api/candidates?search=%s", c.BaseURL, url.QueryEscape(email)),
-	}
-
-	for _, ep := range endpoints {
-		fmt.Printf("🔎 [Boond] GET %s\n", ep)
-		req, err := http.NewRequestWithContext(ctx, http.MethodGet, ep, nil)
-		if err != nil {
-			continue
-		}
-		addStdHeaders(req, c.JWT)
-
-		resp, err := c.HTTP.Do(req)
-		if err != nil {
-			fmt.Printf("❌ [Boond] GET error: %v\n", err)
-			continue
-		}
-		body, _ := io.ReadAll(resp.Body)
-		_ = resp.Body.Close()
-
-		fmt.Printf("📥 [Boond] GET status=%d body_len=%d\n", resp.StatusCode, len(body))
-		if resp.StatusCode >= 400 {
+	// Parcourir les ressources pour trouver une correspondance
+	for _, resource := range resources {
+		attrs, ok := resource["attributes"].(map[string]any)
+		if !ok {
 			continue
 		}
 
-		var list jsonAPICandidateList
-		if err := json.Unmarshal(body, &list); err != nil {
-			fmt.Printf("⚠️  [Boond] Unmarshal list error: %v\n", err)
-			continue
+		// Vérifier plusieurs champs email potentiels
+		emailsToCheck := []string{
+			strings.ToLower(strings.TrimSpace(getString(attrs, "email1"))),
+			strings.ToLower(strings.TrimSpace(getString(attrs, "email2"))),
+			strings.ToLower(strings.TrimSpace(getString(attrs, "email"))),
 		}
 
-		// Parcourir TOUS les candidats retournés et vérifier l'email exact
-		for _, candidate := range list.Data {
-			candidateEmail := ""
-			if attrs, ok := candidate.Attr["email1"].(string); ok {
-				candidateEmail = strings.TrimSpace(strings.ToLower(attrs))
-			}
-
-			// Match strict: email doit correspondre exactement (case-insensitive)
-			if candidateEmail == email {
-				fmt.Printf("✅ [Boond] Exact email match found: id=%s, email=%s\n", candidate.ID, candidateEmail)
-				return candidate.ID, nil
+		matched := false
+		for _, email := range emailsToCheck {
+			if email != "" && email == userEmailLower {
+				matched = true
+				break
 			}
 		}
+
+		// Si l'email correspond, retourner l'ID de la ressource (manager)
+		if matched {
+			title, _ := attrs["title"].(string)
+			typeOf := attrs["typeOf"]
+			resID, _ := resource["id"].(string)
+			fmt.Printf("✅ [Boond] Ressource trouvée: id=%s, email=%s, title=%s, typeOf=%v\n", resID, userEmail, title, typeOf)
+			if strings.TrimSpace(resID) == "" {
+				fmt.Printf("⚠️  [Boond] Ressource correspondante mais id manquant\n")
+				return "", nil
+			}
+
+			return resID, nil
+		}
 	}
 
+	fmt.Printf("⚠️  [Boond] Aucune ressource trouvée pour l'email: %s\n", userEmail)
 	return "", nil
 }
 
-// SearchCandidateByNameStrict recherche un candidat par nom et prénom avec matching strict
-// Vérifie tous les candidats retournés et ne retourne que si nom+prénom correspondent exactement
-func (c *Client) SearchCandidateByNameStrict(ctx context.Context, firstName, lastName string) (string, error) {
-	if strings.TrimSpace(firstName) == "" || strings.TrimSpace(lastName) == "" {
-		return "", nil
+// getString helper
+func getString(attrs map[string]any, key string) string {
+	if v, ok := attrs[key].(string); ok {
+		return v
 	}
+	return ""
+}
 
-	firstName = strings.TrimSpace(strings.ToLower(firstName))
-	lastName = strings.TrimSpace(strings.ToLower(lastName))
-
-	ep := fmt.Sprintf("%s/api/candidates?firstName=%s&lastName=%s", c.BaseURL, url.QueryEscape(firstName), url.QueryEscape(lastName))
-	fmt.Printf("🔎 [Boond] GET %s\n", ep)
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, ep, nil)
-	if err != nil {
-		return "", err
+// extractRelationshipID extrait l'ID d'une relation depuis les relationships
+func extractRelationshipID(relationships map[string]any, relKey string) string {
+	if relationships == nil {
+		return ""
 	}
-	addStdHeaders(req, c.JWT)
-
-	resp, err := c.HTTP.Do(req)
-	if err != nil {
-		fmt.Printf("❌ [Boond] GET error: %v\n", err)
-		return "", err
+	rel, _ := relationships[relKey].(map[string]any)
+	if rel == nil {
+		return ""
 	}
-	body, _ := io.ReadAll(resp.Body)
-	_ = resp.Body.Close()
-
-	fmt.Printf("📥 [Boond] GET status=%d body_len=%d\n", resp.StatusCode, len(body))
-	if resp.StatusCode >= 400 {
-		return "", nil
+	data := rel["data"]
+	if data == nil {
+		return ""
 	}
-
-	var list jsonAPICandidateList
-	if err := json.Unmarshal(body, &list); err != nil {
-		fmt.Printf("⚠️  [Boond] Unmarshal list error: %v\n", err)
-		return "", nil
-	}
-
-	// Parcourir TOUS les candidats et vérifier nom+prénom exacts
-	for _, candidate := range list.Data {
-		candFirstName, _ := candidate.Attr["firstName"].(string)
-		candLastName, _ := candidate.Attr["lastName"].(string)
-
-		candFirstName = strings.TrimSpace(strings.ToLower(candFirstName))
-		candLastName = strings.TrimSpace(strings.ToLower(candLastName))
-
-		// Match strict: nom et prénom doivent correspondre exactement (case-insensitive)
-		if candFirstName == firstName && candLastName == lastName {
-			fmt.Printf("✅ [Boond] Exact name match found: id=%s (%s %s)\n", candidate.ID, candFirstName, candLastName)
-			return candidate.ID, nil
+	if m, ok := data.(map[string]any); ok {
+		if id, ok := m["id"].(string); ok {
+			return id
 		}
 	}
-
-	return "", nil
+	return ""
 }
 
 // maskToken retourne les n premiers caractères du token

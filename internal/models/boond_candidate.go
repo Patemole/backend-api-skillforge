@@ -64,3 +64,10 @@ type BoondCandidateResponse struct {
 	TechnicalDetails string `json:"technical_details,omitempty"`
 	Data             any    `json:"data,omitempty"`
 }
+
+// BoondSyncManagerRequest représente la requête pour synchroniser le manager ID d'un utilisateur
+type BoondSyncManagerRequest struct {
+	BoondJwt  string `json:"boondJwt" binding:"required"`
+	UserEmail string `json:"userEmail" binding:"required"`
+	UserID    string `json:"userId" binding:"required"` // ID de l'utilisateur dans notre base de données
+}

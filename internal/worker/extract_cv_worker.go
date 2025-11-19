@@ -20,6 +20,15 @@ import (
 	"backend-api-skillforge/internal/supabase"
 )
 
+// Helper function to get payload keys for debugging
+func getPayloadKeys(payload map[string]any) []string {
+	keys := make([]string, 0, len(payload))
+	for k := range payload {
+		keys = append(keys, k)
+	}
+	return keys
+}
+
 // StartExtractCVWorker lance une boucle qui traite les jobs extract_cv
 func StartExtractCVWorker() {
 	go func() {
@@ -58,6 +67,14 @@ func processOneExtractJob() error {
 			Limit(1, "").
 			Execute()
 		if err != nil {
+			errStr := err.Error()
+			// Si c'est un timeout, on continue plutôt que de faire échouer le cycle
+			if strings.Contains(errStr, "timeout") || strings.Contains(errStr, "57014") {
+				log.Printf("⚠️  [worker extract_cv] Timeout sur la requête (tentative %d/5), on continue...", tryCounter+1)
+				// Attendre un peu avant de réessayer
+				time.Sleep(1 * time.Second)
+				continue
+			}
 			log.Printf("❌ [worker extract_cv] Erreur requête: %v", err)
 			return err
 		}
@@ -76,7 +93,7 @@ func processOneExtractJob() error {
 		idStr = strconv.FormatInt(job.ID, 10)
 
 		// CAS: ne passer en processing que si toujours pending
-		udata, _, _ := supabase.Client.
+		udata, _, err := supabase.Client.
 			From("jobs").
 			Update(map[string]any{
 				"status":     "processing",
@@ -85,6 +102,17 @@ func processOneExtractJob() error {
 			Eq("id", idStr).
 			Eq("status", "pending").
 			Execute()
+		if err != nil {
+			errStr := err.Error()
+			// Si c'est un timeout, on continue plutôt que de faire échouer le cycle
+			if strings.Contains(errStr, "timeout") || strings.Contains(errStr, "57014") {
+				log.Printf("⚠️  [worker extract_cv] Timeout sur l'update (tentative %d/5), on continue...", tryCounter+1)
+				time.Sleep(1 * time.Second)
+				continue
+			}
+			log.Printf("❌ [worker extract_cv] Erreur update: %v", err)
+			// Pour les autres erreurs, on continue quand même pour ne pas bloquer le worker
+		}
 
 		var updated []models.Job
 		_ = json.Unmarshal(udata, &updated)
@@ -362,6 +390,14 @@ func processOneExtractJob() error {
 
 	// Intégration Boond si un JWT est présent dans le payload (uniquement si parsing OK et CV valide)
 	boondJWT, _ := job.Payload["boondJwt"].(string)
+	boondManagerID, _ := job.Payload["boondManagerId"].(string)
+
+	// Debug: afficher le payload complet pour vérifier la présence du boondManagerId
+	log.Printf("🔍 [worker extract_cv] Job payload keys: %v", getPayloadKeys(job.Payload))
+	log.Printf("🔍 [worker extract_cv] boondJwt present: %t (len=%d)", boondJWT != "", len(boondJWT))
+	log.Printf("🔍 [worker extract_cv] boondManagerId raw value: '%v' (type: %T)", job.Payload["boondManagerId"], job.Payload["boondManagerId"])
+	log.Printf("🔍 [worker extract_cv] boondManagerId after cast: '%s' (empty: %t)", boondManagerID, boondManagerID == "")
+
 	if strings.TrimSpace(boondJWT) != "" {
 		if !parsedOK {
 			log.Printf("⏭️  [worker extract_cv] Boond ignoré: JSON non parsé (job %s)", idStr)
@@ -370,6 +406,14 @@ func processOneExtractJob() error {
 			var cv nuextract.CVExtractionSchema
 			if raw, err := json.Marshal(result); err == nil {
 				_ = json.Unmarshal(raw, &cv)
+			}
+
+			// Debug: afficher les valeurs extraites
+			log.Printf("🔍 [worker extract_cv] Identité extraite: Prenom='%s', Nom='%s', Email='%s'", cv.Prenom, cv.Nom, cv.Email)
+			if strings.TrimSpace(boondManagerID) != "" {
+				log.Printf("👤 [worker extract_cv] Boond Manager ID fourni pour liaison: '%s'", boondManagerID)
+			} else {
+				log.Printf("⚠️  [worker extract_cv] AUCUN Boond Manager ID fourni - le candidat sera lié au manager par défaut des tokens")
 			}
 
 			hasIdentity := strings.TrimSpace(cv.Email) != "" ||
@@ -385,7 +429,16 @@ func processOneExtractJob() error {
 				bClient := boond.New(boondJWT)
 				attributes := boond.BuildCandidateAttributesFromCV(cv)
 
-				createdID, _, err := bClient.CreateCandidate(ctx, attributes)
+				// Créer le candidat avec liaison au manager si fourni
+				var createdID string
+				var err error
+				if strings.TrimSpace(boondManagerID) != "" {
+					log.Printf("👤 [worker extract_cv] Liaison candidat au manager Boond: %s", boondManagerID)
+					createdID, _, err = bClient.CreateCandidate(ctx, attributes, boondManagerID)
+				} else {
+					createdID, _, err = bClient.CreateCandidate(ctx, attributes)
+				}
+
 				if err != nil {
 					log.Printf("❌ [worker extract_cv] Échec de création du candidat Boond: %v", err)
 				} else if strings.TrimSpace(createdID) != "" {
