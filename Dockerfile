@@ -1,18 +1,27 @@
 # ---- build stage ----
     FROM golang:1.24.3-bullseye AS builder
 
+    # Install Tesseract and dependencies for CGO build
+    RUN apt-get update && apt-get install -y \
+        tesseract-ocr \
+        libtesseract-dev \
+        libleptonica-dev \
+        && rm -rf /var/lib/apt/lists/*
+
     WORKDIR /app
     
     COPY go.mod go.sum ./
     RUN go mod download
     
     COPY . .
-    RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /srv/main ./cmd/server
+    # Enable CGO for Tesseract OCR support
+    RUN CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -o /srv/main ./cmd/server
     
     # ---- run stage ----
     FROM debian:bullseye-slim
     
     # Installer Python 3, pip et les dépendances système pour WeasyPrint
+    # + Tesseract OCR et poppler-utils pour l'extraction OCR des PDFs image-based
     RUN apt-get update && apt-get install -y \
         python3 \
         python3-pip \
@@ -31,6 +40,10 @@
         fonts-dejavu \
         fonts-liberation \
         fonts-noto-core \
+        tesseract-ocr \
+        tesseract-ocr-fra \
+        tesseract-ocr-eng \
+        poppler-utils \
         && rm -rf /var/lib/apt/lists/*
     
     # Installer WeasyPrint via pip et s'assurer que le script est dans le PATH

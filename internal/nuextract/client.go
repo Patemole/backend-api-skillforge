@@ -206,17 +206,24 @@ func (c *Client) ExtractAndEnrichWithFilename(file []byte, filename string, lang
 					fileContent, err = extractTextFromPDFAlternative(file)
 				}()
 
-				if err != nil {
-					log.Printf("ERROR: Erreur extraction PDF alternative: %v", err)
-					// Fallback: utiliser le nom du fichier
-					name := filename
-					if strings.Contains(name, ".pdf") {
-						name = strings.TrimSuffix(name, ".pdf")
+				if err != nil || len(fileContent) < 100 {
+					// NEW: Try OCR as last resort for image-based PDFs
+					log.Printf("DEBUG: Erreur extraction PDF alternative ou contenu trop petit, essai OCR (image-based PDF)")
+					fileContent, err = extractTextFromPDFWithOCR(file)
+					if err != nil {
+						log.Printf("ERROR: OCR échoué: %v", err)
+						// Fallback: utiliser le nom du fichier
+						name := filename
+						if strings.Contains(name, ".pdf") {
+							name = strings.TrimSuffix(name, ".pdf")
+						}
+						if strings.Contains(name, ".PDF") {
+							name = strings.TrimSuffix(name, ".PDF")
+						}
+						fileContent = fmt.Sprintf("CV de %s - Erreur extraction PDF (tentative OCR échouée)", name)
+					} else {
+						log.Printf("✅ Extraction OCR réussie, %d caractères extraits", len(fileContent))
 					}
-					if strings.Contains(name, ".PDF") {
-						name = strings.TrimSuffix(name, ".PDF")
-					}
-					fileContent = fmt.Sprintf("CV de %s - Erreur extraction PDF", name)
 				} else {
 					log.Printf("DEBUG: Extraction PDF alternative réussie, %d caractères extraits", len(fileContent))
 				}

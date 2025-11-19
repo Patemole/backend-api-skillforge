@@ -54,16 +54,23 @@ func ExtractAndEnrichWithFilenameAnthropic(file []byte, filename string, languag
 			if err != nil || len(fileContent) < 100 {
 				log.Printf("DEBUG: [Anthropic] Méthode principale échouée/trop petit, essai alternative")
 				fileContent, err = extractTextFromPDFAlternative(file)
-				if err != nil {
-					log.Printf("ERROR: [Anthropic] Erreur extraction PDF alternative: %v", err)
-					name := filename
-					if strings.Contains(name, ".pdf") {
-						name = strings.TrimSuffix(name, ".pdf")
+				if err != nil || len(fileContent) < 100 {
+					// NEW: Try OCR as last resort for image-based PDFs
+					log.Printf("DEBUG: [Anthropic] Méthode alternative échouée/trop petit, essai OCR (image-based PDF)")
+					fileContent, err = extractTextFromPDFWithOCR(file)
+					if err != nil {
+						log.Printf("ERROR: [Anthropic] OCR échoué: %v", err)
+						name := filename
+						if strings.Contains(name, ".pdf") {
+							name = strings.TrimSuffix(name, ".pdf")
+						}
+						if strings.Contains(name, ".PDF") {
+							name = strings.TrimSuffix(name, ".PDF")
+						}
+						fileContent = fmt.Sprintf("CV de %s - Erreur extraction PDF (tentative OCR échouée)", name)
+					} else {
+						log.Printf("✅ [Anthropic] OCR réussi: %d caractères extraits", len(fileContent))
 					}
-					if strings.Contains(name, ".PDF") {
-						name = strings.TrimSuffix(name, ".PDF")
-					}
-					fileContent = fmt.Sprintf("CV de %s - Erreur extraction PDF", name)
 				}
 			}
 		}
