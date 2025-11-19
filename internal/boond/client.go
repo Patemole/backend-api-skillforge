@@ -748,6 +748,159 @@ func shouldIncludeResource(resource map[string]any, typeOfFilter []int, isVisibl
 	return true
 }
 
+// GetCandidateByID vérifie si un candidat existe dans Boond par son ID
+func (c *Client) GetCandidateByID(ctx context.Context, candidateID string) (bool, error) {
+	if strings.TrimSpace(candidateID) == "" {
+		return false, nil
+	}
+
+	ep := fmt.Sprintf("%s/api/candidates/%s", c.BaseURL, candidateID)
+	fmt.Printf("🔍 [Boond] GET %s\n", ep)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, ep, nil)
+	if err != nil {
+		return false, err
+	}
+	addStdHeaders(req, c.JWT)
+
+	resp, err := c.HTTP.Do(req)
+	if err != nil {
+		fmt.Printf("❌ [Boond] GET candidate by ID error: %v\n", err)
+		return false, err
+	}
+	defer resp.Body.Close()
+
+	fmt.Printf("📥 [Boond] GET candidate by ID status=%d\n", resp.StatusCode)
+
+	// 200 = exists, 404 = doesn't exist, anything else = error
+	if resp.StatusCode == 200 {
+		return true, nil
+	}
+	if resp.StatusCode == 404 {
+		return false, nil
+	}
+
+	// Other status codes are errors
+	body, _ := io.ReadAll(resp.Body)
+	return false, fmt.Errorf("boond get candidate failed: status=%d body=%s", resp.StatusCode, string(body))
+}
+
+// SearchCandidateByEmailStrict recherche un candidat par email avec matching strict
+// Vérifie tous les candidats retournés et ne retourne que si l'email correspond exactement
+func (c *Client) SearchCandidateByEmailStrict(ctx context.Context, email string) (string, error) {
+	if strings.TrimSpace(email) == "" {
+		return "", nil
+	}
+
+	email = strings.TrimSpace(strings.ToLower(email))
+
+	// Essayer plusieurs endpoints de recherche
+	endpoints := []string{
+		fmt.Sprintf("%s/api/candidates?email=%s", c.BaseURL, url.QueryEscape(email)),
+		fmt.Sprintf("%s/api/candidates?search=%s", c.BaseURL, url.QueryEscape(email)),
+	}
+
+	for _, ep := range endpoints {
+		fmt.Printf("🔎 [Boond] GET %s\n", ep)
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, ep, nil)
+		if err != nil {
+			continue
+		}
+		addStdHeaders(req, c.JWT)
+
+		resp, err := c.HTTP.Do(req)
+		if err != nil {
+			fmt.Printf("❌ [Boond] GET error: %v\n", err)
+			continue
+		}
+		body, _ := io.ReadAll(resp.Body)
+		_ = resp.Body.Close()
+
+		fmt.Printf("📥 [Boond] GET status=%d body_len=%d\n", resp.StatusCode, len(body))
+		if resp.StatusCode >= 400 {
+			continue
+		}
+
+		var list jsonAPICandidateList
+		if err := json.Unmarshal(body, &list); err != nil {
+			fmt.Printf("⚠️  [Boond] Unmarshal list error: %v\n", err)
+			continue
+		}
+
+		// Parcourir TOUS les candidats retournés et vérifier l'email exact
+		for _, candidate := range list.Data {
+			candidateEmail := ""
+			if attrs, ok := candidate.Attr["email1"].(string); ok {
+				candidateEmail = strings.TrimSpace(strings.ToLower(attrs))
+			}
+
+			// Match strict: email doit correspondre exactement (case-insensitive)
+			if candidateEmail == email {
+				fmt.Printf("✅ [Boond] Exact email match found: id=%s, email=%s\n", candidate.ID, candidateEmail)
+				return candidate.ID, nil
+			}
+		}
+	}
+
+	return "", nil
+}
+
+// SearchCandidateByNameStrict recherche un candidat par nom et prénom avec matching strict
+// Vérifie tous les candidats retournés et ne retourne que si nom+prénom correspondent exactement
+func (c *Client) SearchCandidateByNameStrict(ctx context.Context, firstName, lastName string) (string, error) {
+	if strings.TrimSpace(firstName) == "" || strings.TrimSpace(lastName) == "" {
+		return "", nil
+	}
+
+	firstName = strings.TrimSpace(strings.ToLower(firstName))
+	lastName = strings.TrimSpace(strings.ToLower(lastName))
+
+	ep := fmt.Sprintf("%s/api/candidates?firstName=%s&lastName=%s", c.BaseURL, url.QueryEscape(firstName), url.QueryEscape(lastName))
+	fmt.Printf("🔎 [Boond] GET %s\n", ep)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, ep, nil)
+	if err != nil {
+		return "", err
+	}
+	addStdHeaders(req, c.JWT)
+
+	resp, err := c.HTTP.Do(req)
+	if err != nil {
+		fmt.Printf("❌ [Boond] GET error: %v\n", err)
+		return "", err
+	}
+	body, _ := io.ReadAll(resp.Body)
+	_ = resp.Body.Close()
+
+	fmt.Printf("📥 [Boond] GET status=%d body_len=%d\n", resp.StatusCode, len(body))
+	if resp.StatusCode >= 400 {
+		return "", nil
+	}
+
+	var list jsonAPICandidateList
+	if err := json.Unmarshal(body, &list); err != nil {
+		fmt.Printf("⚠️  [Boond] Unmarshal list error: %v\n", err)
+		return "", nil
+	}
+
+	// Parcourir TOUS les candidats et vérifier nom+prénom exacts
+	for _, candidate := range list.Data {
+		candFirstName, _ := candidate.Attr["firstName"].(string)
+		candLastName, _ := candidate.Attr["lastName"].(string)
+
+		candFirstName = strings.TrimSpace(strings.ToLower(candFirstName))
+		candLastName = strings.TrimSpace(strings.ToLower(candLastName))
+
+		// Match strict: nom et prénom doivent correspondre exactement (case-insensitive)
+		if candFirstName == firstName && candLastName == lastName {
+			fmt.Printf("✅ [Boond] Exact name match found: id=%s (%s %s)\n", candidate.ID, candFirstName, candLastName)
+			return candidate.ID, nil
+		}
+	}
+
+	return "", nil
+}
+
 // maskToken retourne les n premiers caractères du token
 func maskToken(t string, n int) string {
 	if n <= 0 || len(t) <= n {

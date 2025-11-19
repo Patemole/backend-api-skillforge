@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -173,87 +174,95 @@ func ExtractCV(c *gin.Context) {
 		log.Printf("🧩 Attributs Boond construits:\n%s", string(b))
 	}
 
-	// TODO: Déduplication temporairement désactivée - l'API Boond ne filtre pas correctement par email
-	// Elle retourne le dernier candidat de la liste au lieu de faire une vraie recherche
-	//
-	// Stratégie de déduplication: chercher par email si disponible
-	// ctx := c.Request.Context()
-	// bClient := boond.New(boondJWT)
-	//
-	// existingID := ""
-	//
-	// // 1. Recherche par email d'abord
-	// if strings.TrimSpace(cv.Email) != "" {
-	// 	log.Printf("🔎 Dédup Boond: recherche par email '%s'", cv.Email)
-	// 	if foundID, err := bClient.SearchCandidateByEmail(ctx, cv.Email); err != nil {
-	// 		log.Printf("WARNING: Erreur lors de la recherche de doublon Boond par email: %v", err)
-	// 	} else if foundID != "" {
-	// 		existingID = foundID
-	// 		log.Printf("✅ Doublon détecté par email: candidat déjà présent dans Boond (id=%s) — pas de création", existingID)
-	// 	}
-	// }
-	//
-	// // 2. Si pas trouvé par email, essayer par nom+prénom
-	// if existingID == "" && strings.TrimSpace(cv.Prenom) != "" && strings.TrimSpace(cv.Nom) != "" {
-	// 	log.Printf("🔎 Dédup Boond: recherche par nom+prénom '%s %s'", cv.Prenom, cv.Nom)
-	// 	if foundID, err := bClient.SearchCandidateByName(ctx, cv.Prenom, cv.Nom); err != nil {
-	// 		log.Printf("WARNING: Erreur lors de la recherche de doublon Boond par nom: %v", err)
-	// 	} else if foundID != "" {
-	// 		existingID = foundID
-	// 		log.Printf("✅ Doublon détecté par nom: candidat déjà présent dans Boond (id=%s) — pas de création", existingID)
-	// 	}
-	// }
-	//
-	// // Si pas de doublon détecté, tenter la création
-	// if existingID == "" {
-	// 	log.Printf("📡 Création candidat Boond → POST /api/candidates …")
-	// 	createdID, raw, err := bClient.CreateCandidate(ctx, attributes)
-	// 	if err != nil {
-	// 		log.Printf("❌ Échec de création du candidat Boond: %v", err)
-	// 		// On n'échoue pas la route /extract: on continue à renvoyer le JSON NuExtract
-	// 	} else {
-	// 		log.Printf("🎉 Candidat Boond créé avec succès (id=%s)", createdID)
-	// 		if len(raw) > 0 {
-	// 			body := string(raw)
-	// 			if len(body) > 600 {
-	// 				body = body[:600] + "…(tronqué)"
-	// 			}
-	// 			log.Printf("📦 Réponse Boond (tronquée): %s", body)
-	// 		}
-	// 	}
-	// }
-
-	// Création directe du candidat (déduplication désactivée temporairement)
+	// Stratégie de déduplication hybride (DB + Boond API avec matching strict)
 	ctx := c.Request.Context()
 	bClient := boond.New(boondJWT)
+	existingID := ""
 
-	log.Printf("📡 Création candidat Boond → POST /api/candidates …")
-	createdID, raw, err := bClient.CreateCandidate(ctx, attributes)
-	if err != nil {
-		log.Printf("❌ Échec de création du candidat Boond: %v", err)
-		// On n'échoue pas la route /extract: on continue à renvoyer le JSON NuExtract
-	} else {
-		log.Printf("🎉 Candidat Boond créé avec succès (id=%s)", createdID)
-		if len(raw) > 0 {
-			body := string(raw)
-			if len(body) > 600 {
-				body = body[:600] + "…(tronqué)"
-			}
-			log.Printf("📦 Réponse Boond (tronquée): %s", body)
-		}
-
-		// Upload du CV après création du candidat
-		log.Printf("📄 Upload du CV → POST /api/documents …")
-		docID, err := bClient.UploadDocument(ctx, createdID, data, header.Filename)
+	// ÉTAPE 1: Vérifier d'abord dans la base de données (rapide et fiable)
+	if strings.TrimSpace(cv.Email) != "" {
+		log.Printf("🔎 Dédup: Recherche dans la base de données pour email '%s'", cv.Email)
+		dbID, err := checkExistingBoondCandidateInDB(ctx, cv.Email)
 		if err != nil {
-			log.Printf("❌ Échec de l'upload du CV: %v", err)
-			// On n'échoue pas la route /extract: le candidat est créé même si le CV échoue
-		} else {
-			log.Printf("🎉 CV uploadé avec succès (doc_id=%s)", docID)
+			log.Printf("⚠️  Erreur recherche DB (non bloquant): %v", err)
+		} else if dbID != "" {
+			// Vérifier que le candidat existe toujours dans Boond
+			log.Printf("🔍 Vérification existence candidat Boond (id=%s)...", dbID)
+			exists, err := bClient.GetCandidateByID(ctx, dbID)
+			if err != nil {
+				log.Printf("⚠️  Erreur vérification Boond (non bloquant): %v", err)
+				// On continue quand même, peut-être que c'est un problème temporaire
+			} else if exists {
+				existingID = dbID
+				log.Printf("✅ Doublon trouvé dans DB et vérifié dans Boond: id=%s", existingID)
+			} else {
+				log.Printf("ℹ️  Candidat trouvé dans DB mais n'existe plus dans Boond (id=%s), on va créer un nouveau", dbID)
+			}
+		}
+	}
+
+	// ÉTAPE 2: Si pas trouvé dans DB, chercher dans Boond avec matching strict
+	if existingID == "" {
+		// 2a. Recherche par email (prioritaire)
+		if strings.TrimSpace(cv.Email) != "" {
+			log.Printf("🔎 Dédup Boond: recherche stricte par email '%s'", cv.Email)
+			if foundID, err := bClient.SearchCandidateByEmailStrict(ctx, cv.Email); err != nil {
+				log.Printf("⚠️  Erreur lors de la recherche de doublon Boond par email: %v", err)
+			} else if foundID != "" {
+				existingID = foundID
+				log.Printf("✅ Doublon détecté par email (matching strict): candidat déjà présent dans Boond (id=%s)", existingID)
+			}
 		}
 
-		// Enrichir la réponse avec l'ID du candidat Boond pour la synchronisation future
-		log.Printf("🔄 Enrichissement de la réponse avec boond_candidate_id=%s", createdID)
+		// 2b. Si pas trouvé par email, essayer par nom+prénom
+		if existingID == "" && strings.TrimSpace(cv.Prenom) != "" && strings.TrimSpace(cv.Nom) != "" {
+			log.Printf("🔎 Dédup Boond: recherche stricte par nom+prénom '%s %s'", cv.Prenom, cv.Nom)
+			if foundID, err := bClient.SearchCandidateByNameStrict(ctx, cv.Prenom, cv.Nom); err != nil {
+				log.Printf("⚠️  Erreur lors de la recherche de doublon Boond par nom: %v", err)
+			} else if foundID != "" {
+				existingID = foundID
+				log.Printf("✅ Doublon détecté par nom (matching strict): candidat déjà présent dans Boond (id=%s)", existingID)
+			}
+		}
+	}
+
+	// ÉTAPE 3: Créer le candidat seulement si aucun doublon trouvé
+	if existingID == "" {
+		log.Printf("📡 Aucun doublon trouvé → Création candidat Boond → POST /api/candidates …")
+		createdID, raw, err := bClient.CreateCandidate(ctx, attributes)
+		if err != nil {
+			log.Printf("❌ Échec de création du candidat Boond: %v", err)
+			// On n'échoue pas la route /extract: on continue à renvoyer le JSON NuExtract
+		} else {
+			existingID = createdID
+			log.Printf("🎉 Candidat Boond créé avec succès (id=%s)", existingID)
+			if len(raw) > 0 {
+				body := string(raw)
+				if len(body) > 600 {
+					body = body[:600] + "…(tronqué)"
+				}
+				log.Printf("📦 Réponse Boond (tronquée): %s", body)
+			}
+
+			// Upload du CV après création du candidat
+			log.Printf("📄 Upload du CV → POST /api/documents …")
+			docID, err := bClient.UploadDocument(ctx, existingID, data, header.Filename)
+			if err != nil {
+				log.Printf("❌ Échec de l'upload du CV: %v", err)
+				// On n'échoue pas la route /extract: le candidat est créé même si le CV échoue
+			} else {
+				log.Printf("🎉 CV uploadé avec succès (doc_id=%s)", docID)
+			}
+		}
+	} else {
+		log.Printf("ℹ️  Candidat existant trouvé (id=%s), pas de création ni d'upload", existingID)
+		// Optionnel: on pourrait quand même uploader le CV si c'est un nouveau CV
+		// Mais pour l'instant on skip pour éviter les doublons de documents
+	}
+
+	// Enrichir la réponse avec l'ID du candidat Boond (nouveau ou existant)
+	if existingID != "" {
+		log.Printf("🔄 Enrichissement de la réponse avec boond_candidate_id=%s", existingID)
 
 		// Repartir de la version normalisée
 		var response map[string]any
@@ -279,9 +288,9 @@ func ExtractCV(c *gin.Context) {
 		}
 
 		// Ajouter l'ID Boond et le DC_language à la réponse
-		response["boond_candidate_id"] = createdID
+		response["boond_candidate_id"] = existingID
 		response["DC_language"] = language
-		log.Printf("✅ boond_candidate_id et DC_language ajoutés à la réponse: id=%s, DC_language=%s", createdID, language)
+		log.Printf("✅ boond_candidate_id et DC_language ajoutés à la réponse: id=%s, DC_language=%s", existingID, language)
 
 		// Renvoyer la réponse enrichie
 		enrichedResult, err := json.Marshal(response)
@@ -435,6 +444,43 @@ func ExtractCVAsync(c *gin.Context) {
 		"status":  "pending",
 		"type":    "extract_cv",
 	})
+}
+
+// checkExistingBoondCandidateInDB vérifie si un candidat existe déjà dans la base de données
+// avec un boond_candidate_id pour l'email donné
+func checkExistingBoondCandidateInDB(ctx context.Context, email string) (string, error) {
+	if strings.TrimSpace(email) == "" {
+		return "", nil
+	}
+
+	// Requête Supabase pour trouver un profil avec cet email et un boond_candidate_id
+	data, _, err := supabase.Client.
+		From("profiles").
+		Select("boond_candidate_id", "exact", false).
+		Eq("email", strings.TrimSpace(strings.ToLower(email))).
+		Not("boond_candidate_id", "is", "null").
+		Limit(1, "").
+		Execute()
+
+	if err != nil {
+		log.Printf("⚠️  Erreur lors de la recherche DB pour email %s: %v", email, err)
+		return "", nil // Non bloquant, on continue
+	}
+
+	var results []struct {
+		BoondCandidateID string `json:"boond_candidate_id"`
+	}
+	if err := json.Unmarshal(data, &results); err != nil {
+		log.Printf("⚠️  Erreur parsing résultats DB: %v", err)
+		return "", nil
+	}
+
+	if len(results) > 0 && results[0].BoondCandidateID != "" {
+		log.Printf("✅ Candidat trouvé dans DB: email=%s, boond_id=%s", email, results[0].BoondCandidateID)
+		return results[0].BoondCandidateID, nil
+	}
+
+	return "", nil
 }
 
 // sanitizeJSONResult retire d'éventuels blocs de code ```json ... ``` et extrait uniquement l'objet JSON
