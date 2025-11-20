@@ -1,0 +1,379 @@
+CV envoyé par Hellowork. Contient des données personnelles : ne pas utiliser, diffuser, copier sans le consentement de son auteur.
+
+Manuel de OLIVEIRA
+
+: D
+
+SUPERVISEUR / DIRECTEUR Travaux + BE
+
+CONTRATS / EXECUTION
+
+Eolien Offshore, Datacenters, Pétrochimie, GigaFactories
+
+44360 Saint Etienne de Montluc
+
+Tél. : 06 51 03 11 21
+e-mail : m.oliveira.nantes@gmail.com
+Mobilité totale avec défraiement : France + Europe
+Disponibilité : à convenir
+
+Depuis 06/25 : Responsable Bureau d'Etudes Electricité HT CFO CFA. Eolien Offshore : Intégration et
+Coordination pluridisciplinaire des OSS automatisées 66kV/155kV. Champ éolien 1,6GW. Cheminements
+résine et fibre, struts et starters inox, câbles HT 1000mm², TGBT et groupes électrogènes automatisés,
+HVAC, onduleurs et batteries, tableaux de distribution, éclairage Normal/Secours, détection incendie,
+extinction CO2, traitement foudre, MALT et CEM (Roxtec), vidéo et anti-intrusion, sécurité aérienne et
+maritime, pilotage (SCADA) communication et cybersécurité,
+Management 20 dessinateurs/projeteurs/Ingénieurs.
+Gestions des sous-traitants : SNEF, SPIE, RNDV (60 techniciens).
+Contrôle réalisation, qualité, conformité : ROSETTI (Italie), port de Rotterdam, chantier naval Portugal.
+Chantiers de l'Atlantique 44600 SAINT NAZAIRE / RWE Mer du Nord-ALLEMAGNE
+
+06/24 à 04/25 : Responsable EXE lots Techniques CET. Contractant général clefs en main : Construction
+d'un Data Center TIER 4 de 7500m² pour société Armement et Défense – [Environnement critique, Diffusion
+restreinte, container ZED sur GED].
+Tenue des réunions de chantier, planning d'avancement de travaux, suivi des sous-traitants, gestion de la
+coactivité et sécurité, relationnel client, architecte, visites CARSAT, validation des facturations, pilotage des
+modifications (maquette BIM), devis et travaux supplémentaires, pilotage de la performance et de
+l'amélioration continue, OPR, commissioning, réception des installations, DOE, DIUO, levée de réserves
+– Electricité CFO : Groupes Electrogènes 1400, transfos 1250 et cellules HT/BT, onduleurs 400,
+batteries 400, TGBT 2000A et TGHQ, alimentations, ECL + PC, photovoltaïque 160, ventitests et
+charges Tovotests
+– Electricité CFA : 90 baies informatiques conventionnelles, HPC, supervision GTB GTC (1200 points),
+SSI, extinction sur aspirants IEAG (400 bars), désenfumage, sûreté intrusion Grade 3, contrôle
+d'accès (portes pyrotechniques), vidéosurveillance, téléphonie IP + bornes WIFI, surveillance O2,
+fuite lithium.
+– CVC, CTA et HVAC : Groupes Froid 102, DRY 45, tuyauterie, climatiseurs, CTA, réseau aéraulique,
+équilibrage réseau hydraulique, VRV 19, Split, CRAH, plomberie multicouche, détection de fuites,
+glycol, traçage électrique, calorifugeage.
+– TCE : Métallerie blindage CR3, barreaudage, étanchéité, menuiseries intérieures et serrurerie,
+peinture, résines de sol, planchers techniques, plans de levage.
+– Gros-Oeuvre : Traitement des réservations coupe-feu 2 heures.
+Management pluridisciplinaire : 20 entreprises Sous-traitantes (environ 80 techniciens)
+Cap Ingelec 75000 PARIS / MBDA 18570 LE SUBDRAY
+
+03/23 à 05/24 Chef de Pôle Electricité-Maintenance Oil & Gas : Sur la totalité des 455 hectares de la
+raffinerie, réalisation de la maintenance électrique complète. En environnement pétrochimique ATEX
+Seveso-ICPE, curatif et préventif des CFO (HT, BT, et TBT) pour le process (2000 moteurs), l'éclairage (15
+000 points lumineux) et les utilités.
+En tant que responsable de contrat de maintenance, interventions sur contrat au résultat (marché à bons de
+commande OT forfaitaire), ou sur bordereau, ou travaux neufs, toujours en tenant compte des priorités.
+
+
+CV envoyé par Hellowork. Contient des données personnelles : ne pas utiliser, diffuser, copier sans le consentement de son auteur.
+
+Sur SAP-GMAO, MSProject, GWOS, OPERIS, PEOPLE OFF, ApogéeOne, MERIDIAN, préparation et
+organisation des interventions et des astreintes, obtention des permis de travail quotidiens (sécurité), gestion
+des accès maritimes ZAR, alkylation, H2S, recrutement, gestion administrative de l'équipe (pointage,
+assiduité, habilitations, causeries et formation HSE, QSSE, parc de véhicules, prestataires, intérimaires),
+relationnel et gestion financière avec les 5 Business Teams du client, achats (matériels, locations et
+prestations EPROC), réceptions partielles, réunions de coordination, de planification GANTT et de
+production (CODIR régional), revues mensuelles de contrat.
+Valorisation des interventions, suivi des Claims & litiges, de la facturation et des relances, des KPI de
+production et des synthèses P&L financiers.
+Gestion des sous-traitants (mécanique, instruments, analyseurs, robinetterie, vannes, échafaudages,
+pompage, lavage/décontamination/dépollution, levage, transport, tuyauterie, calorifugeage, traceurs
+chauffants), contrats de sous-traitance et renégociation du futur contrat quinquennal.
+Contrôle qualité, rectification des défauts, levée de réserves, réception définitive, garanties contractuelles.
+Management : 25 techniciens + 6 prestataires
+Clemessy ADS-Eiffage 44400 REZE / Raffinerie TotalEnergies 44480 DONGES
+
+07/22 à 03/23 Cadre de Chantier Industrie : Avec 676 ouvriers, Construction de la plus grande usine
+verticale au monde en élevage d'insectes et production de protéines alimentaires, totalement automatique :
+convoyeurs, transferts, élévateurs, descendeurs, empileurs et dépileurs par le haut ou le bas, retourneurs
+ATEX, laveuses, blancheurs, etc ...
+Equipement des cellules d'alimentation, raccordement des lignes de production CFO CFA , synchronisation
+de l'automatisation Profinet, pesage, dosage, muting inductif, variateurs, codeurs, sondes, connectique (Full
+Siemens : brushless, RIO, IHM, SPD).
+Mise en service du process et du safety périphérique (barrières immatérielles, contacts de portes SILK), y
+compris dépannages afférents.
+Gestion de 75 électriciens et 22 automaticiens au total, y compris la sous-traitance (Eiffage, Satelec, Snef,
+Spie, Cegelec, Seroba (Inox et Mécano-soudure), etc …).
+Planification, réunions de chantier MOA MOE, points d'avancement, approvisionnement des matériels,
+gestion des priorités, des impondérables et des difficultés.
+Gestion des budgets appros, outillages, nacelles, services cordistes, suivi des relations contractuelles et
+financières avec les sous-traitants.
+Recrutement, PPSPS, PGC, VIC, EPI, QHSE et coordinateur Sécurité Préventeur Socotec, etc …
+Aide aux chiffrages et discussions sur les travaux supplémentaires.
+Multilingue professionnel : Français, Portugais et Espagnol (25 travailleurs détachés dans l'équipe).
+Gestion de la qualité totale GQT (TQM), autocontrôles et méthode d'amélioration continue Kaizen.
+ENGIE INEO Atlantique (EQUANS) 72000 Sablé sur Sarthe / YNSECT, YNFARM 80000 AMIENS
+Poulainville
+
+03/22 à 05/22 Superviseur de Chantiers Grand Ouest, Oil & Gas : Construction et rénovation de stationsservice. Suivi des réalisations des installations électriques CFO/CFA (pistes, boutique et annexes) avec
+carburants classiques + bioEthanol + GPL + GNC + bornes IRVE 175kW avec booster + photovoltaïque
+toitures.
+Constructions neuves ou phasing sur site occupé en environnement ATEX (permis de feu), TGBT, groupe
+électrogène, groupes de froid, bornes TPI, caisson HVAC, y compris bus de liaison, alarmes et sécurité
+(vidéosurveillance nocturne, anti-intrusion, anti-braquage, interphonie clientèle, détection incendie, sondes
+de niveau de cuves, détection de fuites, VOLU et DOMS PL-VL, convoyage pneumatique des fonds,
+sonorisation, etc ...)
+Approvisionnements, réunions de chantier, relationnel client, synchronisation avec le Maître d'Oeuvre,
+chiffrage et validation des travaux supplémentaires, recrutement, management de 13 salariés, gestion des
+sous-traitants.
+SPIE 44800 SAINT HERBLAIN / Groupe TOTAL 92200 LA DEFENSE
+
+09/21 à 02/22 Chargé d'Affaires Grand Ouest : pour le leader français du contrôle d'accès automatique
+avec billetterie, création de l'agence nantaise, gestion totale de la conduite des chantiers sur le grand ouest
+(40 dossiers marchés publics collectivités ERP sur 35 départements impliquant mobilité et disponibilité).
+Préparation des cartes électroniques et des logiciels embarqués sur les matériels en inox (tripodes et
+portillons PMR), lecteurs de badge en réseau IP : IDCAPT et STID.
+Suivant CCTP, DCE et VISAS, plans, implantations, planification, approvisionnements et logistique,
+recrutement et projection des équipes, réunions de chantier, installation et mise en service (y compris bornes
+IRVE), remise du DOE, AOR, réception et levée de réserves.
+Organisation des visites préventives de maintenance, des dépannages, et de la relation clientèle (devis,
+vente travaux supplémentaires, upgrade), architectes, OPC et Maîtres d'Ouvrage.
+
+
+CV envoyé par Hellowork. Contient des données personnelles : ne pas utiliser, diffuser, copier sans le consentement de son auteur.
+
+Formation utilisateurs et Directions DGS / DSI.
+Paramétrages réseau LAN, poste de caisse, poste de gestion et adressage IP pour serveur local ou déporté,
+sur onduleurs.
+GTB pour l'accès de télémaintenance à distance.
+Sécurité : en milieu humide et chlore, préparation des PPSPS collectifs et contrôle du port individuel d'EPI.
+Gestion des sous-traitants et management de 15 techniciens sur 7 chantiers simultanés.
+ELISAFI / ELISATH 54000 Nancy et 44260 Malville.
+
+06/21 à 09/21 Responsable de Chantier Electricité : Réalisation de 2 opérations :
+– Les Terrasses de la Vanoise (finitions) 73350 Champagny en Vanoise, filerie après incorporations,
+évolution des installations de chantier, appareillage définitif.
+– Les Chalets des Glaciers 73120 Courchevel (chalets très haut de gamme), incorporations dans les
+coulages (banches, voiles, radiers et dalles), bornes IRVE. Promoteur Groupe Launay - 35000
+Rennes, Gros-Oeuvre Groupe Legendre – 35000 Rennes, Installateur SOGEC - 73290 La Motte
+Servolex.
+
+12/20 à 05/21 : Formation Online Encadrement et Gestion d'équipes. Certification 600 heures.
+
+01 à 11/2020 Chef de Chantier Electricité : Réalisation de 2 lotissements.
+
+1°) 22 logements intermédiaires Woodlife, les Sorinières, Promoteur ICEO : Ouverture et installation de
+chantier, coulage, puis réalisation de l'installation électrique en totalité, avec déploiement des pieuvres, pose
+de l'appareillage et raccordement des tableaux en bac acier. Gestion de l'équipe, des approvisionnements,
+de la logistique et des consommables, des modifications techniques, des plannings et des jalons, du
+relationnel promoteur, des réunions de chantier, et des réceptions de lots de travaux.
+
+2°) 21 logements haut de gamme Boissière, Vertou, Promoteur GIBOIRE : Rectification de malfaçons,
+reprise d'installation électrique, mise aux normes et finitions avant livraison au Promoteur, avec
+synchronisation des reprises maçonnerie, ventilation, plomberie, chaudières, étanchéité, petite serrurerie,
+dépannages ...Relationnel et organisation des plannings avec les intervenants « fin de chantier » : Consuel,
+Enedis, GRDF, Veolia, Engie Homme Services.
+
+Management 5 électriciens.
+ECCS 85180 CHATEAU d'OLONNE
+
+11 à 12/2019 Chef de Chantier Electricité : Rénovation de bureaux (siège social en site occupé). Prise en
+compte des plannings déménagements / emménagements du Client, démontage des installations
+existantes, réalisation de nouvelles installations (électrique, informatique et téléphonique), avec nouvelle
+distribution, alimentations supplémentaires et prise en compte des contraintes des armoires existantes
+(courants forts, courants faibles).
+Synchronisation des travaux avec les autres entreprises (Maçonnerie ANDRE BTP, peinture TIJOU
+plaquiste, faux-plafonds, cloisons modulaires, menuisier, plombier, solier-moquettiste).
+Prise en compte des normes PMR (Personnes à Mobilité Réduite), installation de BAES, éclairage intérieur
+intelligent, éclairage extérieur architectural ou par candélabres.
+Coordination de 5 chantiers collectivités : management 12 personnes.
+– SEMITAN Tramway, Nantes (1400 personnes)
+– CIS Centre d'Incendie et de Secours, Herbignac
+– Collège CADOU, Saint Brévin les Pins
+– CMS Centre Médico Social, Conseil Départemental, Guérande
+– VEOLIA Arc en Ciel, Couëron
+ENGIE Ineo Services 44240 LA CHAPELLE SUR ERDRE
+
+09 à 10/2019 Chef de Chantier Electricité Tertiaire : Courants Forts / Courants Faibles sur deux
+immeubles de bureaux : Onduleur, PC normales et secourues sous goulottes, 1500 noyaux informatiques
+répartis sur 4 baies, câblage des climatiseurs Airzone, de la CTA Centrale de Traitement d'Air, des éclairages
+DALI, etc ...
+Synchronisation avec CEGELEC (pose d'onduleur)
+– immeuble ARMEN, Saint-Herblain (management 6 personnes)
+– Immeuble INITIAL / TALENTSOFT, Nantes Saint Joseph (management 5 personnes)
+REALINK 44000 NANTES
+
+07 à 08/2019 Responsable Electricité Industrielle Itinérant :
+
+
+CV envoyé par Hellowork. Contient des données personnelles : ne pas utiliser, diffuser, copier sans le consentement de son auteur.
+
+- Rénovation et extension d'usine : Mise en place de la Centrale de ventilation automatique CVC avec
+asservissements, capteurs et variation de puissance, filtration qualité de l'air, sur la totalité du site OD Plast –
+Groupe RENOU – 35680 BAIS
+Management : 3 électriciens
+- Installation d'une nouvelle ligne de production SEVESO (800 k€), avec robot de manutention automatique,
+moteurs, pompes, instrumentation et boucles de mesure, pour la protection métallique et le renforcement de
+pièces au Titane, à destination de l'industrie aéronautique (AIRBUS). MECAPROTECT – 44360 VIGNEUX
+de BRETAGNE
+Management : 2 personnes
+
+05 à 07/2019 Electricien Chef d'Equipe : Réalisation d'un immeuble de 12 200m² de bureaux pour la
+banque Groupe BPCE : CFO / CFA en chemins de dalles, colonnes montantes avec répartiteurs de
+branchement, chemins de câbles, fourreaux et goulottes, et notamment installation et réglage du bus KNX
+avec gradateurs, commandes et éclairage, baies de brassage, bornes WiFi, vidéosurveillance, contrôle
+d'accès, détection incendie, réseau de fibre optique, 1500 postes RJ45.
+Management : 1 électricien et 2 sous-traitants.
+Banque BPCE / I-BP, FRESNEL 44800 Saint-Herblain
+
+02 à 05/2019 : Responsable Electricité : Montage/Démontage, déploiement, maintenance et repli des
+installations provisoires portant sur 60 chantiers de Gros-Oeuvre BTP. Branchement Tarif Jaune ou Tarif Bleu
+(travail avec nacelle), raccordement des grues (travail en hauteur), centrales à béton automatisées, groupes
+électrogènes, armoires pied de grue, armoires volantes, coffrets de cantonnement, bungalows et bases-vie,
+éclairages de chantier, pompes d'abaissement de nappe. Diagnostics de dépannage, approvisionnements et
+remplacement des matériels. Organisation de la logistique/transport, grutage (PPM 6 essieux) et du
+contrôle/maintenance en atelier et sur le terrain.
+Avec autonomie, un grand sens du service, une forte capacité d'adaptation et un excellent relationnel clients
+internes / externes, Gestion des fichiers d'incidents, Suivi de la déontologie, des normes et de la conformité.
+Management 3 personnes avec Gestion des Plannings.
+Secteur Grand-Ouest (de Brest à Paris)
+Connaissances techniques spécifiques chantier et machines : mécanique, soudure, hydraulique,
+électromécanique, électricité et automatismes.
+Groupe LEFEUNTEUN, 44260 MALVILLE
+
+07/2018 à 02/2019 : Electricien Chef d'Equipe : Réalisation de l'installation électrique du nouveau bâtiment
+Berjac, MIN de Nantes / Rezé. En environnement agro-alimentaire, définition et pose des chemins de câble
+et chemins de dalles, suivi de coulage de planchers avec pose de câbles chauffants anti-gel, tirage de
+câbles CFO / CFA, câblage et raccordement d'armoires, tableaux et coffrets, dépannages préalables à la
+mise en service, approvisionnement du chantier, suivi du planning, câblage d'environ 400 postes
+informatiques avec baie, et d'une boucle de 70 détecteurs optiques d'incendie, sirènes, BAES, déclencheurs
+manuels, intervention sur panneaux frigorifiques sandwich, goulottes et tube inox (travail en nacelle), bus
+RJ45, baie informatique, anti-intrusion avec asservissement des portes automatiques, vidéo-surveillance,
+sonorisation, passage de fibre optique sur les liaisons principales, calepinage des bureaux.
+Pose de 32 000 m² de panneaux photovoltaïques.
+Coordination des carottages avec Eiffage.
+Coopération avec la coentreprise MOINARD et CEGELEC (électricité), MCI (frigoriste), CEME-MOREAU
+(plomberie) et SOFRADI (cloisons).
+Management : 2 électriciens + Sous-traitance
+MIN, BERJAC, MITI 44400 REZE
+
+juin 2018 : Chef de Chantier Electricien : Réalisation de 72 logements pour le Promoteur Groupe Giboire.
+Réalisation totale de l'installation électrique des logements : mise en oeuvre de pieuvres, suivi de banches et
+placo, pose d'appareillage.
+Management : 1 personne
+GRANDIN / RAMERY, 44980 SAINTE LUCE SUR LOIRE
+
+02 à 06/2018 Chef d'Equipe Electricité Tertiaire : Rénovation et extension du Palais des Sports de Nantes
+Beaulieu.
+Installation des chemins de câbles et tirage des câbles d'alimentation jusqu'à 300 mm²,
+Coulage de planchers,
+Passage des courants forts (éclairage et prises)
+Passage des courants faibles VDI sur 260 ml (informatique, bornes WIFI, réseau DECT, vidéo
+professionnelle, sonorisation (portiques et herses mobiles), éclairage de secours, alarme incendie, antiintrusion, réseau de fibre optique)
+
+
+CV envoyé par Hellowork. Contient des données personnelles : ne pas utiliser, diffuser, copier sans le consentement de son auteur.
+
+Pose & raccordement éclairages (projecteurs et luminaires), BAES, haut-parleurs et écrans TV.
+Câblage des armoires, des tableaux de distribution, des postes et pupitres de travail, des baies de brassage
+Travail en hauteur (toiture à 25 mètres), avec harnais de sécurité et nacelle ou échafaudage
+Management : équipe de 3 électriciens
+ENGIE Ineo Travaux 44240 LA CHAPELLE SUR ERDRE
+
+11/2016 à 07/2017 Analyste Manutention Alimentaire en plateforme logistique secteur grande distribution
+traditionnelle et drives E.LECLERC : analyse des flux et proposition de solutions d'automatisation des
+process.
+– ENTREPOT 6 : secs alimentaires, conserves, liquides, hygiène, incluant picking, groupage et opérations
+spéciales.
+– ENTREPOT 5 : frais et ultra frais : traiteur, boucherie, volaille, salade, crèmerie et yaourts. (45 000
+camions /an, 1,5 million de palettes).
+Préparation de commande, de réception, d'éclatement, de regroupement, de palettisation et d'expédition.
+SCA ouest 44360 SAINT ETIENNE DE MONTLUC
+
+02 à 10/2016 Comptable unique Fournisseurs / Clients / TVA.
+Gestion du stock, suivi bancaire, relation expert-comptable
+Pharmacie 44110 CHATEAUBRIANT
+
+04/96 à 12/2015 Responsable Production et Maintenance d'une entreprise spécialisée en installations
+électriques, électromécaniques, machines et process, enseignes et afficheurs lumineux, à dominante
+tertiaire et industrie (courants forts/courants faibles), informatique et automatismes, conformité et sécurité,
+électronique, maintenance industrielle, dont management d’une équipe de 15 personnes.
+En travaux neufs, rénovation et maintenance : relationnel commercial, analyse du besoin clé en mains, devis
+et marchés, achats, suivi des travaux, points intermédiaires, gestion des priorités, coordination des
+intervenants, pilotage des sous- traitants TCE, facturation, bilan de chantier et analyse des écarts.
+ELECTR'N 35000 RENNES.
+
+08/95 à 02/96 Chargé d'affaires, responsable de l'activité électrique d'une PME de
+30 personnes. Etude et rédaction des cahiers des charges, conception technique et gestion commerciale
+d'affaires tertiaires (rénovation du Palace RITZ Paris) et industrielles intervenant en électricité, chauffage,
+tuyauterie, climatisation et ventilation.
+LEBRETON SA 22400 LAMBALLE.
+
+01/92 à 07/93 Ingénieur chargé d'affaires dans un B.E.T. d'ingénierie et conseil. Maîtrise d’oeuvre MOEX
+d'opérations liées aux appels d'offre des marchés publics concernant la sécurité des machines
+dangereuses et la conformité des installations techniques d'organismes publics tels que O.P.H.L.M.
+(rénovation), Villes (calcul de structure d'un complexe sportif), Rectorats et Régions (mise en conformité
+des machines-outils), C.P.A.M. (installation d'un groupe électrogène et d'un onduleur de 60KVA asservi
+sur le réseau d'eau glacée de la salle informatique centrale), pour un portefeuille total de 15MF. Appels
+d'offres collectivités, Avant-Projets APD CCAG CCTP OPC AOR, Passation des Marchés, Contrôle du
+planning, Coordination simultanée de 10 entreprises sous-traitantes.
+Elaboration de contrats d'énergie collectivités P1 P2 P3 et P4.
+INGENIERIE DE L'OUEST 76100 ROUEN.
+
+10/89 à 11/91 Technicien en bureau d'études puis Cadre responsable du service
+technique "Electricité industrielle et automatismes" : Création du service, définition des moyens, contrôle
+du fonctionnement et du coût, tout en assurant la conception des projets et les études électriques, la mise
+en service technique et le suivi relation clientèle d'installations industrielles automatisées pour un
+portefeuille de 3MF. Domaines anti-déflagrants (organisation de la palettisation des poudres et explosifs),
+agroalimentaire (automatisation d'un barrage, d'un abattoir, de silos de stockage de céréales, d'une
+station d'épuration, d'usines de production d'eau potable, de machines de conditionnement, d'une unité de
+séchage et transformation d'ovo produits). Développement de diverses applications informatiques.
+ALCATEL 35000 RENNES
+VEOLIA 35000 RENNES
+
+AUTRES EXPERIENCES
+Sept. 1989 Enseignant en mécanique générale en classes de CAP et BEP.
+LYCEE PROFESSIONNEL 29107 PONT DE BUIS.
+Eté 1989 Stage de maintenance informatique : méthodologie de dépannage des automates April
+SMC 600, analyse et écriture d'un programme de test de cartes pour l'usine de retraitement de déchets
+
+
+CV envoyé par Hellowork. Contient des données personnelles : ne pas utiliser, diffuser, copier sans le consentement de son auteur.
+
+nucléaires de LA HAGUE.
+SEMA GROUP 50100 CHERBOURG.
+Juin 1989 Travail temporaire en bureau d'études : modifications et mises à jour des schémas
+électriques lors des décennales de la CENTRALE NUCLEAIRE DE BUGEY.
+CEGELEC 69800 SAINT PRIEST.
+Eté 1988, avril 1988, juin 1987 3 Stages service maintenance, respectivement :
+- Implantation de 3 groupes électrogènes de 125KVA chacun pour le secours de l'informatique et des
+réseaux vitaux de l'entreprise. Coût : 500KF.
+- Standardisation et rationalisation des éléments de transmission mécaniques et pneumatiques.
+- Elaboration d'une politique de maintenance préventive en industrie extractive sur une installation de
+broyage-criblage d'argile.
+Société ARGILES et MINERAUX AGS 17270 CLERAC.
+Déc. 1987 Stage service entretien : intégration à l'équipe permanente d'entretien de l'outil de
+production.
+Etablissements HOUEE 22130 LANDEBIA.
+
+CURSUS SCOLAIRE et UNIVERSITAIRE
+depuis 2000 plusieurs diplômes d'études supérieures dans la gestion d'entreprise, le management et la
+finance
+1993-1995 ESEO Angers (formation continue)
+1989 DUT Génie Electrique et Informatique Industrielle
+1988 BTS Maintenance Industrielle
+1986 Bac F3 Electrotechnique
+
+CONNAISSANCES EN MICRO-INFORMATIQUE
+Systèmes d'exploitation
+Langages BASIC, PASCAL, C++
+Logiciels de production
+GMAO
+Logiciels bureautique
+Réseaux
+
+CONNAISSANCES EN AUTOMATISMES
+Etude et programmation d'automates industriels
+
+LANGUES EUROPEENNES
+Portugais (bilingue), Anglais & Espagnol (professionnel)
+
+HABILITATIONS
+– Confidentiel Défense pyrotechnique : SNPE + MBDA
+– France Chimie N1 et N2
+– MASE
+– Benzène
+– CACES R486 B1 et B3 : PEMP Multidirectionnelle
+– Electrique B0/B1 H0
+– Permis de conduire B, E (remorque + véhicule > 3,5 tonnes),
+– Carte BTP,
+– SST,
+– Initiation BPF / GMP (Bonnes Pratiques de Fabrication Pharmacie)
+– Formation : mise à niveau Autocad 2022 LT
+– Formation SAP - GMAO
+
+

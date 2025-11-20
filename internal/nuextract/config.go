@@ -59,7 +59,7 @@ func GetOpenAIConfig() OpenAIConfig {
 func GetAnthropicConfig(needSonnet bool) AnthropicConfig {
 	cfg := AnthropicConfig{
 		Model:     "claude-sonnet-4-5-20250929", // Par défaut: Sonnet
-		MaxTokens: 20000,                        // Augmenté pour gérer les grands CVs (était 13000)
+		MaxTokens: 50000,                        // Augmenté pour gérer les très grands CVs (était 20000)
 	}
 	if !needSonnet {
 		cfg.Model = "claude-haiku-4-5-20251001" // Utiliser Haiku si needSonnet=false

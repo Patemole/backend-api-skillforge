@@ -224,28 +224,55 @@ func processOneExtractJob() error {
 			"duration_ms": time.Since(callStart).Milliseconds(),
 			"error":       boolToString(err != nil),
 		})
+
+		// Check if error is due to truncation and we were using Haiku
+		isTruncationError := err != nil && strings.Contains(err.Error(), "anthropic response truncated")
+		if isTruncationError && needHaiku {
+			log.Printf("🔄 [worker extract_cv] Erreur de troncature détectée avec Haiku, retry avec Sonnet...")
+			callStartRetry := time.Now()
+			resultBytes, err = nuextract.ExtractAndEnrichWithFilenameAnthropic(fileBytes, filename, language, false) // false = use Sonnet
+			attempts = append(attempts, map[string]any{
+				"provider":     "anthropic",
+				"model":        "claude-sonnet-4-5-20250929",
+				"duration_ms":  time.Since(callStartRetry).Milliseconds(),
+				"error":        boolToString(err != nil),
+				"retry_reason": "truncation_with_haiku",
+			})
+			if err == nil && len(strings.TrimSpace(string(resultBytes))) > 0 {
+				log.Printf("✅ [worker extract_cv] Retry avec Sonnet réussi après troncature Haiku")
+				providerUsed = "anthropic"
+			} else if err != nil {
+				log.Printf("❌ [worker extract_cv] Retry avec Sonnet a échoué: %v", err)
+			}
+		}
+
 		if err != nil || len(strings.TrimSpace(string(resultBytes))) == 0 {
-			if err != nil {
+			if err != nil && !isTruncationError {
 				log.Printf("❌ [worker extract_cv] Anthropic a échoué: %v", err)
-			} else {
+			} else if err != nil && isTruncationError && !needHaiku {
+				// Truncation error but we were already using Sonnet
+				log.Printf("❌ [worker extract_cv] Anthropic Sonnet a échoué avec troncature: %v", err)
+			} else if err == nil {
 				log.Printf("❌ [worker extract_cv] Anthropic a renvoyé un contenu vide")
 			}
-			// Fallback OpenAI (gpt-5-mini)
-			model := "gpt-5-mini"
-			log.Printf("🛟 [worker extract_cv] Fallback OpenAI (%s)", model)
-			client := nuextract.NewWithModel(model)
-			callStart2 := time.Now()
-			resultBytes, err = client.ExtractAndEnrichWithFilename(fileBytes, filename, language)
-			attempts = append(attempts, map[string]any{
-				"provider":    "openai",
-				"model":       model,
-				"duration_ms": time.Since(callStart2).Milliseconds(),
-				"error":       boolToString(err != nil),
-			})
-			if err != nil {
-				log.Printf("❌ [worker extract_cv] Échec fallback OpenAI: %v", err)
+			// Fallback OpenAI (gpt-5-mini) only if we haven't already retried with Sonnet or if Sonnet also failed
+			if providerUsed == "" {
+				model := "gpt-5-mini"
+				log.Printf("🛟 [worker extract_cv] Fallback OpenAI (%s)", model)
+				client := nuextract.NewWithModel(model)
+				callStart2 := time.Now()
+				resultBytes, err = client.ExtractAndEnrichWithFilename(fileBytes, filename, language)
+				attempts = append(attempts, map[string]any{
+					"provider":    "openai",
+					"model":       model,
+					"duration_ms": time.Since(callStart2).Milliseconds(),
+					"error":       boolToString(err != nil),
+				})
+				if err != nil {
+					log.Printf("❌ [worker extract_cv] Échec fallback OpenAI: %v", err)
+				}
+				providerUsed = "openai"
 			}
-			providerUsed = "openai"
 		}
 		if err == nil && len(strings.TrimSpace(string(resultBytes))) > 0 && providerUsed == "" {
 			providerUsed = "anthropic"
@@ -301,6 +328,19 @@ func processOneExtractJob() error {
 			}
 			log.Printf("🔧 [worker extract_cv] [FALLBACK] Appel Anthropic avec paramètres: needHaiku=%v, numPages=%d, filename=%s", needHaikuFallback, numPages, filename)
 			resultBytes, err = nuextract.ExtractAndEnrichWithFilenameAnthropic(fileBytes, filename, language, needHaikuFallback)
+
+			// Check if error is due to truncation and we were using Haiku in fallback
+			isTruncationErrorFallback := err != nil && strings.Contains(err.Error(), "anthropic response truncated")
+			if isTruncationErrorFallback && needHaikuFallback {
+				log.Printf("🔄 [worker extract_cv] [FALLBACK] Erreur de troncature détectée avec Haiku, retry avec Sonnet...")
+				resultBytes, err = nuextract.ExtractAndEnrichWithFilenameAnthropic(fileBytes, filename, language, false) // false = use Sonnet
+				if err == nil && len(strings.TrimSpace(string(resultBytes))) > 0 {
+					log.Printf("✅ [worker extract_cv] [FALLBACK] Retry avec Sonnet réussi après troncature Haiku")
+				} else if err != nil {
+					log.Printf("❌ [worker extract_cv] [FALLBACK] Retry avec Sonnet a échoué: %v", err)
+				}
+			}
+
 			if err != nil {
 				log.Printf("❌ [worker extract_cv] Échec fallback Anthropic: %v", err)
 			} else {
@@ -429,28 +469,47 @@ func processOneExtractJob() error {
 				bClient := boond.New(boondJWT)
 				attributes := boond.BuildCandidateAttributesFromCV(cv)
 
-				// Créer le candidat avec liaison au manager si fourni
-				var createdID string
-				var err error
-				if strings.TrimSpace(boondManagerID) != "" {
-					log.Printf("👤 [worker extract_cv] Liaison candidat au manager Boond: %s", boondManagerID)
-					createdID, _, err = bClient.CreateCandidate(ctx, attributes, boondManagerID)
+				// Vérifier que firstName et lastName sont présents (requis par Boond)
+				firstName, hasFirstName := attributes["firstName"].(string)
+				lastName, hasLastName := attributes["lastName"].(string)
+				if !hasFirstName || strings.TrimSpace(firstName) == "" {
+					log.Printf("❌ [worker extract_cv] Échec: firstName manquant ou vide (requis par Boond)")
+				} else if !hasLastName || strings.TrimSpace(lastName) == "" {
+					log.Printf("❌ [worker extract_cv] Échec: lastName manquant ou vide (requis par Boond)")
 				} else {
-					createdID, _, err = bClient.CreateCandidate(ctx, attributes)
-				}
+					log.Printf("✅ [worker extract_cv] Attributs validés: firstName='%s', lastName='%s'", firstName, lastName)
 
-				if err != nil {
-					log.Printf("❌ [worker extract_cv] Échec de création du candidat Boond: %v", err)
-				} else if strings.TrimSpace(createdID) != "" {
-					log.Printf("🎉 [worker extract_cv] Candidat Boond créé (id=%s)", createdID)
-					// Upload du CV
-					if _, err := bClient.UploadDocument(ctx, createdID, fileBytes, filename); err != nil {
-						log.Printf("❌ [worker extract_cv] Échec upload du CV vers Boond: %v", err)
-					} else {
-						log.Printf("📄 [worker extract_cv] CV uploadé avec succès pour candidat %s", createdID)
+					// Enrichir les attributs avec les IDs Boond pour mobilite et disponibilite
+					if err := boond.EnrichAttributesWithBoondIDs(ctx, bClient, attributes); err != nil {
+						log.Printf("⚠️  [worker extract_cv] Erreur lors de l'enrichissement des attributs Boond: %v", err)
+						// On continue quand même la création du candidat
 					}
-					// Enrichir le résultat du job
-					result["boond_candidate_id"] = createdID
+
+					// Créer le candidat avec liaison au manager si fourni
+					var createdID string
+					var err error
+					if strings.TrimSpace(boondManagerID) != "" {
+						log.Printf("👤 [worker extract_cv] Liaison candidat au manager Boond: %s", boondManagerID)
+						createdID, _, err = bClient.CreateCandidate(ctx, attributes, boondManagerID)
+					} else {
+						createdID, _, err = bClient.CreateCandidate(ctx, attributes)
+					}
+
+					if err != nil {
+						log.Printf("❌ [worker extract_cv] Échec de création du candidat Boond: %v", err)
+					} else if strings.TrimSpace(createdID) != "" {
+						log.Printf("🎉 [worker extract_cv] Candidat Boond créé (id=%s)", createdID)
+						// Upload du CV
+						if _, err := bClient.UploadDocument(ctx, createdID, fileBytes, filename); err != nil {
+							log.Printf("❌ [worker extract_cv] Échec upload du CV vers Boond: %v", err)
+						} else {
+							log.Printf("📄 [worker extract_cv] CV uploadé avec succès pour candidat %s", createdID)
+						}
+						// Enrichir le résultat du job
+						result["boond_candidate_id"] = createdID
+					} else {
+						log.Printf("⚠️  [worker extract_cv] Création Boond réussie mais ID vide")
+					}
 				}
 			}
 		}

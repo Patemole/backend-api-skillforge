@@ -472,6 +472,11 @@ func (c *Client) GetAvailabilityTypes(ctx context.Context) (map[string]string, e
 
 	fmt.Printf("📥 [Boond] GET availability types status=%d body_len=%d\n", resp.StatusCode, len(body))
 	if resp.StatusCode >= 400 {
+		// Les endpoints de dictionnaire peuvent ne pas exister (404) - ce n'est pas critique
+		if resp.StatusCode == 404 {
+			fmt.Printf("ℹ️  [Boond] Endpoint availability types non disponible (404) - ignoré\n")
+			return make(map[string]string), nil // Retourner une map vide au lieu d'une erreur
+		}
 		if len(body) > 0 {
 			b := string(body)
 			if len(b) > 400 {
@@ -531,6 +536,11 @@ func (c *Client) GetMobilityAreas(ctx context.Context) (map[string]string, error
 
 	fmt.Printf("📥 [Boond] GET mobility areas status=%d body_len=%d\n", resp.StatusCode, len(body))
 	if resp.StatusCode >= 400 {
+		// Les endpoints de dictionnaire peuvent ne pas exister (404) - ce n'est pas critique
+		if resp.StatusCode == 404 {
+			fmt.Printf("ℹ️  [Boond] Endpoint mobility areas non disponible (404) - ignoré\n")
+			return make(map[string]string), nil // Retourner une map vide au lieu d'une erreur
+		}
 		if len(body) > 0 {
 			b := string(body)
 			if len(b) > 400 {
