@@ -159,6 +159,10 @@ func (c *Client) ExtractAndEnrichWithFilename(file []byte, filename string, lang
 
 	lowerName := strings.ToLower(filename)
 
+	// Vérifier les magic bytes PDF pour une détection plus robuste
+	isPDFByExtension := strings.HasSuffix(lowerName, ".pdf")
+	isPDFByMagicBytes := len(file) >= 4 && string(file[:4]) == "%PDF"
+
 	// Détection par extension : DOCX d'abord, puis PDF
 	if strings.HasSuffix(lowerName, ".docx") {
 		log.Printf("DEBUG: Fichier DOCX détecté, extraction du texte via gooxml")
@@ -181,8 +185,8 @@ func (c *Client) ExtractAndEnrichWithFilename(file []byte, filename string, lang
 		} else {
 			log.Printf("DEBUG: Texte DOCX extrait sauvegardé dans %s", debugFile)
 		}
-	} else if strings.HasSuffix(lowerName, ".pdf") {
-		log.Printf("DEBUG: Fichier PDF détecté, extraction du texte")
+	} else if isPDFByExtension || isPDFByMagicBytes {
+		log.Printf("DEBUG: Fichier PDF détecté (extension: %v, magic bytes: %v), extraction du texte", isPDFByExtension, isPDFByMagicBytes)
 
 		// Essayer d'abord UniPDF (le plus puissant) - VERSION DEBUG
 		unipdfExtractor := NewUniPDFExtractorDebug()
@@ -284,9 +288,19 @@ func (c *Client) ExtractAndEnrichWithFilename(file []byte, filename string, lang
 		fileContent = fmt.Sprintf("CV de %s - Contenu à extraire", name)
 	}
 
-	raw := []byte(fmt.Sprintf(`{
-		"text": "%s"
-	}`, fileContent))
+	// Utiliser json.Marshal pour encoder correctement le JSON (gère les caractères spéciaux)
+	textPayload := map[string]string{
+		"text": fileContent,
+	}
+	raw, jsonErr := json.Marshal(textPayload)
+	if jsonErr != nil {
+		log.Printf("ERROR: Erreur encodage JSON: %v", jsonErr)
+		// Fallback: utiliser fmt.Sprintf avec échappement basique
+		escaped := strings.ReplaceAll(fileContent, `"`, `\"`)
+		escaped = strings.ReplaceAll(escaped, "\n", "\\n")
+		escaped = strings.ReplaceAll(escaped, "\r", "\\r")
+		raw = []byte(fmt.Sprintf(`{"text": "%s"}`, escaped))
+	}
 
 	log.Printf("DEBUG: Contenu réel du fichier utilisé (taille: %d caractères)", len(fileContent))
 
