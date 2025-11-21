@@ -3,6 +3,7 @@ package handlers
 import (
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"backend-api-skillforge/internal/models"
@@ -13,6 +14,33 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
+
+// extractFirstName extracts only the first name from a full name for DC anonymization.
+// If the last name (nom) is provided separately, we assume prenom is already just the first name.
+// Otherwise, we extract the first name by taking the first part of the full name.
+func extractFirstName(prenom, nom string) string {
+	prenomTrimmed := strings.TrimSpace(prenom)
+	if prenomTrimmed == "" {
+		return ""
+	}
+
+	// If the last name is provided separately, prenom should already be just the first name
+	if strings.TrimSpace(nom) != "" {
+		return prenomTrimmed
+	}
+
+	// Otherwise, prenom probably contains the full name, we extract just the first name
+	// We take the first part (first word) of the full name
+	parts := strings.Fields(prenomTrimmed)
+	if len(parts) == 1 {
+		// Single word, it's probably already just the first name
+		return prenomTrimmed
+	}
+
+	// Multiple words: we take the first word as the first name
+	// (for cases like "Jean DUPONT" or "Manuel de OLIVEIRA", we take "Jean" or "Manuel")
+	return parts[0]
+}
 
 // CreateJobRequest defines the expected request body for creating a job.
 type CreateJobRequest struct {
@@ -290,8 +318,10 @@ func CreateJob(c *gin.Context) {
 		}
 
 		// Mapper vers la structure finale
+		// ✅ ANONYMIZATION: Extraire uniquement le prénom (pas le nom complet)
+		firstName := extractFirstName(tempDossier.Prenom, tempDossier.Nom)
 		dossier = models.CompetenceDossier{
-			Prenom:                  tempDossier.Prenom,
+			Prenom:                  firstName,
 			Nom:                     tempDossier.Nom,
 			Email:                   tempDossier.Email,
 			Phone:                   tempDossier.Phone,
