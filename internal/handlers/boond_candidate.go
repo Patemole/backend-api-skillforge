@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -8,6 +9,7 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 
@@ -400,8 +402,13 @@ func UploadBoondCandidateDC(c *gin.Context) {
 	// Créer le client Boond
 	client := boond.New(req.BoondJwt)
 
-	// Uploader le dossier de compétences
-	docID, err := client.UploadDocument(c.Request.Context(), req.BoondCandidateId, fileBytes, req.Filename)
+	// 🔧 FIX: Créer un contexte avec un timeout plus long pour les uploads de fichiers volumineux
+	// Les fichiers Word peuvent être volumineux et nécessitent plus de temps
+	uploadCtx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Minute)
+	defer cancel()
+
+	// Uploader le dossier de compétences avec le contexte étendu
+	docID, err := client.UploadDocument(uploadCtx, req.BoondCandidateId, fileBytes, req.Filename)
 	if err != nil {
 		// Gestion d'erreurs spécifiques selon le type d'erreur
 		if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "not found") {

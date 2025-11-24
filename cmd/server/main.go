@@ -69,6 +69,9 @@ func main() {
 	workerCount := 50
 	for i := 1; i <= workerCount; i++ {
 		worker.StartExtractCVWorker()
+		if i < workerCount {
+			time.Sleep(100 * time.Millisecond)
+		}
 	}
 	log.Printf("✅ Tous les workers ont démarré (%d workers extract_cv en parallèle)", workerCount)
 
@@ -107,6 +110,9 @@ func main() {
 		c.Status(200)
 	})
 	r.OPTIONS("/candidate-invite", func(c *gin.Context) {
+		c.Status(200)
+	})
+	r.OPTIONS("/member-invite", func(c *gin.Context) {
 		c.Status(200)
 	})
 	r.OPTIONS("/api/templates/generate", func(c *gin.Context) {
@@ -154,10 +160,14 @@ func main() {
 	r.OPTIONS("/billing/initialize-trial", func(c *gin.Context) {
 		c.Status(200)
 	})
+	r.OPTIONS("/billing/status", func(c *gin.Context) {
+		c.Status(200)
+	})
 
 	// ✅ Initialiser les handlers
 	candidateValidationHandler := handlers.NewCandidateValidationHandler()
 	candidateInviteHandler := handlers.NewCandidateInviteHandler()
+	memberInviteHandler := handlers.NewMemberInviteHandler()
 
 	r.GET("/health", handlers.Health)
 	// Basculer /extract en asynchrone (création d'un job extract_cv)
@@ -171,6 +181,7 @@ func main() {
 	r.POST("/versionning", handlers.CreateDossierVersion)
 	r.POST("/candidate-validation", candidateValidationHandler.HandleCandidateValidation)
 	r.POST("/candidate-invite", candidateInviteHandler.HandleCandidateInvite)
+	r.POST("/member-invite", memberInviteHandler.HandleMemberInvite)
 	r.POST("/boond/candidat/delete", handlers.DeleteBoondCandidate)
 	r.POST("/boond/candidat/modify", handlers.ModifyBoondCandidate)
 	r.POST("/boond/candidat/dc", handlers.UploadBoondCandidateDC)
@@ -183,6 +194,7 @@ func main() {
 	r.POST("/billing/checkout-session", stripe.CreateCheckoutSessionHandler)
 	r.POST("/billing/webhook", stripe.StripeWebhook)
 	r.POST("/billing/initialize-trial", stripe.InitializeTrialHandler)
+	r.POST("/billing/status", stripe.GetBillingStatusHandler)
 
 	port := os.Getenv("PORT")
 	if port == "" {

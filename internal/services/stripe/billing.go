@@ -36,19 +36,19 @@ func getPriceID(plan, billingPeriod string) string {
 	if billingPeriod == "" {
 		billingPeriod = "monthly"
 	}
-	
+
 	// Normalize billing period
 	if billingPeriod != "monthly" && billingPeriod != "annual" {
 		billingPeriod = "monthly"
 	}
-	
+
 	// Try new format first
 	if priceMap, ok := planPriceMap[plan]; ok {
 		if priceID := priceMap[billingPeriod]; priceID != "" {
 			return priceID
 		}
 	}
-	
+
 	// Fallback to legacy env vars for backward compatibility
 	if billingPeriod == "monthly" {
 		switch plan {
@@ -58,7 +58,7 @@ func getPriceID(plan, billingPeriod string) string {
 			return os.Getenv("STRIPE_BUSINESS_PRICE")
 		}
 	}
-	
+
 	return ""
 }
 
@@ -80,7 +80,7 @@ func CreateCheckoutSessionHandler(c *gin.Context) {
 	if billingPeriod == "" {
 		billingPeriod = "monthly" // Default to monthly
 	}
-	
+
 	priceID := strings.TrimSpace(getPriceID(req.Plan, billingPeriod))
 	if priceID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "unknown plan or billing period"})
@@ -177,4 +177,59 @@ func InitializeTrialHandler(c *gin.Context) {
 		"initialized": initialized,
 		"message":     map[bool]string{true: "Trial initialized", false: "Trial already exists"}[initialized],
 	})
+}
+
+type getBillingStatusRequest struct {
+	UserID string `json:"user_id" binding:"required"`
+}
+
+// GetBillingStatusHandler returns the combined billing status for a user,
+// taking into account both their organization's subscription and their individual profile.
+// Organization subscription takes priority over individual profile.
+func GetBillingStatusHandler(c *gin.Context) {
+	var req getBillingStatusRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid payload: " + err.Error()})
+		return
+	}
+
+	userID := strings.TrimSpace(req.UserID)
+	if userID == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "missing user_id"})
+		return
+	}
+
+	ctx := c.Request.Context()
+
+	billingStatus, err := supabase.GetCombinedBillingStatus(ctx, userID)
+	if err != nil {
+		log.Printf("❌ [Billing] Failed to get billing status for user %s: %v", userID, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get billing status"})
+		return
+	}
+
+	// Format time fields for JSON response
+	response := gin.H{
+		"stripe_status": billingStatus.StripeStatus,
+		"stripe_plan":   billingStatus.StripePlan,
+		"source":        billingStatus.Source,
+	}
+
+	if billingStatus.StripeTrialEnd != nil {
+		response["stripe_trial_end"] = billingStatus.StripeTrialEnd.Format("2006-01-02T15:04:05Z07:00")
+	} else {
+		response["stripe_trial_end"] = nil
+	}
+
+	if billingStatus.StripeCurrentPeriodEnd != nil {
+		response["stripe_current_period_end"] = billingStatus.StripeCurrentPeriodEnd.Format("2006-01-02T15:04:05Z07:00")
+	} else {
+		response["stripe_current_period_end"] = nil
+	}
+
+	if billingStatus.OrganizationID != "" {
+		response["organization_id"] = billingStatus.OrganizationID
+	}
+
+	c.JSON(http.StatusOK, response)
 }

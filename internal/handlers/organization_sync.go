@@ -1,8 +1,6 @@
 package handlers
 
 import (
-	"context"
-	"encoding/json"
 	"log"
 	"net/http"
 
@@ -30,7 +28,7 @@ func SyncOrganizationSubscriptionToUsers(c *gin.Context) {
 	ctx := c.Request.Context()
 
 	// Fetch organization's current Stripe fields
-	orgFields, err := getOrganizationStripeFields(ctx, organizationID)
+	orgFields, err := supabase.GetOrganizationStripeFields(ctx, organizationID)
 	if err != nil {
 		log.Printf("❌ Failed to fetch organization Stripe fields: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -40,42 +38,21 @@ func SyncOrganizationSubscriptionToUsers(c *gin.Context) {
 		return
 	}
 
-	// Check if organization has an active subscription
-	if orgFields.StripeStatus != "active" || (orgFields.StripePlan != "pro" && orgFields.StripePlan != "business") {
-		c.JSON(http.StatusOK, gin.H{
-			"success": true,
-			"message": "Organization does not have an active pro/business subscription, no sync needed",
-			"plan":    orgFields.StripePlan,
-			"status":  orgFields.StripeStatus,
+	// Sync organization billing status to all members and admins
+	if err := supabase.SyncOrganizationBillingToMembers(ctx, organizationID); err != nil {
+		log.Printf("❌ Failed to sync organization billing to members: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"error":   "Failed to sync billing status to members",
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"success":         true,
-		"message":         "Organization subscription sync is temporarily disabled",
+		"message":         "Successfully synced organization billing status to all members and admins",
 		"organization_id": organizationID,
 		"plan":            orgFields.StripePlan,
 		"status":          orgFields.StripeStatus,
 	})
-}
-
-// getOrganizationStripeFields fetches the Stripe subscription details for an organization
-func getOrganizationStripeFields(ctx context.Context, organizationID string) (*supabase.OrganizationStripeFields, error) {
-	data, _, err := supabase.Client.
-		From("organizations").
-		Select("id,stripe_customer_id,stripe_subscription_id,stripe_plan,stripe_status,stripe_trial_end,stripe_current_period_end,stripe_cancel_at_period_end,stripe_last_invoice_status,stripe_last_event_id", "exact", false).
-		Eq("id", organizationID).
-		Single().
-		Execute()
-	if err != nil {
-		return nil, err
-	}
-
-	var orgFields supabase.OrganizationStripeFields
-	if err := json.Unmarshal(data, &orgFields); err != nil {
-		return nil, err
-	}
-
-	return &orgFields, nil
 }

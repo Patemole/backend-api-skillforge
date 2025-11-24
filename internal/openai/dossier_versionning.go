@@ -112,7 +112,7 @@ func (s *DossierVersionningService) generateVersionnedDossierOpenAI(candidateID 
 	httpReq.Header.Set("Authorization", "Bearer "+s.apiKey)
 	httpReq.Header.Set("Content-Type", "application/json")
 
-	client := &http.Client{Timeout: 180 * time.Second}
+	client := &http.Client{Timeout: 10 * time.Minute}
 	resp, err := client.Do(httpReq)
 	if err != nil {
 		log.Printf("❌ OPENAI VERSIONNING - Erreur envoi requête: %v", err)
@@ -239,7 +239,7 @@ func (s *DossierVersionningService) generateVersionnedDossierAnthropic(candidate
 	httpReq.Header.Set("anthropic-version", "2023-06-01")
 	httpReq.Header.Set("content-type", "application/json")
 
-	client := &http.Client{Timeout: 180 * time.Second}
+	client := &http.Client{Timeout: 10 * time.Minute}
 	resp, err := client.Do(httpReq)
 	if err != nil {
 		log.Printf("❌ ANTHROPIC VERSIONNING - Erreur envoi requête: %v", err)

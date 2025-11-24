@@ -298,7 +298,7 @@ func (c *Client) UploadDocument(ctx context.Context, candidateID string, fileDat
 
 	// Créer la requête
 	ep := fmt.Sprintf("%s/api/documents", c.BaseURL)
-	fmt.Printf("📄 [Boond] POST %s (parentId=%s, filename=%s)\n", ep, candidateID, filename)
+	fmt.Printf("📄 [Boond] POST %s (parentId=%s, filename=%s, size=%d bytes)\n", ep, candidateID, filename, len(fileData))
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, ep, &buf)
 	if err != nil {
@@ -314,7 +314,13 @@ func (c *Client) UploadDocument(ctx context.Context, candidateID string, fileDat
 	fmt.Printf("   X-Jwt-Client-Boondmanager: %s...\n", maskToken(c.JWT, 20))
 	fmt.Printf("   Content-Type: %s\n", req.Header.Get("Content-Type"))
 
-	resp, err := c.HTTP.Do(req)
+	// 🔧 FIX: Créer un client HTTP avec un timeout plus long pour les uploads volumineux
+	// Le timeout par défaut de 12s est trop court pour les fichiers Word volumineux
+	uploadClient := &http.Client{
+		Timeout: 5 * time.Minute, // 5 minutes pour les uploads de fichiers volumineux
+	}
+
+	resp, err := uploadClient.Do(req)
 	if err != nil {
 		fmt.Printf("❌ [Boond] Upload error: %v\n", err)
 		return "", err

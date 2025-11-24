@@ -135,6 +135,262 @@ func GetOrganizationIDFromUserID(ctx context.Context, userID string) (string, er
 	return result.OrganizationID, nil
 }
 
+// GetOrganizationStripeFields fetches the Stripe subscription details for an organization.
+func GetOrganizationStripeFields(ctx context.Context, organizationID string) (*OrganizationStripeFields, error) {
+	data, _, err := Client.
+		From("organizations").
+		Select("id,stripe_customer_id,stripe_subscription_id,stripe_plan,stripe_status,stripe_trial_end,stripe_current_period_end,stripe_cancel_at_period_end,stripe_last_invoice_status,stripe_last_event_id", "exact", false).
+		Eq("id", organizationID).
+		Single().
+		Execute()
+	if err != nil {
+		return nil, err
+	}
+
+	var orgFields OrganizationStripeFields
+	if err := json.Unmarshal(data, &orgFields); err != nil {
+		return nil, err
+	}
+
+	return &orgFields, nil
+}
+
+// CombinedBillingStatus represents the effective billing status for a user,
+// taking into account both their organization's subscription and their individual profile.
+// Organization subscription takes priority over individual profile.
+type CombinedBillingStatus struct {
+	StripeStatus           string     `json:"stripe_status"`
+	StripePlan             string     `json:"stripe_plan"`
+	StripeTrialEnd         *time.Time `json:"stripe_trial_end,omitempty"`
+	StripeCurrentPeriodEnd *time.Time `json:"stripe_current_period_end,omitempty"`
+	Source                 string     `json:"source"` // "organization" or "profile"
+	OrganizationID         string     `json:"organization_id,omitempty"`
+}
+
+// GetCombinedBillingStatus retrieves the effective billing status for a user.
+// It checks the organization's subscription first, and falls back to the user's individual profile.
+// Organization subscription always takes priority.
+func GetCombinedBillingStatus(ctx context.Context, userID string) (*CombinedBillingStatus, error) {
+	// First, get the user's organization ID
+	organizationID, err := GetOrganizationIDFromUserID(ctx, userID)
+	if err != nil {
+		// If user has no organization, fall back to profile only
+		log.Printf("⚠️ User %s has no organization, using profile billing status only", userID)
+		profileFields, err := GetProfileStripeFields(ctx, userID)
+		if err != nil {
+			return nil, err
+		}
+		return &CombinedBillingStatus{
+			StripeStatus:           profileFields.StripeStatus,
+			StripePlan:             profileFields.StripePlan,
+			StripeTrialEnd:         profileFields.StripeTrialEnd,
+			StripeCurrentPeriodEnd: profileFields.StripeCurrentPeriodEnd,
+			Source:                 "profile",
+		}, nil
+	}
+
+	// Try to get organization's Stripe fields
+	orgFields, err := GetOrganizationStripeFields(ctx, organizationID)
+	if err != nil {
+		// If organization has no Stripe fields, fall back to profile
+		log.Printf("⚠️ Organization %s has no Stripe fields, using profile billing status for user %s", organizationID, userID)
+		profileFields, err := GetProfileStripeFields(ctx, userID)
+		if err != nil {
+			return nil, err
+		}
+		return &CombinedBillingStatus{
+			StripeStatus:           profileFields.StripeStatus,
+			StripePlan:             profileFields.StripePlan,
+			StripeTrialEnd:         profileFields.StripeTrialEnd,
+			StripeCurrentPeriodEnd: profileFields.StripeCurrentPeriodEnd,
+			Source:                 "profile",
+			OrganizationID:         organizationID,
+		}, nil
+	}
+
+	// Check if organization has an active subscription or valid trial
+	now := time.Now().UTC()
+	hasActiveOrgSubscription := orgFields.StripeStatus == "active" && (orgFields.StripePlan == "pro" || orgFields.StripePlan == "business")
+	hasValidOrgTrial := orgFields.StripeTrialEnd != nil && orgFields.StripeTrialEnd.After(now)
+	hasValidOrgPeriod := orgFields.StripeCurrentPeriodEnd != nil && orgFields.StripeCurrentPeriodEnd.After(now)
+	hasOrgBillingInfo := orgFields.StripeStatus != "" || orgFields.StripePlan != ""
+
+	// If organization has active subscription or valid trial/period, use organization's status
+	if hasActiveOrgSubscription || hasValidOrgTrial || hasValidOrgPeriod {
+		log.Printf("✅ User %s inheriting billing status from organization %s (status=%s, plan=%s)", userID, organizationID, orgFields.StripeStatus, orgFields.StripePlan)
+
+		// Synchronize current user's profile immediately to ensure consistency
+		if err := syncUserProfileWithOrganization(ctx, userID, orgFields); err != nil {
+			log.Printf("⚠️ Failed to sync user %s profile with organization (non-blocking): %v", userID, err)
+		}
+
+		// Also sync all other members/admins in background
+		go func(orgID string) {
+			bgCtx := context.Background()
+			if err := SyncOrganizationBillingToMembers(bgCtx, orgID); err != nil {
+				log.Printf("⚠️ Background sync of organization billing to members failed (non-blocking): %v", err)
+			}
+		}(organizationID)
+
+		return &CombinedBillingStatus{
+			StripeStatus:           orgFields.StripeStatus,
+			StripePlan:             orgFields.StripePlan,
+			StripeTrialEnd:         orgFields.StripeTrialEnd,
+			StripeCurrentPeriodEnd: orgFields.StripeCurrentPeriodEnd,
+			Source:                 "organization",
+			OrganizationID:         organizationID,
+		}, nil
+	}
+
+	// Even if organization doesn't have active subscription, sync billing info if it exists
+	// This ensures profile_stripe_plan and profile_stripe_status always match org values
+	if hasOrgBillingInfo {
+		log.Printf("🔄 Organization %s has billing info (status=%s, plan=%s), syncing to members", organizationID, orgFields.StripeStatus, orgFields.StripePlan)
+
+		// Synchronize current user's profile immediately
+		if err := syncUserProfileWithOrganization(ctx, userID, orgFields); err != nil {
+			log.Printf("⚠️ Failed to sync user %s profile with organization (non-blocking): %v", userID, err)
+		}
+
+		// Also sync all other members/admins in background
+		go func(orgID string) {
+			bgCtx := context.Background()
+			if err := SyncOrganizationBillingToMembers(bgCtx, orgID); err != nil {
+				log.Printf("⚠️ Background sync of organization billing to members failed (non-blocking): %v", err)
+			}
+		}(organizationID)
+	}
+
+	// Organization doesn't have active subscription/trial, fall back to profile
+	log.Printf("⚠️ Organization %s has no active subscription/trial, using profile billing status for user %s", organizationID, userID)
+	profileFields, err := GetProfileStripeFields(ctx, userID)
+	if err != nil {
+		// If profile also doesn't exist, return organization status anyway
+		return &CombinedBillingStatus{
+			StripeStatus:           orgFields.StripeStatus,
+			StripePlan:             orgFields.StripePlan,
+			StripeTrialEnd:         orgFields.StripeTrialEnd,
+			StripeCurrentPeriodEnd: orgFields.StripeCurrentPeriodEnd,
+			Source:                 "organization",
+			OrganizationID:         organizationID,
+		}, nil
+	}
+
+	return &CombinedBillingStatus{
+		StripeStatus:           profileFields.StripeStatus,
+		StripePlan:             profileFields.StripePlan,
+		StripeTrialEnd:         profileFields.StripeTrialEnd,
+		StripeCurrentPeriodEnd: profileFields.StripeCurrentPeriodEnd,
+		Source:                 "profile",
+		OrganizationID:         organizationID,
+	}, nil
+}
+
+// syncUserProfileWithOrganization synchronizes a single user's profile with their organization's billing status
+func syncUserProfileWithOrganization(ctx context.Context, userID string, orgFields *OrganizationStripeFields) error {
+	updateData := map[string]interface{}{
+		"stripe_status":               orgFields.StripeStatus,
+		"stripe_plan":                 orgFields.StripePlan,
+		"stripe_cancel_at_period_end": orgFields.StripeCancelAtPeriodEnd,
+		"stripe_last_invoice_status":  orgFields.StripeLastInvoiceStatus,
+	}
+
+	// Handle time fields - always set, even if nil
+	if orgFields.StripeTrialEnd != nil {
+		updateData["stripe_trial_end"] = orgFields.StripeTrialEnd.Format(time.RFC3339)
+	} else {
+		updateData["stripe_trial_end"] = nil
+	}
+
+	if orgFields.StripeCurrentPeriodEnd != nil {
+		updateData["stripe_current_period_end"] = orgFields.StripeCurrentPeriodEnd.Format(time.RFC3339)
+	} else {
+		updateData["stripe_current_period_end"] = nil
+	}
+
+	_, _, err := Client.
+		From("profiles").
+		Update(updateData, "", "").
+		Eq("user_id", userID).
+		Execute()
+
+	if err != nil {
+		log.Printf("❌ Failed to sync profile for user %s: %v", userID, err)
+		return err
+	}
+
+	log.Printf("✅ Successfully synced profile for user %s with organization billing status", userID)
+	return nil
+}
+
+// SyncOrganizationBillingToMembers synchronizes the organization's billing status
+// to all members and admins of that organization. This is optional since
+// GetCombinedBillingStatus already checks the organization in real-time,
+// but can be useful for backward compatibility or performance optimization.
+func SyncOrganizationBillingToMembers(ctx context.Context, organizationID string) error {
+	// Get organization's Stripe fields
+	orgFields, err := GetOrganizationStripeFields(ctx, organizationID)
+	if err != nil {
+		return err
+	}
+
+	// Get all members and admins of this organization
+	data, _, err := Client.
+		From("profiles").
+		Select("user_id", "exact", false).
+		Eq("organization_id", organizationID).
+		In("role", []string{"admin", "member"}).
+		Execute()
+	if err != nil {
+		return err
+	}
+
+	var profiles []struct {
+		UserID string `json:"user_id"`
+	}
+	if err := json.Unmarshal(data, &profiles); err != nil {
+		return err
+	}
+
+	log.Printf("🔄 Syncing organization %s billing status to %d members/admins", organizationID, len(profiles))
+
+	// Update each member's profile with organization's billing status
+	for _, profile := range profiles {
+		updateData := map[string]interface{}{
+			"stripe_status":               orgFields.StripeStatus,
+			"stripe_plan":                 orgFields.StripePlan,
+			"stripe_cancel_at_period_end": orgFields.StripeCancelAtPeriodEnd,
+			"stripe_last_invoice_status":  orgFields.StripeLastInvoiceStatus,
+		}
+
+		// Handle time fields
+		if orgFields.StripeTrialEnd != nil {
+			updateData["stripe_trial_end"] = orgFields.StripeTrialEnd.Format(time.RFC3339)
+		} else {
+			updateData["stripe_trial_end"] = nil
+		}
+
+		if orgFields.StripeCurrentPeriodEnd != nil {
+			updateData["stripe_current_period_end"] = orgFields.StripeCurrentPeriodEnd.Format(time.RFC3339)
+		} else {
+			updateData["stripe_current_period_end"] = nil
+		}
+
+		_, _, err := Client.
+			From("profiles").
+			Update(updateData, "", "").
+			Eq("user_id", profile.UserID).
+			Execute()
+		if err != nil {
+			log.Printf("⚠️ Failed to sync billing status to user %s: %v", profile.UserID, err)
+			// Continue with other users even if one fails
+		}
+	}
+
+	log.Printf("✅ Successfully synced organization %s billing status to members", organizationID)
+	return nil
+}
+
 // UpsertOrganizationStripeFields writes the latest billing snapshot for an organization into Supabase.
 // It keeps the record keyed by organization_id, ensuring webhook retries remain idempotent.
 func UpsertOrganizationStripeFields(ctx context.Context, o OrganizationStripeFields) error {

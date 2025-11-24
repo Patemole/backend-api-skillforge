@@ -78,6 +78,26 @@ func (r *ResendService) SendCandidateInviteEmail(data models.CandidateInviteEmai
 	return r.sendEmail(emailReq)
 }
 
+// SendMemberInviteEmail envoie un email d'invitation à un membre pour rejoindre l'organisation
+func (r *ResendService) SendMemberInviteEmail(data models.MemberInviteEmailData) (*models.ResendEmailResponse, error) {
+	// Générer le template HTML
+	htmlContent, err := r.generateMemberInviteHTML(data)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate HTML template: %w", err)
+	}
+
+	// Préparer la requête
+	emailReq := models.ResendEmailRequest{
+		From:    r.FromEmail,
+		To:      data.RecipientEmail, // L'email sera envoyé au membre
+		Subject: "👥 Invitation à rejoindre l'organisation sur SkillForge",
+		HTML:    htmlContent,
+	}
+
+	// Envoyer l'email
+	return r.sendEmail(emailReq)
+}
+
 // generateCandidateValidationHTML génère le contenu HTML de l'email
 func (r *ResendService) generateCandidateValidationHTML(data models.EmailTemplateData) (string, error) {
 	// Template HTML pour l'email de validation candidat
@@ -220,6 +240,90 @@ func (r *ResendService) generateCandidateInviteHTML(data models.CandidateInviteE
 	htmlContent := fmt.Sprintf(htmlTemplate,
 		combinedBlock,
 		data.CandidateLink,
+		data.InviterEmail,
+	)
+
+	return htmlContent, nil
+}
+
+// generateMemberInviteHTML génère le contenu HTML de l'email d'invitation membre
+func (r *ResendService) generateMemberInviteHTML(data models.MemberInviteEmailData) (string, error) {
+	// Template HTML pour l'email d'invitation membre
+	htmlTemplate := `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Invitation à rejoindre l'organisation</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #111827; max-width: 640px; margin: 0 auto; padding: 24px; background: #f9fafb;">
+    <div style="background: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;">
+        <div style="text-align: center; padding: 24px 24px 0 24px;">
+            <img src="https://gksurcxmvvdvjcrssair.supabase.co/storage/v1/object/public/org-assets/SkillForge_logo.png" alt="SkillForge" style="height: 32px; margin-bottom: 8px;" />
+        </div>
+
+        <div style="text-align: center; padding: 8px 24px 24px 24px;">
+            <h1 style="color: #1d4ed8; margin: 0 0 8px 0; font-size: 22px;">👥 Invitation à rejoindre l'organisation</h1>
+            <p style="color: #6b7280; font-size: 15px; margin: 0;">Vous avez été invité à rejoindre %s sur Cobalt</p>
+        </div>
+
+        <div style="background: #f8fafc; padding: 20px 24px; border-radius: 10px; margin: 0 24px 16px 24px;">
+            <h2 style="color: #1e40af; margin: 0 0 8px 0; font-size: 18px;">🎯 À propos de cette invitation</h2>
+            <p style="margin: 8px 0; color: #374151;">
+                <strong>%s</strong> vous invite à rejoindre l'organisation <strong>%s</strong> en tant que <strong>%s</strong>.
+            </p>
+            <p style="margin: 8px 0 0 0; color: #374151;">
+                En acceptant cette invitation, vous pourrez collaborer avec votre équipe sur la gestion des dossiers de compétences.
+            </p>
+        </div>
+
+        <div style="text-align: center; margin: 24px 0 8px 0;">
+            <a href="%s" 
+               style="background: #2563eb; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 10px; font-weight: 700; display: inline-block; font-size: 16px;">
+                🚀 Accepter l'invitation
+            </a>
+        </div>
+        <p style="text-align: center; margin: 0 24px 16px 24px; color: #6b7280; font-size: 12px;">Ce lien est personnel et sécurisé.</p>
+
+        <div style="background: #f3f4f6; padding: 16px 24px; border-radius: 10px; margin: 0 24px 24px 24px;">
+            <p style="margin: 0; font-size: 14px; color: #6b7280;">
+                <strong>📧 Des questions ?</strong> Répondez à cet email ou contactez %s.
+            </p>
+        </div>
+
+        <div style="border-top: 1px solid #e5e7eb; padding: 16px 24px; text-align: center; color: #9ca3af; font-size: 12px;">
+            <p style="margin: 0;">Email envoyé par SkillForge</p>
+            <p style="margin: 4px 0 0 0;">Si vous n'êtes pas à l'origine de cette invitation, ignorez ce message.</p>
+        </div>
+    </div>
+
+</body>
+</html>`
+
+	// Déterminer le libellé du rôle
+	roleLabel := "membre"
+	if data.Role == "admin" {
+		roleLabel = "administrateur"
+	}
+
+	// Nom de l'inviteur (fallback sur email si non fourni)
+	inviterName := data.InviterName
+	if inviterName == "" {
+		inviterName = data.InviterEmail
+	}
+
+	// Nom de l'organisation (fallback si non fourni)
+	orgName := data.OrganizationName
+	if orgName == "" {
+		orgName = "notre organisation"
+	}
+
+	// Remplacer les variables dans le template
+	htmlContent := fmt.Sprintf(htmlTemplate,
+		orgName,
+		inviterName,
+		orgName,
+		roleLabel,
+		data.MemberLink,
 		data.InviterEmail,
 	)
 

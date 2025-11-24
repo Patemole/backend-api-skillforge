@@ -139,6 +139,12 @@ func StripeWebhook(c *gin.Context) {
 				return
 			}
 			log.Printf("✅ Successfully updated organization %s with subscription plan %s", organizationID, plan)
+
+			// Sync organization billing status to all members and admins
+			if err := supabase.SyncOrganizationBillingToMembers(ctx, organizationID); err != nil {
+				log.Printf("⚠️ Failed to sync organization billing to members (non-blocking): %v", err)
+				// Don't fail the request if sync fails, org update succeeded
+			}
 		}
 
 		// Also update user profile for backward compatibility
@@ -221,6 +227,11 @@ func StripeWebhook(c *gin.Context) {
 					log.Printf("supabase upsert organization (subscription.updated) failed: %v", err)
 				} else {
 					log.Printf("✅ Updated organization %s subscription status to %s", organizationID, sub.Status)
+					// Sync organization billing status to all members and admins
+					if err := supabase.SyncOrganizationBillingToMembers(ctx, organizationID); err != nil {
+						log.Printf("⚠️ Failed to sync organization billing to members (non-blocking): %v", err)
+						// Don't fail the request if sync fails, org update succeeded
+					}
 				}
 			}
 		}

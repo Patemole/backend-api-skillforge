@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"math/rand"
 
 	"github.com/ledongthuc/pdf"
 
@@ -32,6 +33,9 @@ func getPayloadKeys(payload map[string]any) []string {
 // StartExtractCVWorker lance une boucle qui traite les jobs extract_cv
 func StartExtractCVWorker() {
 	go func() {
+		initialDelay := time.Duration(rand.Intn(1000)) * time.Millisecond
+		time.Sleep(initialDelay)
+
 		ticker := time.NewTicker(3 * time.Second)
 		defer ticker.Stop()
 
@@ -75,6 +79,11 @@ func processOneExtractJob() error {
 				time.Sleep(1 * time.Second)
 				continue
 			}
+			if strings.Contains(errStr, "parsing error response") || strings.Contains(errStr, "invalid character") {
+				log.Printf("⚠️  [worker extract_cv] Erreur parsing réponse Supabase (tentative %d/5), on continue...", tryCounter+1)
+				time.Sleep(1 * time.Second)
+				continue
+			}
 			log.Printf("❌ [worker extract_cv] Erreur requête: %v", err)
 			return err
 		}
@@ -107,6 +116,12 @@ func processOneExtractJob() error {
 			// Si c'est un timeout, on continue plutôt que de faire échouer le cycle
 			if strings.Contains(errStr, "timeout") || strings.Contains(errStr, "57014") {
 				log.Printf("⚠️  [worker extract_cv] Timeout sur l'update (tentative %d/5), on continue...", tryCounter+1)
+				time.Sleep(1 * time.Second)
+				continue
+			}
+			// Si c'est une erreur de parsing de réponse d'erreur (non-JSON de Supabase), on continue aussi
+			if strings.Contains(errStr, "parsing error response") || strings.Contains(errStr, "invalid character") {
+				log.Printf("⚠️  [worker extract_cv] Erreur parsing réponse Supabase sur update (tentative %d/5), on continue...", tryCounter+1)
 				time.Sleep(1 * time.Second)
 				continue
 			}
