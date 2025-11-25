@@ -1,6 +1,9 @@
 # Binaire compilé
 /backend-api-skillforge
 /cmd/server/backend-api-skillforge
+main
+server
+*.bin
 
 # Dépendances
 /vendor/
@@ -20,6 +23,7 @@ Thumbs.db
 
 # Logs
 *.log
+server.log
 
 # Docker
 *.pid
@@ -30,6 +34,25 @@ Thumbs.db
 # Test coverage
 coverage.*
 *.coverprofile
+
+# Debug Files (extracted text from CV processing)
+debug_extracted_text_*.txt
+
+# Test files (aren't necessary to be in the repo)
+test_*.json
+test_*sh
+test_*.txt
+test_*.txt
+test_*.go
+test.json
+
+# Output files (Temporary processing results that don't need to be carried over in the repo)
+output_*.json
+resultat_*.json
+payload.json
+
+# Test PDFs
+*.pdf
 
 # Autres fichiers temporaires
 *.tmp
