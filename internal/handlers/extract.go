@@ -387,17 +387,24 @@ func ExtractCVAsync(c *gin.Context) {
 			}
 			if err := json.Unmarshal(profileData, &profile); err == nil {
 				userEmail = profile.Email
+				log.Printf("📧 [extract_async] Email utilisateur récupéré: %s", userEmail)
 
 				// Vérifier si le manager ID existe déjà dans le profil
 				if len(profile.BoondManager) > 0 {
 					if err := json.Unmarshal(profile.BoondManager, &boondManagerData); err == nil {
 						if managerID, ok := boondManagerData["boondManagerId"].(string); ok && managerID != "" {
 							boondManagerID = managerID
-							log.Printf("✅ [extract_async] boondManagerId récupéré depuis le profil: %s", boondManagerID)
+							log.Printf("✅ [extract_async] boondManagerId récupéré depuis le profil: %s (pas besoin de synchronisation)", boondManagerID)
+						} else {
+							log.Printf("ℹ️  [extract_async] boond_manager présent dans le profil mais boondManagerId manquant ou vide")
 						}
 					}
+				} else {
+					log.Printf("ℹ️  [extract_async] boond_manager absent ou vide dans le profil")
 				}
 			}
+		} else {
+			log.Printf("⚠️  [extract_async] Erreur lors de la récupération du profil: %v", err)
 		}
 
 		// Si toujours pas de manager ID, synchroniser depuis Boond
@@ -406,6 +413,7 @@ func ExtractCVAsync(c *gin.Context) {
 
 			// Créer le client Boond et chercher la ressource tester
 			boondClient := boond.New(boondJWT)
+			log.Printf("🔍 [extract_async] Appel FindTesterResourceByEmail pour email: %s", userEmail)
 			managerID, err := boondClient.FindTesterResourceByEmail(c.Request.Context(), userEmail)
 			if err != nil {
 				log.Printf("⚠️  [extract_async] Erreur lors de la recherche de la ressource tester: %v", err)
@@ -441,6 +449,16 @@ func ExtractCVAsync(c *gin.Context) {
 			}
 		} else if userEmail == "" {
 			log.Printf("⚠️  [extract_async] Impossible de récupérer l'email de l'utilisateur pour la synchronisation")
+		} else if boondManagerID != "" {
+			log.Printf("ℹ️  [extract_async] boondManagerID déjà présent (%s), pas de synchronisation nécessaire", boondManagerID)
+		}
+	} else {
+		if boondManagerID != "" {
+			log.Printf("ℹ️  [extract_async] boondManagerID fourni dans la requête: %s", boondManagerID)
+		} else if boondJWT == "" {
+			log.Printf("ℹ️  [extract_async] Pas de boondJWT fourni, synchronisation impossible")
+		} else if userIDStr == "00000000-0000-0000-0000-000000000000" {
+			log.Printf("ℹ️  [extract_async] user_id invalide (UUID zéro), synchronisation impossible")
 		}
 	}
 

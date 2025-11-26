@@ -814,11 +814,55 @@ func (c *Client) FindTesterResourceByEmail(ctx context.Context, userEmail string
 			continue
 		}
 
-		// Vérifier plusieurs champs email potentiels
-		emailsToCheck := []string{
-			strings.ToLower(strings.TrimSpace(getString(attrs, "email1"))),
-			strings.ToLower(strings.TrimSpace(getString(attrs, "email2"))),
-			strings.ToLower(strings.TrimSpace(getString(attrs, "email"))),
+		// 🔧 FIX: Extraire les emails de manière plus robuste
+		// Vérifier plusieurs champs email potentiels avec gestion de différents types
+		emailsToCheck := []string{}
+		
+		// Fonction helper pour extraire un email d'un champ (peut être string, array, etc.)
+		extractEmail := func(key string) []string {
+			var emails []string
+			val, exists := attrs[key]
+			if !exists {
+				return emails
+			}
+			
+			switch v := val.(type) {
+			case string:
+				if strings.TrimSpace(v) != "" {
+					emails = append(emails, strings.ToLower(strings.TrimSpace(v)))
+				}
+			case []interface{}:
+				// Si c'est un tableau, extraire tous les strings
+				for _, item := range v {
+					if str, ok := item.(string); ok && strings.TrimSpace(str) != "" {
+						emails = append(emails, strings.ToLower(strings.TrimSpace(str)))
+					}
+				}
+			case []string:
+				// Si c'est un tableau de strings directement
+				for _, str := range v {
+					if strings.TrimSpace(str) != "" {
+						emails = append(emails, strings.ToLower(strings.TrimSpace(str)))
+					}
+				}
+			}
+			return emails
+		}
+		
+		// Vérifier tous les champs email possibles (case-insensitive)
+		emailFields := []string{"email1", "email2", "email", "Email1", "Email2", "Email", "EMAIL1", "EMAIL2", "EMAIL"}
+		for _, field := range emailFields {
+			emailsToCheck = append(emailsToCheck, extractEmail(field)...)
+		}
+		
+		// 🔧 DEBUG: Log les champs email trouvés pour debug (première ressource seulement)
+		if len(resources) > 0 && resource == resources[0] {
+			fmt.Printf("🔍 [Boond] DEBUG - Champs email trouvés dans la première ressource:\n")
+			for key, val := range attrs {
+				if strings.Contains(strings.ToLower(key), "email") {
+					fmt.Printf("   %s: %v (type: %T)\n", key, val, val)
+				}
+			}
 		}
 
 		matched := false
