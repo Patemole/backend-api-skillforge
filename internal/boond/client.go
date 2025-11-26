@@ -788,18 +788,24 @@ func shouldIncludeResource(resource map[string]any, typeOfFilter []int, isVisibl
 	return true
 }
 
-// FindTesterResourceByEmail trouve une ressource par email (mêmes filtres que "Tester Ressources")
+// FindTesterResourceByEmail trouve une ressource par email avec des filtres personnalisables
 // puis retourne l'ID du manager Boond rattaché à cette ressource.
-func (c *Client) FindTesterResourceByEmail(ctx context.Context, userEmail string) (string, error) {
+func (c *Client) FindTesterResourceByEmail(ctx context.Context, userEmail string, typeFilters []int, isVisible *bool) (string, error) {
 	if strings.TrimSpace(userEmail) == "" {
 		return "", fmt.Errorf("user email cannot be empty")
 	}
 
-	// Reproduire les filtres utilisés par le bouton "Tester Ressources":
-	// typeOf = [2,4,5] (managers, direction, RH) et isVisible = true.
-	typeFilters := []int{2, 4, 5}
-	isVisible := true
-	resources, err := c.GetAllResources(ctx, 500, typeFilters, &isVisible)
+	// Valeurs par défaut si les filtres ne sont pas fournis
+	if len(typeFilters) == 0 {
+		// Filtres par défaut: typeOf = [2,4,5] (managers, direction, RH) et isVisible = true
+		typeFilters = []int{2, 4, 5}
+	}
+	if isVisible == nil {
+		defaultVisible := true
+		isVisible = &defaultVisible
+	}
+
+	resources, err := c.GetAllResources(ctx, 500, typeFilters, isVisible)
 	if err != nil {
 		return "", fmt.Errorf("failed to get resources: %w", err)
 	}
@@ -808,7 +814,7 @@ func (c *Client) FindTesterResourceByEmail(ctx context.Context, userEmail string
 	fmt.Printf("🔍 [Boond] Recherche ressource pour email: %s (total: %d ressources)\n", userEmail, len(resources))
 
 	// Parcourir les ressources pour trouver une correspondance
-	for _, resource := range resources {
+	for idx, resource := range resources {
 		attrs, ok := resource["attributes"].(map[string]any)
 		if !ok {
 			continue
@@ -817,7 +823,7 @@ func (c *Client) FindTesterResourceByEmail(ctx context.Context, userEmail string
 		// 🔧 FIX: Extraire les emails de manière plus robuste
 		// Vérifier plusieurs champs email potentiels avec gestion de différents types
 		emailsToCheck := []string{}
-		
+
 		// Fonction helper pour extraire un email d'un champ (peut être string, array, etc.)
 		extractEmail := func(key string) []string {
 			var emails []string
@@ -825,7 +831,7 @@ func (c *Client) FindTesterResourceByEmail(ctx context.Context, userEmail string
 			if !exists {
 				return emails
 			}
-			
+
 			switch v := val.(type) {
 			case string:
 				if strings.TrimSpace(v) != "" {
@@ -848,15 +854,15 @@ func (c *Client) FindTesterResourceByEmail(ctx context.Context, userEmail string
 			}
 			return emails
 		}
-		
+
 		// Vérifier tous les champs email possibles (case-insensitive)
 		emailFields := []string{"email1", "email2", "email", "Email1", "Email2", "Email", "EMAIL1", "EMAIL2", "EMAIL"}
 		for _, field := range emailFields {
 			emailsToCheck = append(emailsToCheck, extractEmail(field)...)
 		}
-		
+
 		// 🔧 DEBUG: Log les champs email trouvés pour debug (première ressource seulement)
-		if len(resources) > 0 && resource == resources[0] {
+		if idx == 0 {
 			fmt.Printf("🔍 [Boond] DEBUG - Champs email trouvés dans la première ressource:\n")
 			for key, val := range attrs {
 				if strings.Contains(strings.ToLower(key), "email") {

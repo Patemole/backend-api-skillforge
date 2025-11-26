@@ -365,11 +365,12 @@ func ExtractCVAsync(c *gin.Context) {
 		return
 	}
 
-	// Si boondManagerID n'est pas fourni mais qu'on a un boondJWT, essayer de le récupérer/synchroniser depuis Boond
-	if boondManagerID == "" && boondJWT != "" && userIDStr != "00000000-0000-0000-0000-000000000000" {
-		log.Printf("🔍 [extract_async] boondManagerId non fourni, tentative de récupération depuis le profil ou synchronisation Boond (user_id=%s)", userIDStr)
+	// PRIORITÉ 1: Email matching (méthode principale pour obtenir le manager ID personnalisé de chaque utilisateur)
+	// Si on a un boondJWT et un userID valide, essayer d'abord de trouver le manager ID via email matching
+	if boondJWT != "" && userIDStr != "00000000-0000-0000-0000-000000000000" {
+		log.Printf("🔍 [extract_async] Tentative de récupération du manager ID via email matching (méthode principale) pour user_id=%s", userIDStr)
 
-		// D'abord, essayer de récupérer depuis le profil
+		// Récupérer l'email de l'utilisateur depuis le profil
 		profileData, _, err := supabase.Client.
 			From("profiles").
 			Select("email,boond_manager", "exact", false).
@@ -389,76 +390,113 @@ func ExtractCVAsync(c *gin.Context) {
 				userEmail = profile.Email
 				log.Printf("📧 [extract_async] Email utilisateur récupéré: %s", userEmail)
 
-				// Vérifier si le manager ID existe déjà dans le profil
+				// Parser boond_manager pour réutilisation ultérieure si nécessaire
 				if len(profile.BoondManager) > 0 {
-					if err := json.Unmarshal(profile.BoondManager, &boondManagerData); err == nil {
-						if managerID, ok := boondManagerData["boondManagerId"].(string); ok && managerID != "" {
-							boondManagerID = managerID
-							log.Printf("✅ [extract_async] boondManagerId récupéré depuis le profil: %s (pas besoin de synchronisation)", boondManagerID)
-						} else {
-							log.Printf("ℹ️  [extract_async] boond_manager présent dans le profil mais boondManagerId manquant ou vide")
-						}
+					if err := json.Unmarshal(profile.BoondManager, &boondManagerData); err != nil {
+						log.Printf("⚠️  [extract_async] Erreur parsing boond_manager: %v", err)
+						boondManagerData = make(map[string]any)
 					}
 				} else {
-					log.Printf("ℹ️  [extract_async] boond_manager absent ou vide dans le profil")
+					boondManagerData = make(map[string]any)
+				}
+
+				// PRIORITÉ 1A: Essayer de trouver le manager ID via email matching dans Boond
+				if userEmail != "" {
+					log.Printf("🔄 [extract_async] Synchronisation du manager ID depuis Boond pour l'email: %s (méthode principale)", userEmail)
+
+					var typeFilters []int
+					var isVisible *bool
+
+					// Lire les filtres depuis boond_manager si configurés
+					if boondManagerData != nil {
+						if filters, ok := boondManagerData["resourceFilters"].(map[string]any); ok {
+							// Lire typeOf
+							if typeOfVal, ok := filters["typeOf"]; ok {
+								if typeOfArray, ok := typeOfVal.([]interface{}); ok {
+									typeFilters = make([]int, 0, len(typeOfArray))
+									for _, v := range typeOfArray {
+										if num, ok := v.(float64); ok {
+											typeFilters = append(typeFilters, int(num))
+										}
+									}
+								}
+							}
+							// Lire isVisible
+							if isVisibleVal, ok := filters["isVisible"]; ok {
+								if visible, ok := isVisibleVal.(bool); ok {
+									isVisible = &visible
+								}
+							}
+						}
+					}
+
+					// Utiliser les filtres personnalisés ou les valeurs par défaut
+					boondClient := boond.New(boondJWT)
+					log.Printf("🔍 [extract_async] Appel FindTesterResourceByEmail pour email: %s", userEmail)
+					managerID, err := boondClient.FindTesterResourceByEmail(c.Request.Context(), userEmail, typeFilters, isVisible)
+					if err != nil {
+						log.Printf("⚠️  [extract_async] Erreur lors de la recherche de la ressource tester: %v", err)
+					} else if managerID != "" {
+						boondManagerID = managerID
+						log.Printf("✅ [extract_async] Manager ID trouvé via email matching (méthode principale): %s", boondManagerID)
+
+						// Stocker le manager ID dans le profil pour les prochaines fois
+						boondManagerData["boondManagerId"] = boondManagerID
+						boondManagerJSON, err := json.Marshal(boondManagerData)
+						if err == nil {
+							updateData := map[string]interface{}{
+								"boond_manager": string(boondManagerJSON),
+							}
+							_, _, updateErr := supabase.Client.
+								From("profiles").
+								Update(updateData, "", "").
+								Eq("user_id", userIDStr).
+								Execute()
+							if updateErr != nil {
+								log.Printf("⚠️  [extract_async] Erreur lors de la mise à jour du profil avec le manager ID: %v", updateErr)
+							} else {
+								log.Printf("✅ [extract_async] Manager ID stocké dans le profil utilisateur")
+							}
+						}
+					} else {
+						log.Printf("⚠️  [extract_async] Aucune ressource tester trouvée pour l'email: %s", userEmail)
+					}
+				} else {
+					log.Printf("⚠️  [extract_async] Email utilisateur non trouvé, impossible de faire l'email matching")
 				}
 			}
 		} else {
 			log.Printf("⚠️  [extract_async] Erreur lors de la récupération du profil: %v", err)
 		}
 
-		// Si toujours pas de manager ID, synchroniser depuis Boond
-		if boondManagerID == "" && userEmail != "" {
-			log.Printf("🔄 [extract_async] Synchronisation du manager ID depuis Boond pour l'email: %s", userEmail)
+		// PRIORITÉ 2: Failsafe - Si email matching n'a pas trouvé de manager ID, utiliser celui fourni dans la requête
+		if boondManagerID == "" && strings.TrimSpace(c.PostForm("boondManagerId")) != "" {
+			boondManagerID = strings.TrimSpace(c.PostForm("boondManagerId"))
+			log.Printf("ℹ️  [extract_async] Email matching échoué, utilisation du boondManagerId fourni dans la requête (failsafe): %s", boondManagerID)
+		}
 
-			// Créer le client Boond et chercher la ressource tester
-			boondClient := boond.New(boondJWT)
-			log.Printf("🔍 [extract_async] Appel FindTesterResourceByEmail pour email: %s", userEmail)
-			managerID, err := boondClient.FindTesterResourceByEmail(c.Request.Context(), userEmail)
-			if err != nil {
-				log.Printf("⚠️  [extract_async] Erreur lors de la recherche de la ressource tester: %v", err)
-			} else if managerID != "" {
+		// PRIORITÉ 3: Failsafe - Si toujours pas de manager ID, utiliser celui stocké dans le profil
+		if boondManagerID == "" && boondManagerData != nil {
+			if managerID, ok := boondManagerData["boondManagerId"].(string); ok && managerID != "" {
 				boondManagerID = managerID
-				log.Printf("✅ [extract_async] Manager ID trouvé depuis Boond: %s", boondManagerID)
-
-				// Stocker le manager ID dans le profil
-				if boondManagerData == nil {
-					boondManagerData = make(map[string]any)
-				}
-				boondManagerData["boondManagerId"] = boondManagerID
-
-				// Mettre à jour le profil
-				boondManagerJSON, err := json.Marshal(boondManagerData)
-				if err == nil {
-					updateData := map[string]interface{}{
-						"boond_manager": string(boondManagerJSON),
-					}
-					_, _, updateErr := supabase.Client.
-						From("profiles").
-						Update(updateData, "", "").
-						Eq("user_id", userIDStr).
-						Execute()
-					if updateErr != nil {
-						log.Printf("⚠️  [extract_async] Erreur lors de la mise à jour du profil avec le manager ID: %v", updateErr)
-					} else {
-						log.Printf("✅ [extract_async] Manager ID stocké dans le profil utilisateur")
-					}
-				}
-			} else {
-				log.Printf("⚠️  [extract_async] Aucune ressource tester trouvée pour l'email: %s", userEmail)
+				log.Printf("ℹ️  [extract_async] Email matching et requête échoués, utilisation du boondManagerId du profil (failsafe): %s", boondManagerID)
 			}
-		} else if userEmail == "" {
-			log.Printf("⚠️  [extract_async] Impossible de récupérer l'email de l'utilisateur pour la synchronisation")
-		} else if boondManagerID != "" {
-			log.Printf("ℹ️  [extract_async] boondManagerID déjà présent (%s), pas de synchronisation nécessaire", boondManagerID)
+		}
+
+		// Log final
+		if boondManagerID != "" {
+			log.Printf("✅ [extract_async] Manager ID final déterminé: %s", boondManagerID)
+		} else {
+			log.Printf("⚠️  [extract_async] Aucun manager ID trouvé après toutes les tentatives")
 		}
 	} else {
+		// Si pas de boondJWT ou userID invalide, utiliser directement le paramètre de la requête s'il existe
 		if boondManagerID != "" {
-			log.Printf("ℹ️  [extract_async] boondManagerID fourni dans la requête: %s", boondManagerID)
+			log.Printf("ℹ️  [extract_async] boondManagerID fourni dans la requête: %s (pas de boondJWT/userID pour email matching)", boondManagerID)
 		} else if boondJWT == "" {
-			log.Printf("ℹ️  [extract_async] Pas de boondJWT fourni, synchronisation impossible")
+			log.Printf("ℹ️  [extract_async] Pas de boondJWT fourni, email matching impossible")
 		} else if userIDStr == "00000000-0000-0000-0000-000000000000" {
-			log.Printf("ℹ️  [extract_async] user_id invalide (UUID zéro), synchronisation impossible")
+			log.Printf("ℹ️  [extract_async] user_id invalide (UUID zéro), email matching impossible")
 		}
 	}
 
