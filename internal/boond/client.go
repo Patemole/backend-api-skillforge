@@ -808,7 +808,7 @@ func (c *Client) FindTesterResourceByEmail(ctx context.Context, userEmail string
 	fmt.Printf("🔍 [Boond] Recherche ressource pour email: %s (total: %d ressources)\n", userEmail, len(resources))
 
 	// Parcourir les ressources pour trouver une correspondance
-	for _, resource := range resources {
+	for idx, resource := range resources {
 		attrs, ok := resource["attributes"].(map[string]any)
 		if !ok {
 			continue
@@ -856,7 +856,7 @@ func (c *Client) FindTesterResourceByEmail(ctx context.Context, userEmail string
 		}
 		
 		// 🔧 DEBUG: Log les champs email trouvés pour debug (première ressource seulement)
-		if len(resources) > 0 && resource == resources[0] {
+		if idx == 0 {
 			fmt.Printf("🔍 [Boond] DEBUG - Champs email trouvés dans la première ressource:\n")
 			for key, val := range attrs {
 				if strings.Contains(strings.ToLower(key), "email") {
