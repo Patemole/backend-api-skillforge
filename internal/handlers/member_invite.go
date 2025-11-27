@@ -1,4 +1,4 @@
-when package handlers
+package handlers
 
 import (
 	"log"
@@ -72,7 +72,6 @@ func (h *MemberInviteHandler) HandleMemberInvite(c *gin.Context) {
 	c.JSON(http.StatusOK, models.MemberInviteResponse{
 		Success:   true,
 		Message:   "Email d'invitation envoyé avec succès",
-		RequestID:  requestID,
+		RequestID: requestID,
 	})
 }
-
