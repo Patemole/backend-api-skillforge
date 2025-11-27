@@ -410,8 +410,25 @@ func UploadBoondCandidateDC(c *gin.Context) {
 	// Uploader le dossier de compétences avec le contexte étendu
 	docID, err := client.UploadDocument(uploadCtx, req.BoondCandidateId, fileBytes, req.Filename)
 	if err != nil {
+		// Parser l'erreur pour détecter le code d'erreur Boond spécifique
+		errStr := err.Error()
+
+		// Vérifier si c'est l'erreur "You cannot upload more files" (code 1023, status 422)
+		if strings.Contains(errStr, "422") || strings.Contains(errStr, "status=422") {
+			// Essayer de parser le body JSON pour vérifier le code d'erreur
+			if strings.Contains(errStr, "1023") || strings.Contains(errStr, "You cannot upload more files") {
+				c.JSON(http.StatusUnprocessableEntity, models.BoondCandidateResponse{
+					Success:   false,
+					Message:   "Limite de fichiers atteinte",
+					ErrorCode: "FILE_LIMIT_REACHED",
+					Details:   "Le candidat a atteint la limite maximale de fichiers autorisés dans Boond Manager. Veuillez supprimer des fichiers existants avant d'en ajouter de nouveaux.",
+				})
+				return
+			}
+		}
+
 		// Gestion d'erreurs spécifiques selon le type d'erreur
-		if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "not found") {
+		if strings.Contains(errStr, "404") || strings.Contains(errStr, "not found") {
 			c.JSON(http.StatusNotFound, models.BoondCandidateResponse{
 				Success:   false,
 				Message:   "Candidat non trouvé",
@@ -421,7 +438,7 @@ func UploadBoondCandidateDC(c *gin.Context) {
 			return
 		}
 
-		if strings.Contains(err.Error(), "401") || strings.Contains(err.Error(), "unauthorized") {
+		if strings.Contains(errStr, "401") || strings.Contains(errStr, "unauthorized") {
 			c.JSON(http.StatusUnauthorized, models.BoondCandidateResponse{
 				Success:   false,
 				Message:   "Authentification échouée",
@@ -431,7 +448,7 @@ func UploadBoondCandidateDC(c *gin.Context) {
 			return
 		}
 
-		if strings.Contains(err.Error(), "403") || strings.Contains(err.Error(), "forbidden") {
+		if strings.Contains(errStr, "403") || strings.Contains(errStr, "forbidden") {
 			c.JSON(http.StatusForbidden, models.BoondCandidateResponse{
 				Success:   false,
 				Message:   "Accès refusé",
@@ -441,7 +458,7 @@ func UploadBoondCandidateDC(c *gin.Context) {
 			return
 		}
 
-		if strings.Contains(err.Error(), "413") || strings.Contains(err.Error(), "too large") {
+		if strings.Contains(errStr, "413") || strings.Contains(errStr, "too large") {
 			c.JSON(http.StatusRequestEntityTooLarge, models.BoondCandidateResponse{
 				Success:   false,
 				Message:   "Fichier trop volumineux",
@@ -451,7 +468,7 @@ func UploadBoondCandidateDC(c *gin.Context) {
 			return
 		}
 
-		if strings.Contains(err.Error(), "415") || strings.Contains(err.Error(), "unsupported media type") {
+		if strings.Contains(errStr, "415") || strings.Contains(errStr, "unsupported media type") {
 			c.JSON(http.StatusUnsupportedMediaType, models.BoondCandidateResponse{
 				Success:   false,
 				Message:   "Type de fichier non supporté",
