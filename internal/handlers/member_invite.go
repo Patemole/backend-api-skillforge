@@ -1,11 +1,13 @@
 package handlers
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 
 	"backend-api-skillforge/internal/models"
 	"backend-api-skillforge/internal/services"
+	"backend-api-skillforge/internal/supabase"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -41,6 +43,27 @@ func (h *MemberInviteHandler) HandleMemberInvite(c *gin.Context) {
 	// Générer un ID de requête unique
 	requestID := uuid.New().String()
 
+	// Vérifier si l'utilisateur existe déjà dans la base de données
+	userExists := false
+	data, _, err := supabase.Client.From("profiles").
+		Select("user_id", "exact", false).
+		Eq("email", req.RecipientEmail).
+		Limit(1, "").
+		Execute()
+
+	if err == nil && len(data) > 0 {
+		// Parser la réponse pour vérifier si on a des résultats
+		var result []map[string]interface{}
+		if jsonErr := json.Unmarshal(data, &result); jsonErr == nil && len(result) > 0 {
+			userExists = true
+			log.Printf("MEMBER_INVITE_INFO: Utilisateur existant trouvé pour %s", req.RecipientEmail)
+		}
+	}
+
+	if !userExists {
+		log.Printf("MEMBER_INVITE_INFO: Nouvel utilisateur pour %s", req.RecipientEmail)
+	}
+
 	// Préparer les données pour l'email
 	emailData := models.MemberInviteEmailData{
 		InviterEmail:     req.InviterEmail,
@@ -50,6 +73,7 @@ func (h *MemberInviteHandler) HandleMemberInvite(c *gin.Context) {
 		Role:             req.Role,
 		InviterName:      req.InviterName,
 		OrganizationName: req.OrganizationName,
+		UserExists:       userExists,
 	}
 
 	// Envoyer l'email d'invitation
@@ -72,7 +96,6 @@ func (h *MemberInviteHandler) HandleMemberInvite(c *gin.Context) {
 	c.JSON(http.StatusOK, models.MemberInviteResponse{
 		Success:   true,
 		Message:   "Email d'invitation envoyé avec succès",
-		RequestID:  requestID,
+		RequestID: requestID,
 	})
 }
-

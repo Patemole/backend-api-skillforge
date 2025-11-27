@@ -700,7 +700,7 @@ func SyncBoondManagerID(c *gin.Context) {
 	client := boond.New(req.BoondJwt)
 
 	// Trouver la ressource tester par email et extraire le manager ID
-	managerID, err := client.FindTesterResourceByEmail(c.Request.Context(), req.UserEmail)
+	managerID, err := client.FindTesterResourceByEmail(c.Request.Context(), req.UserEmail, nil, nil)
 	if err != nil {
 		log.Printf("❌ [SyncBoondManagerID] Erreur lors de la recherche de la ressource tester: %v", err)
 		c.JSON(http.StatusInternalServerError, models.BoondCandidateResponse{

@@ -34,4 +34,5 @@ type MemberInviteEmailData struct {
 	Role             string
 	InviterName      string
 	OrganizationName string
+	UserExists       bool // Indique si l'utilisateur a déjà un compte
 }
