@@ -277,8 +277,139 @@ func (c *Client) CreateCandidate(ctx context.Context, attributes map[string]any,
 	return "", body, nil
 }
 
+// GetCandidateDocuments récupère la liste des documents d'un candidat
+func (c *Client) GetCandidateDocuments(ctx context.Context, candidateID string) ([]map[string]any, error) {
+	ep := fmt.Sprintf("%s/api/candidates/%s/documents", c.BaseURL, candidateID)
+	fmt.Printf("📋 [Boond] GET %s\n", ep)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, ep, nil)
+	if err != nil {
+		return nil, err
+	}
+	addStdHeaders(req, c.JWT)
+
+	resp, err := c.HTTP.Do(req)
+	if err != nil {
+		fmt.Printf("❌ [Boond] GET documents error: %v\n", err)
+		return nil, err
+	}
+	defer resp.Body.Close()
+	body, _ := io.ReadAll(resp.Body)
+
+	fmt.Printf("📥 [Boond] GET documents status=%d body_len=%d\n", resp.StatusCode, len(body))
+	if resp.StatusCode >= 400 {
+		if len(body) > 0 {
+			b := string(body)
+			if len(b) > 400 {
+				b = b[:400] + "…(tronqué)"
+			}
+			fmt.Printf("⚠️  [Boond] GET documents error body: %s\n", b)
+		}
+		// Si 404, retourner une liste vide (pas d'erreur)
+		if resp.StatusCode == 404 {
+			fmt.Printf("ℹ️  [Boond] Aucun document trouvé pour le candidat (404)\n")
+			return []map[string]any{}, nil
+		}
+		return nil, fmt.Errorf("boond get documents failed: status=%d body=%s", resp.StatusCode, string(body))
+	}
+
+	// Parser la réponse JSON:API
+	var docListResp struct {
+		Data []struct {
+			ID   string         `json:"id"`
+			Type string         `json:"type"`
+			Attr map[string]any `json:"attributes"`
+		} `json:"data"`
+	}
+
+	if err := json.Unmarshal(body, &docListResp); err != nil {
+		return nil, fmt.Errorf("failed to parse documents response: %w", err)
+	}
+
+	// Transformer en liste simple
+	var documents []map[string]any
+	for _, doc := range docListResp.Data {
+		documents = append(documents, map[string]any{
+			"id":   doc.ID,
+			"type": doc.Type,
+			"name": doc.Attr["name"],
+		})
+	}
+
+	fmt.Printf("✅ [Boond] %d documents récupérés pour le candidat\n", len(documents))
+	return documents, nil
+}
+
+// DeleteDocument supprime un document Boond par son ID
+func (c *Client) DeleteDocument(ctx context.Context, documentID string) error {
+	if strings.TrimSpace(documentID) == "" {
+		return fmt.Errorf("document ID cannot be empty")
+	}
+
+	ep := fmt.Sprintf("%s/api/documents/%s", c.BaseURL, documentID)
+	fmt.Printf("🗑️  [Boond] DELETE %s\n", ep)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, ep, nil)
+	if err != nil {
+		return err
+	}
+	addStdHeaders(req, c.JWT)
+
+	resp, err := c.HTTP.Do(req)
+	if err != nil {
+		fmt.Printf("❌ [Boond] DELETE document error: %v\n", err)
+		return err
+	}
+	defer resp.Body.Close()
+	body, _ := io.ReadAll(resp.Body)
+
+	fmt.Printf("📥 [Boond] DELETE document status=%d body_len=%d\n", resp.StatusCode, len(body))
+	if resp.StatusCode >= 400 {
+		if len(body) > 0 {
+			b := string(body)
+			if len(b) > 400 {
+				b = b[:400] + "…(tronqué)"
+			}
+			fmt.Printf("⚠️  [Boond] DELETE document error body: %s\n", b)
+		}
+		return fmt.Errorf("boond delete document failed: status=%d body=%s", resp.StatusCode, string(body))
+	}
+
+	fmt.Printf("✅ [Boond] Document deleted id=%s\n", documentID)
+	return nil
+}
+
 // UploadDocument upload un fichier (CV) et l'associe à un candidat
+// Vérifie d'abord s'il existe déjà un document avec le même nom et le supprime si nécessaire
 func (c *Client) UploadDocument(ctx context.Context, candidateID string, fileData []byte, filename string) (string, error) {
+	// 🔧 FIX: Vérifier s'il existe déjà un document avec le même nom
+	fmt.Printf("🔍 [Boond] Vérification des documents existants pour éviter les doublons (filename=%s)\n", filename)
+	existingDocs, err := c.GetCandidateDocuments(ctx, candidateID)
+	if err != nil {
+		// Si l'erreur est non critique (ex: endpoint non disponible), continuer quand même
+		fmt.Printf("⚠️  [Boond] Erreur lors de la récupération des documents existants (non bloquant): %v\n", err)
+		existingDocs = []map[string]any{}
+	}
+
+	// Chercher un document avec le même nom
+	for _, doc := range existingDocs {
+		docName, ok := doc["name"].(string)
+		if ok && strings.EqualFold(docName, filename) {
+			docID, ok := doc["id"].(string)
+			if ok && docID != "" {
+				fmt.Printf("⚠️  [Boond] Document existant trouvé avec le même nom: %s (id=%s), suppression...\n", filename, docID)
+				// Supprimer le document existant pour éviter les doublons
+				if deleteErr := c.DeleteDocument(ctx, docID); deleteErr != nil {
+					fmt.Printf("⚠️  [Boond] Erreur lors de la suppression du document existant (non bloquant): %v\n", deleteErr)
+					// Continuer quand même l'upload - Boond peut gérer les doublons
+				} else {
+					fmt.Printf("✅ [Boond] Document existant supprimé avec succès\n")
+				}
+				break
+			}
+		}
+	}
+
 	// Créer un buffer multipart pour l'upload
 	var buf bytes.Buffer
 	writer := multipart.NewWriter(&buf)
@@ -817,7 +948,7 @@ func (c *Client) FindTesterResourceByEmail(ctx context.Context, userEmail string
 		// 🔧 FIX: Extraire les emails de manière plus robuste
 		// Vérifier plusieurs champs email potentiels avec gestion de différents types
 		emailsToCheck := []string{}
-		
+
 		// Fonction helper pour extraire un email d'un champ (peut être string, array, etc.)
 		extractEmail := func(key string) []string {
 			var emails []string
@@ -825,7 +956,7 @@ func (c *Client) FindTesterResourceByEmail(ctx context.Context, userEmail string
 			if !exists {
 				return emails
 			}
-			
+
 			switch v := val.(type) {
 			case string:
 				if strings.TrimSpace(v) != "" {
@@ -848,13 +979,13 @@ func (c *Client) FindTesterResourceByEmail(ctx context.Context, userEmail string
 			}
 			return emails
 		}
-		
+
 		// Vérifier tous les champs email possibles (case-insensitive)
 		emailFields := []string{"email1", "email2", "email", "Email1", "Email2", "Email", "EMAIL1", "EMAIL2", "EMAIL"}
 		for _, field := range emailFields {
 			emailsToCheck = append(emailsToCheck, extractEmail(field)...)
 		}
-		
+
 		// 🔧 DEBUG: Log les champs email trouvés pour debug (première ressource seulement)
 		if idx == 0 {
 			fmt.Printf("🔍 [Boond] DEBUG - Champs email trouvés dans la première ressource:\n")
