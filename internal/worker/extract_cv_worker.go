@@ -6,12 +6,13 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"log"
+	"math/rand"
 	"os"
 	"strconv"
 	"strings"
 	"time"
-	"math/rand"
 
+	"github.com/google/uuid"
 	"github.com/ledongthuc/pdf"
 
 	"backend-api-skillforge/internal/boond"
@@ -481,8 +482,43 @@ func processOneExtractJob() error {
 				ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 				defer cancel()
 
+				// Récupérer le nom de l'organisation pour déterminer l'étape par défaut
+				// Essayer d'abord depuis le payload du job (plus fiable et direct)
+				var organizationName string
+				if orgName, ok := job.Payload["organization_name"].(string); ok && strings.TrimSpace(orgName) != "" {
+					organizationName = strings.TrimSpace(orgName)
+					log.Printf("🏢 [worker extract_cv] Organisation depuis payload: %s", organizationName)
+				} else if job.UserID != uuid.Nil {
+					// Fallback: récupérer depuis user_id via la base de données
+					orgID, err := supabase.GetOrganizationIDFromUserID(ctx, job.UserID.String())
+					if err == nil && orgID != "" {
+						// Récupérer le nom de l'organisation (la colonne s'appelle "nom" en français)
+						orgData, _, err := supabase.Client.
+							From("organizations").
+							Select("nom", "exact", false).
+							Eq("id", orgID).
+							Single().
+							Execute()
+						if err == nil {
+							var org struct {
+								Nom string `json:"nom"`
+							}
+							if err := json.Unmarshal(orgData, &org); err == nil {
+								organizationName = org.Nom
+								log.Printf("🏢 [worker extract_cv] Organisation trouvée via DB: %s", organizationName)
+							} else {
+								log.Printf("⚠️  [worker extract_cv] Erreur parsing organisation depuis DB: %v", err)
+							}
+						} else {
+							log.Printf("⚠️  [worker extract_cv] Erreur récupération organisation depuis DB: %v", err)
+						}
+					} else if err != nil {
+						log.Printf("⚠️  [worker extract_cv] Erreur récupération orgID depuis user_id: %v", err)
+					}
+				}
+
 				bClient := boond.New(boondJWT)
-				attributes := boond.BuildCandidateAttributesFromCV(cv)
+				attributes := boond.BuildCandidateAttributesFromCV(cv, organizationName)
 
 				// Vérifier que firstName et lastName sont présents (requis par Boond)
 				firstName, hasFirstName := attributes["firstName"].(string)

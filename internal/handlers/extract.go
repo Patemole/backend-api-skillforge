@@ -168,7 +168,9 @@ func ExtractCV(c *gin.Context) {
 	normalizeExperienceDates(&cv, language)
 
 	// Construire les attributs Boond à partir du CV extrait
-	attributes := boond.BuildCandidateAttributesFromCV(cv)
+	// Note: Le handler synchrone n'a pas accès au contexte utilisateur,
+	// donc on passe une chaîne vide (utilisera la config par défaut)
+	attributes := boond.BuildCandidateAttributesFromCV(cv, "")
 	if b, _ := json.MarshalIndent(attributes, "", "  "); len(b) > 0 {
 		log.Printf("🧩 Attributs Boond construits:\n%s", string(b))
 	}

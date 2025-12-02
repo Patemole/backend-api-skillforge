@@ -74,7 +74,8 @@ func splitFullName(fullName string) (firstName, lastName string) {
 
 // BuildCandidateAttributesFromCV construit un map d'attributs Boond à partir
 // du schéma d'extraction interne. Ne renseigne que les champs disponibles.
-func BuildCandidateAttributesFromCV(cv nuextract.CVExtractionSchema) map[string]any {
+// organizationName est optionnel et permet de définir l'étape par défaut selon l'organisation.
+func BuildCandidateAttributesFromCV(cv nuextract.CVExtractionSchema, organizationName ...string) map[string]any {
 	attributes := make(map[string]any)
 
 	// Handle name: use cv.Nom if provided, otherwise split cv.Prenom
@@ -173,11 +174,40 @@ func BuildCandidateAttributesFromCV(cv nuextract.CVExtractionSchema) map[string]
 		attributes["PARAM_COMMENTAIRE"] = s
 	}
 
-	// Source : SkillForge
+	// Source : SkillForge (sans détail)
 	attributes["source"] = map[string]any{
 		"typeOf": 1, // À ajuster selon les valeurs Boond
-		"detail": "SkillForge",
+		// "detail" retiré pour ne pas afficher "SkillForge" dans la section Détail
 	}
+
+	// Définir l'étape par défaut selon l'organisation
+	// Si l'organisation est "lief ingenieurerie" ou "Leaf Ingénierie" → state = 4 (E1 - Posé)
+	// Sinon → state = 0 (E1 - Vu)
+	defaultState := 0 // Par défaut: E1 - Vu (ID 0)
+	if len(organizationName) > 0 && organizationName[0] != "" {
+		orgName := strings.ToLower(strings.TrimSpace(organizationName[0]))
+		if orgName == "lief ingenieurerie" || orgName == "leaf ingénierie" ||
+			strings.Contains(orgName, "lief") && strings.Contains(orgName, "ingenieurerie") ||
+			strings.Contains(orgName, "leaf") && strings.Contains(orgName, "ingénierie") {
+			defaultState = 4 // E1 - Posé (ID 4)
+			fmt.Printf("✅ [Boond] Organisation Leaf Ingénierie détectée → state = 4 (E1 - Posé)\n")
+		} else {
+			fmt.Printf("ℹ️  [Boond] Organisation '%s' → state = 0 (E1 - Vu)\n", organizationName[0])
+		}
+	} else {
+		// Si pas d'organisation fournie, utiliser la config par défaut
+		cfg := GetBoondConfig()
+		defaultState = cfg.DefaultCandidateState
+		fmt.Printf("ℹ️  [Boond] Aucune organisation fournie → utilisation config par défaut: state = %d\n", defaultState)
+	}
+	attributes["state"] = defaultState
+
+	// Log explicite du state ID qui sera envoyé à Boond
+	orgDisplay := "non fournie"
+	if len(organizationName) > 0 && organizationName[0] != "" {
+		orgDisplay = organizationName[0]
+	}
+	fmt.Printf("📊 [Boond] State ID défini: %d (organisation: '%s')\n", defaultState, orgDisplay)
 
 	return attributes
 }
