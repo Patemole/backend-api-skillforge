@@ -230,7 +230,7 @@ Retourne directement le contenu de l'email avec les micro-ajustements, sans JSON
 func (s *PresentationEmailGeneratorService) buildCandidateContext(data models.PresentationCandidateData) string {
 	context := fmt.Sprintf(`- Prénom: %s
 - Titre du poste: %s
-- Nombre d'années d'expérience: %d
+- Nombre d'années d'expérience: %.1f
 - Disponibilité: %s
 - Mobilité: %s
 - Diplôme: %s`,

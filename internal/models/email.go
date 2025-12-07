@@ -100,24 +100,24 @@ type PresentationEmailRequest struct {
 
 // PresentationCandidateData contient les données du candidat pour la présentation
 type PresentationCandidateData struct {
-	Prenom                    string `json:"prenom" binding:"required"`
-	TitrePoste                string `json:"titre_poste" binding:"required"`
-	NombreExperience          int    `json:"nombre_experience" binding:"required"`
-	Disponibilite             string `json:"disponibilite" binding:"required"`
-	Mobilite                  string `json:"mobilite" binding:"required"`
-	Diplome                   string `json:"diplome" binding:"required"`
-	Langues                   string `json:"langues"`
-	Certifications            string `json:"certifications"`
-	Hobbies                   string `json:"hobbies"`
-	Experience                string `json:"experience"` // Toutes les expériences formatées
-	ExperienceCount           int    `json:"experience_count"`
-	Logiciel                  string `json:"logiciel"`  // Logiciel principal
-	Logiciels                 string `json:"logiciels"` // Liste des logiciels
-	LogicielsCount            int    `json:"logiciels_count"`
-	CompetencesTechniques     string `json:"competences_techniques"`
-	CompetencesFonctionnelles string `json:"competences_fonctionnelles"`
-	Projets                   string `json:"projets"`
-	ProjetsCount              int    `json:"projets_count"`
+	Prenom                    string  `json:"prenom" binding:"required"`
+	TitrePoste                string  `json:"titre_poste" binding:"required"`
+	NombreExperience          float64 `json:"nombre_experience" binding:"required"`
+	Disponibilite             string  `json:"disponibilite" binding:"required"`
+	Mobilite                  string  `json:"mobilite" binding:"required"`
+	Diplome                   string  `json:"diplome" binding:"required"`
+	Langues                   string  `json:"langues"`
+	Certifications            string  `json:"certifications"`
+	Hobbies                   string  `json:"hobbies"`
+	Experience                string  `json:"experience"` // Toutes les expériences formatées
+	ExperienceCount           int     `json:"experience_count"`
+	Logiciel                  string  `json:"logiciel"`  // Logiciel principal
+	Logiciels                 string  `json:"logiciels"` // Liste des logiciels
+	LogicielsCount            int     `json:"logiciels_count"`
+	CompetencesTechniques     string  `json:"competences_techniques"`
+	CompetencesFonctionnelles string  `json:"competences_fonctionnelles"`
+	Projets                   string  `json:"projets"`
+	ProjetsCount              int     `json:"projets_count"`
 }
 
 // PresentationTemplate définit la structure du template pour la présentation
