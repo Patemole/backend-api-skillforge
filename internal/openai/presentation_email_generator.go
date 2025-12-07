@@ -168,22 +168,22 @@ func (s *PresentationEmailGeneratorService) buildPresentationPrompt(req models.P
    - **INTERDICTION ABSOLUE : Ne rajoute AUCUNE nouvelle phrase**
    - **INTERDICTION ABSOLUE : Ne change PAS le contenu, seulement la fluidité**
 
-2. **CONDENSATION DU DÉTAIL DES EXPÉRIENCES (PRIORITÉ ABSOLUE) :**
+2. **CONDENSATION DU DÉTAIL DES EXPÉRIENCES :**
    - Le format reste : "Expérience N : Entreprise / Poste / Durée / [DÉTAIL]"
    - **NE CHANGE PAS** : Entreprise, Poste, Durée → garde tel quel
-   - **CONDENSE UNIQUEMENT LE DÉTAIL** : transforme les longues phrases en mots-clés
-   - **SUPPRIME** dans le détail : les verbes d'action longs, les phrases complètes, les métriques détaillées
-   - **GARDE** dans le détail : uniquement les mots-clés essentiels (projets, livrables, technologies)
-   - Le lecteur lit en diagonale, il doit comprendre le profil en 5 secondes
+   - **CONDENSE LE DÉTAIL** : transforme les longues descriptions en 1-2 phrases courtes avec les mots-clés
+   - **SUPPRIME** : les verbes d'action longs, les métriques détaillées, les répétitions
+   - **GARDE** : le contexte du projet + les livrables/technologies clés en 1-2 phrases
+   - Le lecteur lit en diagonale, il doit comprendre le profil rapidement
    
    **EXEMPLE DE CONDENSATION DU DÉTAIL :**
    ❌ AVANT (détail trop long) : "Expérience 1 : Lucy - AI Academic Advisor / Co-Fondateur & CTO / 2 ans / Fourniture de l'architecture de solution et pilotage de l'ingénierie de solution pour un assistant IA multi-agents, engagement des stakeholders C-level et livraison de POCs, ateliers techniques et intégrations (SSO, REST APIs, frontend) avec sécurité, scalabilité et conformité (GDPR, SOC 2), Mise à l'échelle de l'adoption vers 5000+ utilisateurs actifs mensuels (MAU) à travers les campus de l'Ivy League"
-   ✅ APRÈS (détail condensé) : "Expérience 1 : Lucy - AI Academic Advisor / Co-Fondateur & CTO / 2 ans / Architecture IA multi-agents, POCs, intégrations SSO/REST APIs, conformité GDPR/SOC 2."
+   ✅ APRÈS (détail condensé) : "Expérience 1 : Lucy - AI Academic Advisor / Co-Fondateur & CTO / 2 ans / Architecture et pilotage d'un assistant IA multi-agents. Intégrations SSO/REST APIs, conformité GDPR/SOC 2, déploiement à grande échelle."
    
    **AUTRES EXEMPLES DE DÉTAIL CONDENSÉ :**
-   - "Expérience 1 : Clévia – Eiffage Energie Systèmes (Mission LEAF) / Ingénieur études CVC / 6 mois / Etudes HVAC CER Rosny L15 Est GPE. Suivi livrables, VISAs, pré-synthèse."
-   - "Expérience 2 : COREAL (contractant général) / Chef de Projet / 4 ans / Projets résidentiels et bureaux. Pilotage, DCE, planning, OPR, DOE, GPA."
-   - "Expérience 3 : SOGEA / Assistant Chef de Projet / 6 mois / Réhabilitation 124 logements. Suivi sous-traitants, OPR, livraison, GPA."
+   - "Expérience 1 : Clévia – Eiffage Energie Systèmes (Mission LEAF) / Ingénieur études CVC / 6 mois / Etudes d'exécution HVAC pour le CER Rosny-sous-Bois L15 Est Grand Paris Express. Suivi des livrables, réponses VISAs et pré-synthèse."
+   - "Expérience 2 : COREAL (contractant général) / Chef de Projet / 4 ans / Projets résidentiels et construction de bureaux. Pilotage, gestion DCE, planning, OPR, DOE et suivi GPA."
+   - "Expérience 3 : SOGEA / Assistant Chef de Projet / 6 mois / Réhabilitation de 124 logements. Suivi sous-traitants, préparation OPR/OPL, livraison et levées de réserves."
 
 3. **SÉLECTION D'EXPÉRIENCES (si besoin présent) :**
    - Si un besoin spécifique est fourni, sélectionne 2-3 expériences les plus pertinentes
@@ -230,7 +230,7 @@ func (s *PresentationEmailGeneratorService) buildPresentationPrompt(req models.P
 - Sélectionner les réalisations : "A, B, C, D, E, F" → "A, C, E" (les plus pertinentes) ✅
 - Préserver le HTML : "<strong>titre</strong>" → "<strong>titre</strong>" (inchangé) ✅
 - Supprimer "Contenu:" : "Sujet: Titre\nContenu: Bonjour" → "Sujet: Titre<br><br>Bonjour" ✅
-- Condenser le détail : "Fourniture de l'architecture de solution et pilotage..." → "Architecture IA, POCs, intégrations." ✅
+- Condenser le détail : "Fourniture de l'architecture de solution et pilotage de l'ingénierie..." → "Architecture et pilotage d'un assistant IA multi-agents. Intégrations SSO/REST APIs." ✅
 
 **EXEMPLE DE CE QUE TU NE PEUX PAS FAIRE :**
 - Rajouter "J'espère que cet email vous trouve bien" ❌
