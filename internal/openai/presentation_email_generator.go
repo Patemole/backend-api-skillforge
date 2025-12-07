@@ -151,7 +151,7 @@ func (s *PresentationEmailGeneratorService) buildPresentationPrompt(req models.P
 		templateContext = fmt.Sprintf("\n**TEMPLATE À UTILISER :**\nSujet: %s\nContenu: %s\n", req.Template.Subject, req.Template.Content)
 	}
 
-	return fmt.Sprintf(`Tu dois améliorer la fluidité du français d'un email de présentation en faisant des MICRO-AJUSTEMENTS uniquement.
+	return fmt.Sprintf(`Tu dois améliorer la fluidité du français d'un email de présentation en faisant des MICRO-AJUSTEMENTS et en CONDENSANT les expériences.
 
 **DONNÉES DU CANDIDAT :**
 %s
@@ -168,12 +168,29 @@ func (s *PresentationEmailGeneratorService) buildPresentationPrompt(req models.P
    - **INTERDICTION ABSOLUE : Ne rajoute AUCUNE nouvelle phrase**
    - **INTERDICTION ABSOLUE : Ne change PAS le contenu, seulement la fluidité**
 
-2. **SÉLECTION D'EXPÉRIENCES (si besoin présent) :**
+2. **CONDENSATION DU DÉTAIL DES EXPÉRIENCES (PRIORITÉ ABSOLUE) :**
+   - Le format reste : "Expérience N : Entreprise / Poste / Durée / [DÉTAIL]"
+   - **NE CHANGE PAS** : Entreprise, Poste, Durée → garde tel quel
+   - **CONDENSE UNIQUEMENT LE DÉTAIL** : transforme les longues phrases en mots-clés
+   - **SUPPRIME** dans le détail : les verbes d'action longs, les phrases complètes, les métriques détaillées
+   - **GARDE** dans le détail : uniquement les mots-clés essentiels (projets, livrables, technologies)
+   - Le lecteur lit en diagonale, il doit comprendre le profil en 5 secondes
+   
+   **EXEMPLE DE CONDENSATION DU DÉTAIL :**
+   ❌ AVANT (détail trop long) : "Expérience 1 : Lucy - AI Academic Advisor / Co-Fondateur & CTO / 2 ans / Fourniture de l'architecture de solution et pilotage de l'ingénierie de solution pour un assistant IA multi-agents, engagement des stakeholders C-level et livraison de POCs, ateliers techniques et intégrations (SSO, REST APIs, frontend) avec sécurité, scalabilité et conformité (GDPR, SOC 2), Mise à l'échelle de l'adoption vers 5000+ utilisateurs actifs mensuels (MAU) à travers les campus de l'Ivy League"
+   ✅ APRÈS (détail condensé) : "Expérience 1 : Lucy - AI Academic Advisor / Co-Fondateur & CTO / 2 ans / Architecture IA multi-agents, POCs, intégrations SSO/REST APIs, conformité GDPR/SOC 2."
+   
+   **AUTRES EXEMPLES DE DÉTAIL CONDENSÉ :**
+   - "Expérience 1 : Clévia – Eiffage Energie Systèmes (Mission LEAF) / Ingénieur études CVC / 6 mois / Etudes HVAC CER Rosny L15 Est GPE. Suivi livrables, VISAs, pré-synthèse."
+   - "Expérience 2 : COREAL (contractant général) / Chef de Projet / 4 ans / Projets résidentiels et bureaux. Pilotage, DCE, planning, OPR, DOE, GPA."
+   - "Expérience 3 : SOGEA / Assistant Chef de Projet / 6 mois / Réhabilitation 124 logements. Suivi sous-traitants, OPR, livraison, GPA."
+
+3. **SÉLECTION D'EXPÉRIENCES (si besoin présent) :**
    - Si un besoin spécifique est fourni, sélectionne 2-3 expériences les plus pertinentes
    - **INTERDICTION ABSOLUE : Ne rajoute AUCUNE nouvelle phrase**
    - Utilise UNIQUEMENT les expériences fournies, telles quelles
 
-3. **SÉLECTION DE RÉALISATIONS (si besoin présent) :**
+4. **SÉLECTION DE RÉALISATIONS (si besoin présent) :**
    - Si un besoin spécifique est fourni, sélectionne 3-5 réalisations les plus pertinentes parmi les expériences choisies
    - Les réalisations sont séparées par des virgules dans chaque expérience
    - **INTERDICTION ABSOLUE : Ne rajoute AUCUNE nouvelle phrase**
@@ -181,25 +198,26 @@ func (s *PresentationEmailGeneratorService) buildPresentationPrompt(req models.P
    - **IMPORTANT : Ne liste PAS toutes les réalisations d'une expérience, sélectionne seulement les 2-3 plus pertinentes par expérience**
    - Exemple : au lieu de "A, B, C, D, E, F" → sélectionne "A, C, E" si ce sont les plus pertinentes
 
-4. **SÉLECTION DE LOGICIELS (si besoin présent) :**
+5. **SÉLECTION DE LOGICIELS (si besoin présent) :**
    - Si un besoin spécifique est fourni, sélectionne 3-5 logiciels les plus pertinents
    - **INTERDICTION ABSOLUE : Ne rajoute AUCUNE nouvelle phrase**
-   - Utilise UNIQUEMENT les logiciels fournis, telles quelles
+   - Utilise UNIQUEMENT les logiciels fournis, tels quels
 
-5. **RESPECT DU TEMPLATE :**
+6. **RESPECT DU TEMPLATE :**
    - Suis EXACTEMENT le template fourni
    - Remplace UNIQUEMENT les variables par les valeurs
    - **INTERDICTION ABSOLUE : Ne rajoute AUCUNE phrase supplémentaire**
 
-6. **PRÉSERVATION DU FORMATAGE HTML :**
+7. **PRÉSERVATION DU FORMATAGE HTML :**
    - **PRÉSERVE TOUT LE FORMATAGE HTML EXISTANT** (couleurs, gras, italique, listes)
    - **NE NETTOIE PAS** les balises HTML comme <strong>, <em>, <span style="...">, <ul>, <li>, etc.
    - **RENVOIE LE CONTENU TEL QUEL** avec le formatage HTML intact
    - **AJOUTE UN SAUT DE LIGNE** <br><br> entre le sujet et le début du contenu de l'email
    - **SUPPRIME "Contenu:"** du template (ex: "Contenu: Bonjour," → "Bonjour,")
 
-7. **RÈGLES D'OR :**
+8. **RÈGLES D'OR :**
    - **MICRO-AJUSTEMENTS SEULEMENT** (1-2 mots max par phrase)
+   - **DÉTAIL DES EXPÉRIENCES CONDENSÉ** : garde Entreprise/Poste/Durée, condense uniquement le détail en mots-clés
    - **AUCUNE NOUVELLE PHRASE**
    - **AUCUNE INFORMATION SUPPLEMENTAIRE**
    - **GARDE LE CONTENU IDENTIQUE**
@@ -212,6 +230,7 @@ func (s *PresentationEmailGeneratorService) buildPresentationPrompt(req models.P
 - Sélectionner les réalisations : "A, B, C, D, E, F" → "A, C, E" (les plus pertinentes) ✅
 - Préserver le HTML : "<strong>titre</strong>" → "<strong>titre</strong>" (inchangé) ✅
 - Supprimer "Contenu:" : "Sujet: Titre\nContenu: Bonjour" → "Sujet: Titre<br><br>Bonjour" ✅
+- Condenser le détail : "Fourniture de l'architecture de solution et pilotage..." → "Architecture IA, POCs, intégrations." ✅
 
 **EXEMPLE DE CE QUE TU NE PEUX PAS FAIRE :**
 - Rajouter "J'espère que cet email vous trouve bien" ❌
@@ -219,7 +238,7 @@ func (s *PresentationEmailGeneratorService) buildPresentationPrompt(req models.P
 - Rajouter des phrases complètes ❌
 
 **FORMAT DE RÉPONSE :**
-Retourne directement le contenu de l'email avec les micro-ajustements, sans JSON, sans formatage supplémentaire.`,
+Retourne directement le contenu de l'email avec les micro-ajustements et expériences condensées, sans JSON, sans formatage supplémentaire.`,
 		candidateContext,
 		needContext,
 		templateContext,
