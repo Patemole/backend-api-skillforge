@@ -10,14 +10,18 @@ type Formation struct {
 
 // Experience defines the structure for a professional experience record.
 type Experience struct {
-	Entreprise   string   `json:"entreprise"`
-	Duree        string   `json:"durée"`
-	Poste        string   `json:"poste"`
-	Contexte     string   `json:"contexte"`
-	Projet       string   `json:"projet"`
-	Logiciels    []string `json:"logiciels"`
-	Realisations []string `json:"réalisations"`
-	AISuggest    []string `json:"AI_suggest"`
+	DateDebut        string   `json:"date_debut"`
+	DateFin          string   `json:"date_fin"`
+	Entreprise       string   `json:"entreprise"`
+	DetailEntreprise string   `json:"detail_entreprise"`
+	Duree            string   `json:"durée"`
+	Poste            string   `json:"poste"`
+	Contexte         string   `json:"contexte"`
+	Projet           string   `json:"projet"`
+	ProjetSummary    string   `json:"projet_summary"`
+	Logiciels        []string `json:"logiciels"`
+	Realisations     []string `json:"réalisations"`
+	AISuggest        []string `json:"AI_suggest"`
 }
 
 // Logiciel defines the structure for a software skill record.
@@ -29,16 +33,33 @@ type Logiciel struct {
 
 // CompetenceDossier defines the final, structured competence portfolio.
 type CompetenceDossier struct {
-	Prenom        string       `json:"prenom"`
-	Age           string       `json:"age"`
-	Poste         string       `json:"poste"`
-	Diplome       string       `json:"diplome"`
-	Experience    string       `json:"expérience"`
-	Mobilite      string       `json:"mobilité"`
-	Disponibilite string       `json:"disponibilité"`
-	PermisB       string       `json:"permis_B"`
-	Hobbies       []string     `json:"hobbies"`
-	Formations    []Formation  `json:"formations"`
-	Experiences   []Experience `json:"expériences"`
-	Logiciels     []Logiciel   `json:"logiciels"`
+	Prenom            string       `json:"prenom"`
+	Nom               string       `json:"nom"`
+	Email             string       `json:"email"`
+	Phone             string       `json:"phone"`
+	Summary           string       `json:"summary"`
+	Age               string       `json:"age"`
+	Poste             string       `json:"poste"`
+	Diplome           string       `json:"diplome"`
+	Experience        string       `json:"expérience"`
+	Mobilite          string       `json:"mobilité"`
+	Disponibilite     string       `json:"disponibilité"`
+	PermisB           string       `json:"permis_B"`
+	Hobbies           []string     `json:"hobbies"`
+	Languages         []string     `json:"languages"`
+	SecteursActivites []string     `json:"secteurs_activites"`
+	DomainesExpertise []string     `json:"domaines_expertise"`
+	Formations        []Formation  `json:"formations"`
+	Experiences       []Experience `json:"expériences"`
+	Logiciels         []Logiciel   `json:"logiciels"`
+	Certifications    []string     `json:"certifications"`
+	TechnicalSkills   []string     `json:"technical_skills"`
+}
+
+// ChangelogEntry représente une modification dans le changelog
+type ChangelogEntry struct {
+	Field    string `json:"field"`
+	OldValue string `json:"old_value"`
+	NewValue string `json:"new_value"`
+	Reason   string `json:"reason"`
 }

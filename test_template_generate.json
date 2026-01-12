@@ -1,0 +1,24 @@
+{
+  "organization_id": "4f3e4149-e0f1-4a7c-b2b6-e2f5e409c384",
+  "template_name": "Push Candidat",
+  "email_examples": [
+    {
+      "subject": "Candidature pour le poste de Développeur Full-Stack - Jean Dupont",
+      "content": "Bonjour,\n\nJe vous présente Jean Dupont, Développeur Full-Stack avec 5 ans d'expérience.\n\nIl maîtrise React, Node.js et possède une excellente expérience en développement web.\n\nCordialement,\nMarie Martin"
+    },
+    {
+      "subject": "Présentation d'un candidat - Ingénieur Mécanique", 
+      "content": "Bonjour,\n\nJe vous recommande Marie Martin pour le poste d'Ingénieur Mécanique.\n\nAvec 8 ans d'expérience en conception, elle excelle dans l'utilisation de SolidWorks et AutoCAD.\n\nBien à vous,\nPierre Durand"
+    },
+    {
+      "subject": "Candidat recommandé - Chef de Projet IT",
+      "content": "Bonjour,\n\nJe vous présente Thomas Leroy, Chef de Projet IT avec 6 ans d'expérience.\n\nIl a dirigé avec succès plusieurs projets de transformation digitale et maîtrise les méthodologies Agile.\n\nCordialement,\nSophie Bernard"
+    }
+  ],
+  "available_variables": [
+    "{{prenom}}", "{{titre_poste}}", "{{nombre_experience}}", "{{disponibilite}}", 
+    "{{mobilite}}", "{{diplome}}", "{{experiences}}", "{{logiciel}}", 
+    "{{competences_techniques}}", "{{competences_fonctionnelles}}", "{{projets}}", 
+    "{{langues}}", "{{certifications}}", "{{hobbies}}"
+  ]
+}

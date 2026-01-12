@@ -1,0 +1,370 @@
+Ingenieur HVAC
+
+
+Domaine d’expertise	
+Maîtrise des GMPs et BPF
+Gestion des multi-projets en Pharmaceutiques
+Expertise HVAC et salles propres
+Qualifications zone pharmaceutique QC / QI / QO / QP / PdV
+Vérification/Validation
+Donneur D’Ordre, Permis de Travail, Plans de Prévention
+Gestion documentaire
+Gestion de projet
+Contrôle des coûts
+Conduite et gestion technique de projets / Compétence de chargée d’affaire
+Conception et architecture des systèmes HVAC/CVC et Fluide (Bâtiment et système embarqué)
+Conception des systèmes de refroidissement : respect des normes et délais.
+Réseaux aérauliques (Réseau de chaleur) pour bâtiment et du matériel roulant
+Conception et dimensionnement des appareils à pression (Echangeur thermique, évaporateur, condenseur, caloducs et vase d’expansion)
+Ventilation
+Etude des offres techniques dans le domaine HVAC
+Connaissances et compétences en conception de turbomachines, pompes d'écoulements, vibrations mécaniques, équilibrage dynamique, électrotechnique, électromagnétisme, électrothermie, thermoélectrique, électronique, analyse mathématique et algèbre linéaire
+Secteurs : Tertiaire, Nucléaire, Oil&Gas.
+
+FORMATION et certifications
+2004 – 2007 Ecole Polytechnique de Nantes, Nantes (France)
+                       Ingénieur Thermicien
+                       Thermique-Energétique-Mécanique du Fluide Option Bureau d’étude Thermique
+
+2003 – 2004 Université du Maine, Le Mans (France)
+                       Licence en Science de la matière
+
+Connaissances technologiques
+ClimaWin : Confirmé
+MATLAB : Confirmé
+REVIT : Confirmé
+AutoCAD : Confirmé
+Navisworks : Confirmé
+LANGUES
+Anglais : Bilingue
+
+EXPERIENCEs PROFESSIONNELLEs
+Chef de Projet Tuyauterie & Utilités & HVAC.
+Evreux – Normandie
+Du 10/02/2025 au 01/07/2025 – Portage
+
+Entreprise
+ ZAMBON CHEMICHALS
+Contexte
+
+Objectif(s)
+Gestion Multiprojet
+
+Tâches effectuées :
+Résultat(s)
+
+Environnement technique
+
+
+
+Chef de Projet Infrastructure et Utilités.
+Evreux – Normandie
+Du 04/03/2024 au 07/02/2025 – Portage
+
+Entreprise
+ GSK : GlaxoSmithKline
+Contexte
+
+Objectif(s)
+Gestion Multiprojet
+
+Tâches effectuées :
+Résultat(s)
+
+Environnement technique
+
+
+
+Responsable HVAC Utility GIGA FACTORY.
+Choisy  – Paris
+Du 04/09/2022 au 29/02/2024 – Portage
+
+Entreprise
+ ARTELIA est Spécialiste de la MOE
+Contexte
+
+Objectif(s)
+Assistance à la Coordination Technique et référent CVC  
+
+Tâches effectuées :
+Résultat(s)
+
+Environnement technique
+
+
+
+Coordination des lots ventilation et black utility du bâtiment de production BPC.
+
+NOVO-NORDIS  – Chartres
+Du 28/11/2021 au 30/08/2022 – Portage
+
+Entreprise
+Novo Nordis spécialiste de la lutte contre le diabète
+Contexte
+
+Objectif(s)
+
+Tâches effectuées :
+Résultat(s)
+
+Environnement technique
+
+
+COP (Conducteur des Opérations) – Systèmes Locaux Gares Grand Paris
+EDEIS – Mission LINEOV  – Saint Denis
+Du 04/05/2021 au 25/11/2021 – Portage
+
+Entreprise
+Groupement Lineov (Edeis) Pour la SGP
+Contexte
+
+Objectif(s)
+
+Tâches effectuées :
+
+Résultat(s)
+
+Environnement technique
+
+
+Arcadis  – Paris 14
+Du 02/10/2019 au 30/04/2021 – Portage
+
+Entreprise
+
+Contexte
+
+Objectif(s)
+
+Tâches effectuées :
+Maitrise les basics de la CAO 3D
+
+
+ 
+CNIM, La Seyne sur Mer (France)
+Avril 2019 – Fin Septembre 2019
+CHARGE D’AFFAIRES HVAC 
+EARLS GATE & BELGRADE (Usines de Valorisation des Déchets).
+
+Conception du système de ventilation et consultation des entreprises 
+Analyser le cahier des charges et la réglementation applicable 
+Identifier les contraintes techniques et données d’entrée nécessaires à la réalisation du lot HVAC 
+Réaliser l’ingénierie de base du système HVAC : principe de fonctionnement, dimensionnement des équipements principaux, définition des interfaces avec les autres lots 
+Etablir une spécification technique pour les études de détail, la fourniture, le montage et la mise en service du système 
+Analyser les offres reçues et valider les solutions techniques proposées 
+Revoir et valider les documents techniques émis par les fournisseurs : notes de calcul, fiches techniques, plans d’exécution… 
+Gérer les interfaces avec les autres activités : installation générale, génie civil, procédés, travaux électriques, contrôle-commande… 
+la conception de base (choix de diamètre, calcul d'épaisseur, schéma PFD, ...)
+Etudes d'installation générale (élaboration et vérification des P&ID, réalisation des plans 2D, isométriques, ...)
+La réalisation des spécifications technique de consultations / évaluations techniques des offres fournisseurs
+la réalisation / vérification de notes de calculs spécifiques (calcul de stress, tenue en pression, soudure, RDM, ...)
+Suivi des contrats des sous-traitants et fournitures des fournisseurs
+Piloter et suivre la réalisation du système tout au long du projet, y compris pendant la 
+APPUI POUR REALISATION D’OFFRES
+Outils et logiciels : NAVISWORKS, BENTLEY, AUTOCAD, CIBSE.
+
+
+
+TRACTEBEL, Gennevilliers (France)
+Mai 2018 – Avril 2019
+INGENIEUR HVAC 
+Réalisation de la conception détaillée d’installations de ventilation dans le cadre de projets en répondant aux exigences clients (CEA / EDF / ANDRA), aux analyses de sûreté et aux contraintes d’implantation sur toutes les phases du projet (réponses à appels d’offres, esquisse, APS, APD, PRO).
+
+PROJETS DE CONCEPTION
+Dimensionnement des principaux équipements ventilateurs, CTA, caissons de filtre, pièges à son, gaines)
+Elaboration de notes de principes de pilotage de la ventilation (principes / scénario incidentels-accidentels / gestion incendie / modes de pilotage / contrôle-commande / instrumentation) 
+Elaboration de notes de dimensionnement/notes de calcul (bilans aérauliques, bilans thermiques, pertes de charge…) 
+Etudes des équipements disponibles sur le marché / consultations de fournisseurs 
+Chiffrage installations / travaux 
+Planification travaux 
+Participation à la réalisation des plans d’installation et schémas (plans de masse, P&ID…)
+Participations aux réunions de clarification client 
+Gestion des interfaces techniques avec les autres corps d’états (procédé, sûreté, mécanique, installation générale, contrôle-commande, électricité, GC,).
+
+APPUI POUR REALISATION D’OFFRES
+Réalisation de la conception préliminaire des installations de ventilation dans le cadre d’offre dans le domaine de la ventilation selon les cahiers des charges 
+Elaboration des plannings d’étude et évaluation de la charge associée 
+Rédaction d’offres techniques 
+Participation aux visites sur site.
+Outils et logiciels : REVIT, NAVISWORK.
+
+
+
+
+SANOFI, VITRY (France)
+Mai 2017 – Mai 2018
+INGENIEUR HVAC / UTILITIES EXPERIMENTE
+Dans le cadre des 3 projets suivants : 
+Revitalisation des ailes du Terminale S3 Aéroport de Paris
+Refonte des commerces du corps central Terminal S3 Aéroport de Paris
+Maitre d’œuvre Construction Usine Pharmaceutique Douala (Africure Pharmaceutical)
+Mes Responsabilités
+L’expertise technique de référence, au sein de l'équipe projet en milieu Pharma BPF/GMP, pour son domaine de responsabilité (Black Utilities : vapeur industrielle, eau usine, eau de ville, eau glacée, air comprimé, gestion des effluents, gestion des condensats, HVAC, distribution électrique, etc...). A ce titre, je représente le site et le projet au sein des entités externes au site (Global Engineering...).
+Je définis les standards applicables pour des locaux BSL, j’assure la spécification technique (besoins utilisateurs) de la nouvelle installation garantissant la performance du processus, conformément aux exigences du projet, en utilisant les outils adaptés (FMECA, REM, SRA...). Le design est adapté à l'usage (fit-for-purpose) et à la pointe de la technologie, il prend en compte des exigences ambitieuses en termes d’impact sur l’environnement. Les spécifications permettront un démarrage/une montée en cadence rapides, une très haute disponibilité des équipements, une exploitation optimisée par les équipes opérationnelles (exploitation, maintenance, prélèvements...) et des coûts de fonctionnement réduits.
+J’effectue la revue technique des offres fournisseurs, l'alignement technique et l'approbation des études jusqu'à la conception détaillée. La revue et l’approbation des protocoles et documentation de test / qualification (le cas échéant) des équipements. Le suivi et l'expertise terrain pendant la construction, l'installation, les tests, le démarrage, le début de montée en cadence.
+J’assure la prise en compte de l'ensemble du cycle de vie de l'installation dans la conception, en particulier les opérations et la maintenance. A ce titre, je suis en relation permanente avec les équipes du bâtiment appelée à prendre possession des équipements après transfert à l’exploitant. 
+J’assure la mise mise à disposition de l’intégralité des KPIS et documents requis pour la bonne exploitation des installations de son domaine d’activité (Operational Handbooks, données nécessaires à la maintenance, à la présentation lors des inspections des autorités de santé...)
+Le respect de toutes les politiques et normes de sécurité, BPF, santé et environnement, liées au projet),
+J’assure le suivi et coordination des études d'exécution (management des équipes d'études qui sont affectées à l'opération,
+Validation des choix techniques, pilotage consultation des entreprises...),
+Relation avec l'architecte 
+Elaboration de solutions techniques pour réduire les coûts de composants
+Outils et logiciels : AUTOCAD, CLIMAWIN.
+
+
+
+SPIE (Assistance Maitrise d’œuvre)
+Septembre 2016 – Mai 2017
+HVAC and Clean Utilities Project Leader
+
+Mes principales missions sont les suivantes :
+En charge des fluides pharmaceutiques (EPUR, EPPI, VAP, GAZ) pour les sites de Neuville et Singapour dans le programme EVF
+Réalisation des bilans thermiques, schémas fonctionnels et documents généraux CVC/HVAC
+Contrôle et suivi des études internes et sous-traitées
+Vérification de la cohérence entre schématique et modélisation 3D des réseaux
+Réalisation des spécifications techniques pour l'achat des matériels et gestion des interfaces techniques avec les fournisseurs
+J'assure également une veille technologique et mène à bien les actions d'amélioration sur la fonction HVAC (coût, économie d'énergie, compacité, réduction de masse)
+Je travaille en étroite collaboration avec les coréalisateurs & fournisseurs HVAC, les équipes montage/essais et autres secteurs études,
+Référent technique, amélioration de la fonction et le suivi/traitement des risques et problèmes techniques de la phase projet à la phase garantie
+
+
+
+
+GENERAL ELECTRIC POWER CONVERSION, Massy (France)
+Juin 2015 – Septembre 2016
+HVAC PROJECT ENGINEER
+Augmentation de la capacité de production de 2 puits de pétroles. GE PC est une société spécialisée dans l’ingénierie électrique, en particulier elle conçoit des systèmes adaptés pour la conversion de l’énergie dans le but d’obtenir des rendements optimums
+
+Project Engineer
+Analyse du contrat client et l'offre de GE PC (évaluation des systèmes de refroidissement), 
+En charge le dimensionnement des systèmes suivants : 
+Aircooler (Aero-Refroidisseurs de Refroidissement des moteurs de compresseurs ou Pompes) - Groupe de production d’eau froide (Refroidissement des VSD)
+Chiller (Groupe Froid Eau/Eau de production d’eau froide pour le Refroidissement des VSD)
+Equipement sous Pression et Bâche de Stockage de liquide sous-pression.
+Etablissement des spécifications de consultation en conformité avec les codes suivants :
+ASME VIII, 
+EN 13445
+Conception et identification le système de refroidissement en libérant les spécifications techniques,
+Etablissement d’un alignement technique des offres des fournisseurs ayant répondu, 
+Organiser la réunion de lancement projet (Kick Off Meeting) 
+Discussion et levé des points ouverts pendant la phase d’alignement technique.
+Définition des tuyauteries, des robinets-vannes et des équipements statiques pour les équipements de surface offshore;
+Réalisation de notes de calcul;
+Suivi des quantitatifs de tuyauteries du projet;
+Rédaction de cahier des charges;
+Contact régulier avec les fournisseurs d’équipement et vieille technologique;
+
+Project Manager
+Gestion des délais d'exécution des projets ainsi que des coûts sur les projets suivants :  
+NEB 3 PUMP (Moyen Orient, Augmentation de la production de brut) (2 M€), 
+NEB 3 COMP (Moyen Orient, Augmentation de la production de brut) (3 M€), 
+ENCANA Saturn (4,2 M€), extraction de Gaz de Schiste 
+ENCANA CutBank (3,3 M€), 
+Validation des procédures et rapports des Tests d’Acceptation d’Usine (Hydro Test, Noise Tes, Functional Test, performance Test), 
+Inspecteur GE lors des Tests d’Acceptation d’Usine, 
+Inspecteur GE lors des Essais de Fin de Fabrication (Validation du rapport de fin de fabrication), 
+Soutiens aux Electromécaniciens pour toutes les compétences mécaniques et HVAC, 
+Assistance technique à l'équipe de mise en service de refroidissement.
+Outils et logiciels : Office, Aspen, CAD, Normes ISO9001 / API 661.
+
+
+
+EDVANCE, Malakoff (France)
+Juin 2012 – Juin 2015
+CHARGE D’AFFAIRES HVAC & PROCESS
+EDVANCE anciennement SOFINEL est une filiale du groupe EDF qui est chargé de toutes les études d’ingénierie sur des projets nucléaires dans lesquels est impliqué EDF.
+Sur le projet de l’EPR de Flamanville, j’avais la charge de piloter les activités relatives aux deux systèmes suivants :
+DEL/DER Chiller : Production de froid dans toute la centrale
+TEP : Traitement d’Effluents Primaire.
+
+Analyse du contrat client et l'offre de GE PC (évaluation des systèmes de Tenu à jour du dossier de surveillance du contrat contenant l’ensemble des documents émis et reçus par l’ensemble des parties prenantes au contrat, 
+Vérification de la maîtrise du planning prévisionnel par le fournisseur pour la réalisation des études et la livraison des équipements sur site, 
+Gestion des interfaces, des non-conformités et des modifications demandées, en interne par les différentes équipes d’ingénierie ou en externe par le fournisseur, 
+Identification (alerte) des points bloquants et Anticipation sur les points techniques ouverts.
+Pilotage et animation des réunions périodiques de pilotage du contrat : 
+Réunion d’avancement projet, 
+Réunion d’avancement Technique, 
+Réunion d’avancement Fabrication et Expédition des équipements sur site, 
+Assure les réceptions techniques en lien avec les termes de paiement du contrat.
+Préanalyser l'impact des modifications (conséquences sur les calculs de tuyauteries en particulier),
+Gérer les points ouverts de tuyauterie, les enregistrer et aider au traitement (révision, réédition),
+Participer aux différentes revues maquettes,
+Rédiger, gérer et planifier les ECN : impact, chiffrage, participation aux réunions ECN,
+Piloter les revues de cohérence 2D/3D,
+Contrôler les maquettes de tuyauteries suite au travail de conception des projeteurs.
+Pilotage de l’envoi des maquettes aux fournisseurs, suivi des études d’installation menées par le titulaire du contrat et émission des fiches d’observations associées, 
+Suivi de la conception des matériels par le titulaire du contrat, 
+Validation des plans détaillés, des notes de calcul et de dimensionnement réalisés et émission des fiches d’observations associées, 
+Suivi des études de montage et de maintenance du titulaire et émission des fiches d’observation associées. · Assistance technique au site pour le traitement des écarts chantiers et des adaptations réalisées sur site.
+Outils et logiciels : NAVIWORKS – EN 13445 – RCC-E –RCC-M.
+
+
+
+BOMBARDIER TRANSPORTATION, Crespin (France)
+Juillet 2010 – Mai 2012
+HVAC SYSTEM ENGINEER
+Construction des nouveaux trains desservant la banlieue de Paris.
+
+Conception du système HVAC (Techniques et Fonctionnels), 
+Calcul des performances du système HVAC requis au niveau du train, 
+Etablissement de l’architecture HVAC du train en concordance avec les performances requises, 
+Rédaction de la TRD (Technical Requirement Document), document requis Technique (Cahier des Charges), 
+Etude des réponses (BIDS) de différents fournisseurs (HVAC et refroidissement moteur), 
+Gestion technique des avancées du projet (Réunion de coordination et d’avancement, vidéo conférences et téléphoniques), 
+Etude et Validation des demandes de dérogation des fournisseurs, 
+Etude des MEP (Plan de réduction des coûts) et organisation des essais de confirmation, 
+Pilotage des actions d’investigation dans le cadre de la croissance FIAB (Plan de fiabilisation du train NAT), 
+Rédiger les spécifications et rapports d’essai,  
+Organiser et conduire les revues techniques spécialisées avec le client (SNCF), 
+Organiser et conduire les essais thermiques et aérauliques, 
+Déplacement chez les fournisseurs pour assister à des expertises, avancements et aux essais de fin de Fabrication, 
+Réalisation des essais fonctionnels, étude RAMS
+Suivi des études de montage et de maintenance du titulaire et émission des fiches d’observation associées. · Assistance technique au site pour le traitement des écarts chantiers et des adaptations réalisées sur site.
+Outils et logiciels : RAMS.
+
+
+
+COUGNAUD CONSTRUCTION, La Roche sur Yon (France)
+Juillet 2009 – Juillet 2010
+INGENIEUR RESPONSABLE POLE PLOMBERIE-CVC
+Société spécialisée dans la construction des bâtiments modulaires et des bâtiments à ossatures métalliques.
+
+Manager une équipe de 8 personnes dans le suivi d’affaires et la conduite des travaux et l’appel d’offre à la réception du bâtiment par le client, 
+Réaliser des calculs thermiques sur CLIMAWIN, FAUCONNET Module calculs thermique et fluides, simulation thermique dynamique, ·
+Dimensionner et concevoir les installations dans des bâtiments aussi bien tertiaires que résidentiels.  Ventilation § Chauffage § ECS § Solaire § Plancher chauffant Climatisation, 
+Bilans Carbone et construction durable, management environnemental, 
+Réalisation des DPE (Diagnostic des Performances Energétiques) 
+Participation aux concours et initiation les opérations complexes
+Conception de l'ensemble des installations de votre spécialité sur toutes les phases des projets (ESQ, APS, APD, PRO, DCE)
+Définition des architectures qui correspondent aux besoins du client et à la typologie du projet
+Dimensionner les installations, réaliser les notes de calculs nécessaires et décrire les solutions retenues
+Participer à l'organisation et au contrôle qualité de la production des plans et schémas
+Suivre l'exécution des travaux en lien avec les entreprises désignées et les clients jusqu'à la livraison des installations et assurer les OPR.
+Outils et logiciels : CATYA – PLEADES – CLIMAWIN.
+
+
+ALSTOM TRANSPORT, Tarbes (France)
+Décembre 2008 – Juillet 2010
+INGENIEUR ETUDES THERMIQUES 
+Conception et dimensionnement des circuits de refroidissements des composants électroniques (IGBT, TRANSISTOR, Résistance de décharge) : 
+Refroidissement à Air,
+Sélection des ventilateurs, 
+Dimensionnement des réseaux aérauliques.
+
+Conception des systèmes de refroidissement 
+Avant-projet, 
+Etude Thermique et Energétique (Calcul des puissances à évacuer), 
+Choix du type de refroidissement (Mode d'évacuation 
+Refroidissement direct Air ou -Refroidissement indirect==>Eau)
+Etude Aéraulique et hydraulique des circuits de refroidissement (Air) et des boucles de refroidissement, 
+Dimensionnement des radiateurs pour le cas des Boucles à Eau (Surface d'échange, hauteurs des ailettes, pas des ailettes, choix des matériaux),
+Sélection des ventilateurs --Petits ventilateurs pour les refroidissements directs et Grand Ventilateurs pour les radiateurs des Boucles à Eau, ·
+Modélisation du transfert thermique dans les composants électroniques des motrices (du simple transistor à la Self), 
+Validation des modèles numérique via des essais : - Pour le cas des IGBT, choix des résines conductrices à mettre entre les plaques IGBT et les plaques ailettes intensificatrice du Transfert Thermique, le but uniformiser le transfert surfacique. 
+Accompagnement du Technicien CAO pour la réalisation des échangeurs et plaques de refroidissement conçue et validé numériquement.
+Outils et logiciels : CATYA – PLEADES – CLIMAWIN.
+
+
+
+
+Serge ANANGO	Coordonnées : +33 (0)6 34 22 37 34		

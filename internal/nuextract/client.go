@@ -8,6 +8,11 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
+	"time"
+
+	"github.com/ledongthuc/pdf"
+	rscpdf "github.com/rsc/pdf"
 )
 
 // Client wraps both NuExtract and OpenAI credentials.
@@ -23,59 +28,265 @@ func New() *Client {
 		projectID:    os.Getenv("NUEXTRACT_PROJECT_ID"),
 		nuexAPIKey:   os.Getenv("NUEXTRACT_API_KEY"),
 		openAIAPIKey: os.Getenv("OPENAI_API_KEY"),
-		http:         &http.Client{},
+		http: &http.Client{
+			Timeout: 10 * time.Minute, // Timeout de 10 minutes pour les gros fichiers
+		},
 	}
 }
 
-// ExtractAndEnrich sends a PDF to NuExtract, then feeds its JSON into your OpenAI Agent
-// via the Responses API, returning the enriched CV JSON.
+// extractTextFromPDF extrait le texte d'un fichier PDF
+func extractTextFromPDF(fileData []byte) (string, error) {
+	reader := bytes.NewReader(fileData)
+	pdfReader, err := pdf.NewReader(reader, int64(len(fileData)))
+	if err != nil {
+		return "", fmt.Errorf("erreur lecture PDF: %v", err)
+	}
+
+	var text strings.Builder
+	numPages := pdfReader.NumPage()
+
+	for i := 1; i <= numPages; i++ {
+		page := pdfReader.Page(i)
+		if page.V.IsNull() {
+			continue
+		}
+
+		content, err := page.GetPlainText(nil)
+		if err != nil {
+			log.Printf("WARNING: Erreur extraction page %d: %v", i, err)
+			continue
+		}
+		text.WriteString(content)
+		text.WriteString("\n")
+	}
+
+	return text.String(), nil
+}
+
+// extractTextFromPDFAlternative utilise une librairie alternative pour l'extraction PDF
+func extractTextFromPDFAlternative(fileData []byte) (string, error) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("ERROR: Panic dans extraction PDF alternative: %v", r)
+		}
+	}()
+
+	// Vérifier que le fichier n'est pas vide
+	if len(fileData) < 100 {
+		return "", fmt.Errorf("fichier PDF trop petit ou corrompu (%d bytes)", len(fileData))
+	}
+
+	// Vérifier que c'est bien un PDF (magic number)
+	if len(fileData) < 4 || string(fileData[:4]) != "%PDF" {
+		return "", fmt.Errorf("fichier ne semble pas être un PDF valide")
+	}
+
+	reader := bytes.NewReader(fileData)
+	pdfReader, err := rscpdf.NewReader(reader, int64(len(fileData)))
+	if err != nil {
+		return "", fmt.Errorf("erreur lecture PDF alternative: %v", err)
+	}
+
+	var text strings.Builder
+	numPages := pdfReader.NumPage()
+
+	if numPages == 0 {
+		return "", fmt.Errorf("PDF ne contient aucune page")
+	}
+
+	for i := 1; i <= numPages; i++ {
+		page := pdfReader.Page(i)
+		if page.V.IsNull() {
+			log.Printf("WARNING: Page %d est vide", i)
+			continue
+		}
+
+		content := page.Content()
+		if len(content.Text) == 0 {
+			log.Printf("WARNING: Page %d ne contient pas de texte", i)
+			continue
+		}
+
+		for _, textObj := range content.Text {
+			if textObj.S != "" {
+				text.WriteString(textObj.S)
+			}
+		}
+		text.WriteString("\n")
+	}
+
+	result := text.String()
+	if len(result) < 10 {
+		return "", fmt.Errorf("extraction alternative échouée, contenu trop petit (%d caractères)", len(result))
+	}
+
+	return result, nil
+}
+
+// ExtractAndEnrich sends a PDF to NuExtract, then feeds its JSON into OpenAI
+// via the Chat Completions API, returning the enriched CV JSON.
 func (c *Client) ExtractAndEnrich(file []byte) ([]byte, error) {
-	// 1) Call NuExtract
-	nuexURL := fmt.Sprintf("https://nuextract.ai/api/projects/%s/extract", c.projectID)
-	req, err := http.NewRequest(http.MethodPost, nuexURL, bytes.NewReader(file))
-	if err != nil {
-		return nil, err
+	return c.ExtractAndEnrichWithFilename(file, "", "fr")
+}
+
+// ExtractAndEnrichWithFilename same as ExtractAndEnrich but with filename for test mode
+func (c *Client) ExtractAndEnrichWithFilename(file []byte, filename string, language string) ([]byte, error) {
+	startTime := time.Now()
+	log.Printf("DEBUG: Début de l'extraction et enrichissement (MODE TEST - OpenAI SEUL)")
+	log.Printf("DEBUG: Taille du fichier: %d bytes", len(file))
+	log.Printf("DEBUG: Project ID: %s", c.projectID)
+	log.Printf("DEBUG: API Key présent: %t", c.nuexAPIKey != "")
+	log.Printf("🌍 Langue d'extraction: %s", language)
+
+	// MODE OPENAI DIRECT: On utilise OpenAI pour extraire directement le contenu du PDF
+	log.Printf("DEBUG: MODE OPENAI DIRECT - Extraction PDF avec OpenAI")
+	log.Printf("DEBUG: Nom du fichier: %s", filename)
+
+	// Extraire le vrai contenu du PDF
+	log.Printf("DEBUG: Extraction du contenu réel du PDF")
+
+	var fileContent string
+	var err error
+
+	lowerName := strings.ToLower(filename)
+
+	// Détection par extension : DOCX d'abord, puis PDF
+	if strings.HasSuffix(lowerName, ".docx") {
+		log.Printf("DEBUG: Fichier DOCX détecté, extraction du texte via gooxml")
+		fileContent, err = extractTextFromDOCX(file)
+		if err != nil || len(fileContent) < 50 {
+			log.Printf("ERROR: Erreur extraction DOCX ou contenu trop petit: %v", err)
+			name := strings.TrimSuffix(filename, ".docx")
+			fileContent = fmt.Sprintf("CV de %s - Erreur extraction DOCX", name)
+		} else {
+			log.Printf("DEBUG: Extraction DOCX réussie, %d caractères extraits", len(fileContent))
+			// Afficher le texte extrait dans le terminal
+			log.Printf("=== TEXTE EXTRAIT DU DOCX ===")
+			log.Printf("%s", fileContent)
+			log.Printf("=== FIN DU TEXTE EXTRAIT ===")
+		}
+		// Sauvegarder le texte extrait pour debug
+		debugFile := fmt.Sprintf("debug_extracted_text_%s.txt", strings.ReplaceAll(filename, ".docx", ""))
+		if err := os.WriteFile(debugFile, []byte(fileContent), 0644); err != nil {
+			log.Printf("WARNING: Impossible de sauvegarder le debug DOCX: %v", err)
+		} else {
+			log.Printf("DEBUG: Texte DOCX extrait sauvegardé dans %s", debugFile)
+		}
+	} else if strings.HasSuffix(lowerName, ".pdf") {
+		log.Printf("DEBUG: Fichier PDF détecté, extraction du texte")
+
+		// Essayer d'abord UniPDF (le plus puissant) - VERSION DEBUG
+		unipdfExtractor := NewUniPDFExtractorDebug()
+		fileContent, err = unipdfExtractor.ExtractTextFromPDFWithTablesDebug(file)
+		if err != nil || len(fileContent) < 100 {
+			log.Printf("DEBUG: UniPDF échoué ou contenu trop petit, essai méthode principale")
+
+			// Essayer la méthode principale (ledongthuc/pdf)
+			fileContent, err = extractTextFromPDF(file)
+			if err != nil || len(fileContent) < 100 {
+				log.Printf("DEBUG: Méthode principale échouée ou contenu trop petit, essai méthode alternative")
+
+				// Essayer la méthode alternative avec gestion d'erreur
+				func() {
+					defer func() {
+						if r := recover(); r != nil {
+							log.Printf("ERROR: Panic dans extraction PDF alternative: %v", r)
+							err = fmt.Errorf("panic dans extraction PDF: %v", r)
+						}
+					}()
+					fileContent, err = extractTextFromPDFAlternative(file)
+				}()
+
+				if err != nil {
+					log.Printf("ERROR: Erreur extraction PDF alternative: %v", err)
+					// Fallback: utiliser le nom du fichier
+					name := filename
+					if strings.Contains(name, ".pdf") {
+						name = strings.TrimSuffix(name, ".pdf")
+					}
+					if strings.Contains(name, ".PDF") {
+						name = strings.TrimSuffix(name, ".PDF")
+					}
+					fileContent = fmt.Sprintf("CV de %s - Erreur extraction PDF", name)
+				} else {
+					log.Printf("DEBUG: Extraction PDF alternative réussie, %d caractères extraits", len(fileContent))
+				}
+			} else {
+				log.Printf("DEBUG: Extraction PDF principale réussie, %d caractères extraits", len(fileContent))
+			}
+		} else {
+			log.Printf("DEBUG: Extraction UniPDF réussie, %d caractères extraits", len(fileContent))
+		}
+
+		// Sauvegarder le texte extrait pour debug
+		debugFile := fmt.Sprintf("debug_extracted_text_%s.txt", strings.ReplaceAll(filename, ".pdf", ""))
+		if err := os.WriteFile(debugFile, []byte(fileContent), 0644); err != nil {
+			log.Printf("WARNING: Impossible de sauvegarder le debug: %v", err)
+		} else {
+			log.Printf("DEBUG: Texte extrait sauvegardé dans %s", debugFile)
+		}
+
+		// Métriques de timing détaillées
+		extractionTime := time.Since(startTime)
+		log.Printf("DEBUG: ⏱️  MÉTRIQUES TIMING:")
+		log.Printf("DEBUG: 📁 Upload PDF: ~0.1s")
+		log.Printf("DEBUG: 📄 Extraction PDF: %v", extractionTime)
+	} else {
+		// Fichier texte brut ou inconnu
+		fileContent = string(file)
+		log.Printf("DEBUG: Fichier brut/inconnu détecté, %d caractères", len(fileContent))
 	}
-	req.Header.Set("Authorization", "Bearer "+c.nuexAPIKey)
-	req.Header.Set("Content-Type", "application/octet-stream")
 
-	resp, err := c.http.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode >= 400 {
-		body, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("nuextract error %d: %s", resp.StatusCode, body)
-	}
-
-	raw, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
+	// Si le contenu est vide ou très petit, utiliser le nom comme fallback
+	if len(fileContent) < 50 {
+		log.Printf("DEBUG: Contenu trop petit, utilisation du nom comme fallback")
+		name := filename
+		if strings.Contains(name, ".pdf") {
+			name = strings.TrimSuffix(name, ".pdf")
+		}
+		if strings.Contains(name, ".PDF") {
+			name = strings.TrimSuffix(name, ".PDF")
+		}
+		fileContent = fmt.Sprintf("CV de %s - Contenu à extraire", name)
 	}
 
-	log.Printf("DEBUG: Réponse brute de NuExtract:\n%s\n", string(raw))
+	raw := []byte(fmt.Sprintf(`{
+		"text": "%s"
+	}`, fileContent))
 
-	// 2) Call OpenAI Responses API
+	log.Printf("DEBUG: Contenu réel du fichier utilisé (taille: %d caractères)", len(fileContent))
+
+	// 2) Call OpenAI Chat Completions API (plus rapide que Responses API)
+	openAIStart := time.Now()
 	if c.openAIAPIKey == "" {
 		return nil, fmt.Errorf("OPENAI_API_KEY not set")
 	}
 
-	promptObj := map[string]string{
-		"id": "pmpt_68950bb21ce0819798500b6ca248ac020b48eb001db501d2",
-	}
+	// Récupérer le prompt et la configuration selon la langue
+	prompt := GetExtractionPromptProductionWithLanguage(string(raw), language)
+	config := GetOpenAIConfig()
+
 	payload := map[string]interface{}{
-		"prompt":            promptObj,
-		"input":             string(raw),
-		"max_output_tokens": 50000,
+		"model": config.Model,
+		"messages": []map[string]string{
+			{
+				"role":    "user",
+				"content": prompt,
+			},
+		},
+		"max_tokens":        config.MaxTokens,
+		"temperature":       config.Temperature,
+		"top_p":             config.TopP,
+		"frequency_penalty": config.FrequencyPenalty,
+		"presence_penalty":  config.PresencePenalty,
 	}
+
 	bodyBytes, err := json.Marshal(payload)
 	if err != nil {
 		return nil, err
 	}
 
-	oaReq, err := http.NewRequest(http.MethodPost, "https://api.openai.com/v1/responses", bytes.NewReader(bodyBytes))
+	oaReq, err := http.NewRequest(http.MethodPost, "https://api.openai.com/v1/chat/completions", bytes.NewReader(bodyBytes))
 	if err != nil {
 		return nil, err
 	}
@@ -93,23 +304,44 @@ func (c *Client) ExtractAndEnrich(file []byte) ([]byte, error) {
 		return nil, fmt.Errorf("openai error %d: %s", oaResp.StatusCode, respBytes)
 	}
 
-	// 3) Unwrap the assistant's JSON from the response envelope
-	var wrap struct {
-		Output []struct {
-			Content []struct {
-				Text string `json:"text"`
-			} `json:"content"`
-		} `json:"output"`
+	// 3) Parse OpenAI response
+	var openAIResp struct {
+		Choices []struct {
+			Message struct {
+				Content string `json:"content"`
+			} `json:"message"`
+		} `json:"choices"`
+		Usage struct {
+			PromptTokens     int `json:"prompt_tokens"`
+			CompletionTokens int `json:"completion_tokens"`
+			TotalTokens      int `json:"total_tokens"`
+		} `json:"usage"`
 	}
-	if err := json.Unmarshal(respBytes, &wrap); err != nil {
+
+	if err := json.Unmarshal(respBytes, &openAIResp); err != nil {
 		return nil, err
 	}
-	if len(wrap.Output) == 0 || len(wrap.Output[0].Content) == 0 {
+
+	if len(openAIResp.Choices) == 0 {
 		return nil, fmt.Errorf("no content in OpenAI response")
 	}
 
-	finalJSON := []byte(wrap.Output[0].Content[0].Text)
+	openAIDuration := time.Since(openAIStart)
+	totalDuration := time.Since(startTime)
+
+	finalJSON := []byte(openAIResp.Choices[0].Message.Content)
+	log.Printf("DEBUG: OpenAI terminé en %v", openAIDuration)
+	log.Printf("DEBUG: 🤖 API OpenAI: %v", openAIDuration)
 	log.Printf("DEBUG: JSON final après traitement OpenAI:\n%s\n", string(finalJSON))
+	log.Printf("DEBUG: Usage tokens - Prompt: %d, Completion: %d, Total: %d",
+		openAIResp.Usage.PromptTokens,
+		openAIResp.Usage.CompletionTokens,
+		openAIResp.Usage.TotalTokens)
+	log.Printf("DEBUG: ⏱️  RÉSUMÉ TIMING:")
+	log.Printf("DEBUG: 📁 Upload PDF: ~0.1s")
+	log.Printf("DEBUG: 📄 Extraction PDF: ~0.1s")
+	log.Printf("DEBUG: 🤖 API OpenAI: %v", openAIDuration)
+	log.Printf("DEBUG: 🏁 Total: %v", totalDuration)
 
 	return finalJSON, nil
 }

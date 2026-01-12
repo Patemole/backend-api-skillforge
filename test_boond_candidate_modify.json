@@ -1,0 +1,8 @@
+{
+  "boondCandidateId": "12345",
+  "boondJwt": "your_boond_jwt_token_here",
+  "email": "nouveau.email@example.com",
+  "phone": "+33123456789",
+  "mobilite": "Paris, Lyon, Marseille",
+  "disponibilite": "2024-02-01"
+}

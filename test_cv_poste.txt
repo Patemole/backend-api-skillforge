@@ -1,0 +1,37 @@
+Jean Dupont
+Ingénieur logiciel avec 5 ans d'expérience
+Email: jean.dupont@example.com
+Téléphone: 06 12 34 56 78
+
+EXPERIENCES PROFESSIONNELLES
+
+2022-2024 - TechCorp
+Développeur Senior Full Stack
+- Développement d'applications web avec React et Node.js
+- Gestion de bases de données PostgreSQL
+- Collaboration avec équipes DevOps pour déploiement AWS
+
+2020-2022 - StartupXYZ
+Développeur Frontend
+- Création d'interfaces utilisateur avec Vue.js
+- Intégration d'APIs REST
+- Tests unitaires avec Jest
+
+2019-2020 - Stage - BigCompany
+Stagiaire Développeur
+- Apprentissage des technologies web
+- Participation à des projets de développement
+
+FORMATION
+
+2017-2019 - Master Informatique
+Université de Technologie
+
+2015-2017 - Licence Informatique
+Université de Technologie
+
+COMPETENCES
+- Langages: JavaScript, Python, Go
+- Frameworks: React, Vue.js, Express
+- Bases de données: PostgreSQL, MongoDB
+- Cloud: AWS, Docker, Kubernetes

@@ -1,0 +1,8 @@
+{
+  "boondCandidateId": "5471",
+  "boondJwt": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyVG9rZ...",
+  "email": "test.modify@example.com",
+  "phone": "+33123456789",
+  "mobilite": "Paris, Lyon, Marseille",
+  "disponibilite": "2024-02-01"
+}
